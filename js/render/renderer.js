@@ -116,6 +116,28 @@
       ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 1, 1);
     }
   }
+  // objets qui tombent : colonne de lumière de la couleur de la rareté + icône qui flotte
+  function drawLoot() {
+    for (const d of fx.drops) {
+      const k = d.t / d.life, ri = G.data.rarityIndex[d.item.rarity], col = G.data.rarities[ri].color;
+      const x = Math.round(d.x * T - cam.x), y = Math.round(d.y * T - cam.y);
+      const alpha = k > 0.75 ? (1 - k) * 4 : 1;
+      if (ri >= 2) {
+        ctx.globalCompositeOperation = 'lighter';
+        const h = 18 + ri * 10;
+        const g = ctx.createLinearGradient(0, y - h, 0, y + 2);
+        g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, hexA(col, 0.55 * alpha));
+        ctx.fillStyle = g; ctx.fillRect(x - 2 - (ri >= 4 ? 1 : 0), y - h, 4 + (ri >= 4 ? 2 : 0), h + 2);
+        glow(x, y, 8 + ri * 2, hexA(col, 0.4 * alpha));
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      const s = G.render.getSprite(G.render.itemSprite(d.item));
+      const bob = Math.round(Math.sin(d.t * 8) * 1.5) - Math.round(Math.min(1, d.t * 5) * 8);
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(s.img, x - 6, y - 10 + bob);
+      ctx.globalAlpha = 1;
+    }
+  }
   // arc de lame : quelques pixels en croissant qui balaient
   function drawArc(a) {
     const k = a.t / a.life, cx = a.x * T - cam.x, cy = a.y * T - cam.y, r = a.r * T;
@@ -247,7 +269,8 @@
     }
     // couche lumineuse : sorts, traînées, anneaux, rayons (brillent dans le noir)
     for (const a of fx.arcs) drawArc(a);
-    for (const p of run.projectiles) drawProjectile(p);
+    for (const p of run.projectiles) if (!(p.wait > 0)) drawProjectile(p);
+    drawLoot();
     ctx.globalCompositeOperation = 'lighter';
     for (const p of fx.parts) {
       if (!p.glow) continue;

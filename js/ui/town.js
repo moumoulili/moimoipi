@@ -27,6 +27,21 @@
       }
       h += '</div>';
 
+      // ---- Boutique ----
+      const SH = G.sys.shop;
+      h += '<div class="panel" id="tw-shop"><h3>🛒 Boutique</h3><p class="muted small">Les prix suivent ton étage record.</p>';
+      for (const id of G.data.potionOrder) {
+        const p = G.data.potions[id], n = st.potions[id] || 0, price = SH.potionPrice(id), full = n >= SH.maxPotions();
+        h += '<div class="potion-row"><img alt="" src="' + G.render.potionIconURL(id, 3) + '"><div class="info"><b>' + p.name + '</b> <span class="muted">×' + n + ' / ' + SH.maxPotions() + '</span><div class="muted small">' + p.desc + '</div></div>' +
+          '<div class="buy"><button class="pxbtn small gold" data-pot="' + id + '" data-n="1"' + (full || st.gold < price ? ' disabled' : '') + '>' + U.fmt(price) + '</button>' +
+          '<button class="pxbtn small" data-pot="' + id + '" data-n="5"' + (full || st.gold < price ? ' disabled' : '') + '>×5</button></div></div>';
+      }
+      const stock = SH.stock();
+      const mins = Math.max(0, Math.ceil((st.shop.refreshAt - Date.now()) / 60000));
+      h += '<p class="lbl">Objets en vente <span class="muted small">(nouveau stock dans ' + mins + ' min)</span></p><div class="igrid">' +
+        (stock.length ? stock.map((it) => ui.itemCell(it, { up: !!G.sys.inventory.upgradeFor(it) })).join('') : '<p class="muted">Tout est vendu !</p>') + '</div>' +
+        '<button class="pxbtn small wide" id="tw-restock"' + (st.gold < SH.refreshCost() ? ' disabled' : '') + '>Renouveler le stock · ' + U.fmt(SH.refreshCost()) + ' or</button></div>';
+
       h += '<div class="panel"><h3>Équipe</h3>';
       for (const hero of G.sys.heroes.team()) {
         const c = G.data.classes[hero.cls], s = G.sys.stats.hero(hero);
@@ -52,6 +67,13 @@
       el.querySelectorAll('[data-buy]').forEach((b) => (b.onclick = () => {
         if (G.sys.town.buy(b.dataset.buy)) { ui.toast(G.data.buildings[b.dataset.buy].name + ' amélioré !', 'gold'); ui.invalidateHud(); this.render(); }
       }));
+      const rer = () => this.render();
+      el.querySelectorAll('[data-pot]').forEach((b) => (b.onclick = () => {
+        const n = SH.buyPotion(b.dataset.pot, +b.dataset.n);
+        if (n) ui.toast('+' + n + ' ' + G.data.potions[b.dataset.pot].name); rer();
+      }));
+      el.querySelectorAll('#tw-shop .icell').forEach((b) => (b.onclick = () => ui.itemDetail(stock.find((i) => i.uid === b.dataset.uid), { from: 'shop', onDone: rer })));
+      U.$('#tw-restock').onclick = () => { if (SH.paidRefresh()) ui.toast('Nouveau stock !'); rer(); };
       const go = U.$('#tw-go'); if (go) go.onclick = () => ui.startRun();
       const view = U.$('#tw-view'); if (view) view.onclick = () => ui.show('dungeon');
     },

@@ -5,7 +5,7 @@
 //  mode lumineux après l'obscurité : ils brillent dans le noir.
 // =====================================================================
 (function () {
-  const fx = { texts: [], parts: [], arcs: [], rings: [], beams: [], shakeT: 0, fadeT: 0, fadeMax: 0, flashT: 0, flashMax: 0, flashCol: '#fff' };
+  const fx = { drops: [], texts: [], parts: [], arcs: [], rings: [], beams: [], shakeT: 0, fadeT: 0, fadeMax: 0, flashT: 0, flashMax: 0, flashCol: '#fff' };
   const rnd = (a, b) => a + Math.random() * (b - a);
   const MAXP = 600;
   function part(p) { if (fx.parts.length >= MAXP) fx.parts.shift(); p.t = 0; fx.parts.push(p); }
@@ -104,10 +104,17 @@
   // éclat au départ d'un tir / sort
   fx.muzzle = function (x, y, el) { const e = EL[el] || EL.physical; fx.ring(x, y, e.c1, 0.35, 0.15); fx.burst(x, y, e.c2, 3, 0, true); };
 
+  // objet tombé (affiché ~1,6 s puis ramassé)
+  fx.loot = function (x, y, item) {
+    if (fx.drops.length > 12) fx.drops.shift();
+    fx.drops.push({ x, y, item, t: 0, life: 1.6 });
+    const ri = G.data.rarityIndex[item.rarity];
+    if (ri >= 2) fx.sparkle(x, y, G.data.rarities[ri].color, 4 + ri * 3);
+  };
   fx.shake = function (t) { fx.shakeT = Math.max(fx.shakeT, t); };
   fx.flash = function (color, t) { if (G.state && G.state.settings.flashes === false) return; fx.flashCol = color; fx.flashT = fx.flashMax = t; };
   fx.fade = function (t) { fx.fadeT = t; fx.fadeMax = t; };
-  fx.clear = function () { fx.texts.length = 0; fx.parts.length = 0; fx.arcs.length = 0; fx.rings.length = 0; fx.beams.length = 0; };
+  fx.clear = function () { fx.drops.length = 0; fx.texts.length = 0; fx.parts.length = 0; fx.arcs.length = 0; fx.rings.length = 0; fx.beams.length = 0; };
 
   fx.update = function (dt) {
     for (const t of fx.texts) { t.t += dt; t.y -= dt * 0.9; }
@@ -117,7 +124,8 @@
       if (p.bounce && p.y > p.bounce && p.vy > 0) { p.y = p.bounce; p.vy *= -0.35; p.vx *= 0.6; }
     }
     fx.parts = fx.parts.filter((p) => p.t < p.life);
-    for (const list of [fx.arcs, fx.rings, fx.beams]) for (const a of list) a.t += dt;
+    for (const list of [fx.arcs, fx.rings, fx.beams, fx.drops]) for (const a of list) a.t += dt;
+    fx.drops = fx.drops.filter((d) => d.t < d.life);
     fx.arcs = fx.arcs.filter((a) => a.t < a.life);
     fx.rings = fx.rings.filter((a) => a.t < a.life);
     fx.beams = fx.beams.filter((a) => a.t < a.life);

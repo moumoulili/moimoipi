@@ -56,6 +56,23 @@ G.data.balance = {
   chestGold: 5,            // un coffre = 5 monstres en or
   deathKeep: 0.5,          // part de l'or gardée en cas de défaite
 
+  // --- Butin (phase 2) ---
+  itemPower: (ilvl) => (1 + 0.1 * (ilvl - 1)) * Math.pow(1.05, ilvl - 1),
+  dropChance: { normal: 0.08, elite: 0.35 },
+  guardianDrops: { mini: { n: 2, minRarity: 'rare' }, boss: { n: 3, minRarity: 'rare', bonus: 'epic' } },
+  chestItems: 1,
+  uniqueChance: 0.25,          // un légendaire a 25 % de chance d'être un unique
+  materialDrops: { scrap: 0.12, eliteScrap: 2, miniDust: 3, bossEther: 1 },
+  salvage: [                   // matériaux obtenus en recyclant, par rareté
+    { scrap: 1 }, { scrap: 2 }, { scrap: 2, dust: 1 }, { scrap: 3, dust: 2 }, { dust: 4, ether: 1 }, { dust: 6, ether: 3 },
+  ],
+  itemSellBase: 3,             // prix de vente = or d'un monstre du niveau de l'objet x 3 x rareté
+  inventorySize: 40,
+  potionStack: 10,             // potions max par type (l'entrepôt augmentera ça en phase 7)
+  potionCooldown: 6,           // secondes entre deux potions pour un même héros
+  startPotions: { heal: 3 },
+  shop: { items: 4, refreshMinutes: 15, priceMult: 5, minRarity: 'uncommon' },
+
   // --- Expérience (phase 3) ---
   xpToNext: (L) => Math.round(50 * Math.pow(L, 1.6)),
   monsterXp: (lvl) => 5 * Math.pow(lvl, 1.3),

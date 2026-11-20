@@ -49,6 +49,21 @@
     });
   }
 
+  // ---------- Potions (utilisation manuelle) ----------
+  let potKey = '';
+  function updatePotions() {
+    const bar = U.$('#potion-bar'), run = G.sys.run.active;
+    if (!run) { if (potKey !== 'none') { bar.innerHTML = ''; potKey = 'none'; } return; }
+    const key = G.data.potionOrder.map((id) => G.state.potions[id] || 0).join() + Object.keys(run.buffs).map((k) => k + (run.buffs[k] > 0)).join();
+    if (key === potKey) return;
+    potKey = key;
+    bar.innerHTML = G.data.potionOrder.map((id) => {
+      const n = G.state.potions[id] || 0, active = run.buffs[id] > 0;
+      return '<button class="pot ' + (active ? 'active' : '') + '" data-p="' + id + '"' + (n ? '' : ' disabled') + '><img alt="" src="' + G.render.potionIconURL(id, 2) + '"><b>' + n + '</b></button>';
+    }).join('');
+    bar.querySelectorAll('[data-p]').forEach((b) => (b.onclick = () => { if (!G.sys.potions.manual(b.dataset.p)) ui.toast('Pas utile maintenant'); potKey = ''; }));
+  }
+
   // ---------- Actions ----------
   function updateActions() {
     const run = G.sys.run.active;
@@ -82,7 +97,7 @@
     box.appendChild(exit);
     box.appendChild(flee);
   }
-  ui.invalidateHud = function () { partyKey = ''; actionsKey = ''; };
+  ui.invalidateHud = function () { partyKey = ''; actionsKey = ''; potKey = ''; };
 
   // Appelé à chaque image ; met l'interface à jour 5 fois par seconde
   ui.tick = function (dt) {
@@ -90,7 +105,7 @@
     if (hudT > 0) return;
     hudT = 0.2;
     updateTop();
-    if (ui.current === 'dungeon') { updateParty(); updateActions(); ui.renderLog(); }
+    if (ui.current === 'dungeon') { updateParty(); updatePotions(); updateActions(); ui.renderLog(); }
   };
 
   // ---------- Démarrer une expédition ----------
@@ -136,9 +151,12 @@
     const html = '<div class="sum-grid">' +
       '<div>Étages</div><div><b>' + lr.startFloor + ' → ' + lr.floor + '</b></div>' +
       '<div>Monstres vaincus</div><div><b>' + lr.kills + '</b></div>' +
+      '<div>Objets trouvés</div><div><b>' + (lr.items || 0) + '</b></div>' +
+      (Object.keys(lr.mats || {}).length ? '<div>Matériaux</div><div class="small">' + G.sys.inventory.matsText(lr.mats) + '</div>' : '') +
       '<div>Durée</div><div>' + m + ' min ' + sec + ' s</div>' +
       '<div>Or ramassé</div><div class="gold">' + U.fmt(lr.gold) + '</div>' +
       '<div>Or conservé' + (death ? ' (' + Math.round(B.deathKeep * 100) + ' %)' : '') + '</div><div class="gold"><b>' + U.fmt(lr.kept) + '</b></div>' +
+      (death ? '<div class="muted small" style="grid-column:1/3">Les objets trouvés sont tous conservés.</div>' : '') +
       '</div><h3 style="margin:12px 0 4px;font-size:13px">Équipe</h3><div class="sum-grid">' + rows + '</div>';
     const again = { label: '⚔️ Repartir (étage ' + ui.startFloor() + ')', cls: 'primary', onClick: () => ui.startRun() };
     const town = { label: '🏰 Aller en ville', onClick: () => ui.show('town') };

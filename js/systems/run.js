@@ -33,7 +33,7 @@
   function build(saved) {
     const run = {
       saved, heroes: [], monsters: [], units: [], projectiles: [], trail: [],
-      goal: null, goalT: 0, state: 'explore', stats: saved.heroStats || {}, t: 0, revealT: 0, inCombat: false,
+      goal: null, goalT: 0, state: 'explore', stats: saved.heroStats || {}, t: 0, revealT: 0, inCombat: false, buffs: {},
     };
     saved.heroStats = run.stats;
     run.track = function (id, k, v) {
@@ -58,7 +58,7 @@
     const spots = [[0, 0], [-1, 0], [0, 1], [-1, 1], [1, 0], [1, 1]];
     run.heroes = G.sys.heroes.team().map((h, i) => {
       const hp = saved.hp[h.id];
-      const u = C.heroUnit(h, hp == null ? null : hp);
+      const u = C.heroUnit(h, hp == null ? null : hp, G.sys.potions.buffStats(run));
       const [ox, oy] = spots[i % spots.length];
       u.x = e.cx + ox + 0.5; u.y = e.cy + oy + 0.5;
       if (hp === 0) { u.dead = true; u.hp = 0; }
@@ -66,6 +66,7 @@
     });
     run.monsters = map.spawns.map((sp) => C.monsterUnit(sp, floor));
     run.units = run.heroes.concat(run.monsters);
+    teamBonuses(run);
     run.projectiles = []; run.trail = []; run.goal = null; run.state = 'explore';
     revealRoom(map, e);
     reveal(run);
@@ -76,6 +77,26 @@
     if (map.guardianKind) log((map.guardianKind === 'boss' ? 'Un boss' : 'Un gardien') + ' garde l\'escalier de cet étage…', 'boss');
     bus.emit('floor:enter', { floor });
   }
+
+  // bonus d'équipe : or trouvé et chance de butin (somme des héros)
+  function teamBonuses(run) {
+    run.goldFind = 0; run.magicFind = 0;
+    for (const h of run.heroes) { run.goldFind += h.stats.goldFind || 0; run.magicFind += h.stats.magicFind || 0; }
+  }
+  // recalcule les stats des héros (équipement changé, élixir...) en gardant le % de PV
+  R.refreshStats = function () {
+    const run = R.active;
+    if (!run) return;
+    const buffs = G.sys.potions.buffStats(run);
+    for (const u of run.heroes) {
+      const h = G.sys.heroes.get(u.id);
+      if (!h) continue;
+      const ratio = u.hp / u.stats.maxHp;
+      u.stats = G.sys.stats.hero(h, { buffs });
+      if (!u.dead) u.hp = Math.max(1, Math.round(ratio * u.stats.maxHp));
+    }
+    teamBonuses(run);
+  };
 
   // ---------- Vision ----------
   function revealRoom(map, r) {
@@ -126,10 +147,18 @@
       fx.shatter(u.x, u.y, spr.img, u.scale, u.facing < 0);
       if (u.guardian || u.elite) { fx.ring(u.x, u.y - 0.3, u.guardian ? '#ff8a3b' : '#ffd34d', u.guardian ? 2.5 : 1.2, 0.5); }
       saved.kills++; st.stats.kills++;
-      const gold = Math.max(1, Math.round(B.goldPerMonster(u.level) * u.goldMult * rng.float(0.8, 1.2)));
+      const gold = Math.max(1, Math.round(B.goldPerMonster(u.level) * u.goldMult * (1 + (run.goldFind || 0)) * rng.float(0.8, 1.2)));
       saved.gold += gold;
       fx.coins(u.x, u.y, gold);
-      if (killer && killer.side === 'hero') run.track(killer.id, 'kills', 1);
+      if (killer && killer.side === 'hero') {
+        run.track(killer.id, 'kills', 1);
+        if (killer.stats.onKillHeal && !killer.dead) {
+          const amt = Math.round(killer.stats.maxHp * killer.stats.onKillHeal);
+          killer.hp = Math.min(killer.stats.maxHp, killer.hp + amt);
+          fx.text(killer.x, killer.y - 0.6, '+' + amt, '#6dff8a', 1);
+        }
+      }
+      G.sys.loot.onMonsterKill(run, u);
       bus.emit('monster:kill', { id: u.id, family: u.family, elite: u.elite, guardian: u.guardian, floor: u.level });
       if (u.guardian) onGuardianKilled(run, u);
     } else {
@@ -185,7 +214,7 @@
     st.gold += kept;
     st.stats.totalGold += kept;
     if (reason === 'death') st.stats.deaths++;
-    st.lastRun = { reason, floor: s.floor, startFloor: s.startFloor, gold: s.gold, kept, kills: s.kills, time: Math.round(run.t + (s.time || 0)), heroStats: run.stats };
+    st.lastRun = { reason, floor: s.floor, startFloor: s.startFloor, gold: s.gold, kept, kills: s.kills, items: s.items || 0, mats: s.mats || {}, time: Math.round(run.t + (s.time || 0)), heroStats: run.stats };
     st.run = null;
     R.active = null;
     G.core.save.save();
@@ -270,12 +299,13 @@
 
   function openChest(run, c) {
     c.opened = true;
-    const gold = Math.round(B.goldPerMonster(run.saved.floor) * B.chestGold * rng.float(0.8, 1.3));
+    const gold = Math.round(B.goldPerMonster(run.saved.floor) * B.chestGold * (1 + (run.goldFind || 0)) * rng.float(0.8, 1.3));
     run.saved.gold += gold;
     G.render.fx.coins(c.x + 0.5, c.y + 0.5, gold);
     G.render.fx.sparkle(c.x + 0.5, c.y + 0.5, '#ffd34d', 12);
     G.render.fx.ring(c.x + 0.5, c.y + 0.5, '#ffd34d', 1, 0.4);
     log('Coffre ouvert : +' + U.fmt(gold) + ' or', 'gold');
+    G.sys.loot.onChest(run, c);
     bus.emit('chest:open', { floor: run.saved.floor });
   }
 
@@ -360,6 +390,7 @@
     if (run.state !== 'explore') return;
     for (const m of run.monsters) if (!m.dead) C.monsterAI(run, m, dt);
     C.updateProjectiles(run, dt);
+    G.sys.potions.update(run, dt);
     C.separate(run);
     checkTraps(run);
     checkRooms(run);

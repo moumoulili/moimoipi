@@ -6,9 +6,9 @@
   ui.screens = {}; // chaque écran s'enregistre ici : { render() }
   ui.tabs = [
     { id: 'dungeon', label: 'Donjon', icon: '⚔️' },
+    { id: 'team', label: 'Équipe', icon: '🛡️' },
+    { id: 'bag', label: 'Sac', icon: '🎒' },
     { id: 'town', label: 'Ville', icon: '🏰' },
-    { id: 'team', label: 'Équipe', icon: '🛡️', locked: 'L\'écran d\'équipe (recrutement, niveaux, classes) arrive en phase 3.' },
-    { id: 'bag', label: 'Sac', icon: '🎒', locked: 'L\'inventaire et l\'équipement arrivent en phase 2.' },
     { id: 'settings', label: 'Options', icon: '⚙️' },
   ];
   ui.current = 'dungeon';
@@ -70,6 +70,8 @@
     }
     back.appendChild(box);
     root.appendChild(back);
+    back.onclick = (e) => { if (e.target === back && opts.dismissable) close(); };
+    close.box = box;
     return close;
   };
   ui.confirm = function (title, html, okLabel, onOk, cls) {
@@ -78,8 +80,10 @@
 
   // ---------- Notifications ----------
   ui.toast = function (msg, cls) {
+    const box = U.$('#toasts');
+    while (box.children.length >= 3) box.firstChild.remove();
     const t = U.el('div', 'toast ' + (cls || ''), msg);
-    U.$('#toasts').appendChild(t);
+    box.appendChild(t);
     setTimeout(() => t.remove(), 2900);
   };
 
@@ -87,7 +91,8 @@
   const logs = [];
   let logDirty = true;
   ui.log = function (text, cls) {
-    logs.push({ text, cls: cls || '' });
+    if (text && text.html) logs.push({ html: text.html, cls: cls || '' });
+    else logs.push({ html: U.esc(text), cls: cls || '' });
     if (logs.length > 40) logs.shift();
     logDirty = true;
   };
@@ -95,7 +100,7 @@
     if (!logDirty) return;
     logDirty = false;
     const el = U.$('#log');
-    el.innerHTML = logs.map((l) => '<div class="' + l.cls + '">' + U.esc(l.text) + '</div>').join('');
+    el.innerHTML = logs.map((l) => '<div class="' + l.cls + '">' + l.html + '</div>').join('');
     if (el.classList.contains('expanded')) el.scrollTop = el.scrollHeight;
   };
 

@@ -22,7 +22,7 @@
         '<div class="row" style="margin-top:6px"><button class="pxbtn small primary" id="op-imp">Importer</button></div></div>' +
 
         '<div class="panel"><h3>Zone dangereuse</h3><button class="pxbtn danger wide" id="op-reset">Effacer la partie</button></div>' +
-        '<p class="muted" style="text-align:center;font-size:12px">Moimoipi · phase 1 · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'hors ligne prêt' : 'en ligne') + '</p>';
+        '<p class="muted" style="text-align:center;font-size:12px">Moimoipi · phase 2 · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'hors ligne prêt' : 'en ligne') + '</p>';
       const cp = U.$('#op-cp'); cp.value = s.checkpointMode; cp.onchange = () => { s.checkpointMode = cp.value; G.core.save.save(); };
       const au = U.$('#op-auto'); au.checked = s.autoRestart; au.onchange = () => { s.autoRestart = au.checked; G.core.save.save(); };
       const vb = U.$('#op-vib'); vb.checked = s.vibrate; vb.onchange = () => { s.vibrate = vb.checked; G.core.save.save(); };

@@ -13,14 +13,14 @@
   let uidSeq = 1;
 
   // ---------- Création des unités ----------
-  C.heroUnit = function (h, hp) {
+  C.heroUnit = function (h, hp, buffs) {
     const c = G.data.classes[h.cls];
-    const st = G.sys.stats.hero(h);
+    const st = G.sys.stats.hero(h, { buffs });
     return {
       uid: uidSeq++, id: h.id, side: 'hero', name: h.name, cls: h.cls, level: h.level,
       x: 0, y: 0, r: 0.3, hp: hp != null ? Math.min(hp, st.maxHp) : st.maxHp, stats: st,
       attack: c.attack, heal: c.heal, threat: c.threat || 1,
-      cd: rng.float(0, 0.6), healCd: 0, facing: 1, scale: 1,
+      cd: rng.float(0, 0.6), healCd: 0, potCd: 0, facing: 1, scale: 1,
       sprite: Object.assign({ id: h.cls }, c.sprite),
       anim: { hit: 0, atk: 0, bob: rng.next() * 6, lx: 0, ly: 0 },
       path: null, pathKey: '', repath: 0, dead: false, target: null, retarget: 0,
@@ -51,9 +51,9 @@
   };
 
   // élément utilisé pour l'effet visuel (la magie neutre est violette : « arcane »)
-  C.vfxEl = (opts) => (opts.element && opts.element !== 'physical' ? opts.element : opts.dmgType === 'magic' ? 'arcane' : 'physical');
+  C.vfxEl = (opts) => (opts.vfx ? opts.vfx : opts.element && opts.element !== 'physical' ? opts.element : opts.dmgType === 'magic' ? 'arcane' : 'physical');
 
-  C.attackInterval = (u) => B.baseAttackTime * (u.attack.interval || 1) * 100 / Math.max(20, u.stats.spd);
+  C.attackInterval = (u) => B.baseAttackTime * (u.attack.interval || 1) * 100 / Math.max(20, u.stats.spd) / ((u.stats.wspd || 1) * (1 + (u.stats.atkSpd || 0)));
   C.moveSpeed = (u) => B.moveSpeed * Math.max(0.6, Math.min(1.6, u.stats.spd / 100));
 
   // ---------- Dégâts ----------
@@ -74,6 +74,16 @@
     else if (tgt.resist && tgt.resist.indexOf(el) >= 0) em = B.resistMult;
     if (tgt.stats.res[el]) em *= 1 - Math.min(B.resCap, tgt.stats.res[el]);
     dmg *= em;
+    // dégâts élémentaires de l'équipement (chaque élément subit faiblesses/résistances)
+    const ed = src.stats.elemDmg;
+    if (ed && !opts.noExtra) for (const e in ed) {
+      let m2 = 1;
+      if (tgt.weak && tgt.weak.indexOf(e) >= 0) m2 = B.weakMult; else if (tgt.resist && tgt.resist.indexOf(e) >= 0) m2 = B.resistMult;
+      if (tgt.stats.res[e]) m2 *= 1 - Math.min(B.resCap, tgt.stats.res[e]);
+      dmg += ed[e] * (opts.mult || 1) * m2 * (1 - red * 0.5);
+      if (m2 > em) em = m2;
+    }
+    if (src.stats.bossDmg && (tgt.guardian || tgt.elite)) dmg *= 1 + src.stats.bossDmg;
     const crit = rng.chance(src.stats.crit);
     if (crit) dmg *= src.stats.critDmg;
     dmg = Math.max(1, Math.round(dmg));
@@ -97,6 +107,14 @@
     }
     if (tgt.side === 'hero' && dmg > tgt.stats.maxHp * 0.2) fx.flash('#ff2020', 0.08);
     if (tgt.side === 'monster' && !tgt.aggro) run.aggroRoom(tgt);
+    // vol de vie et épines
+    if (src.stats.lifesteal && !src.dead) src.hp = Math.min(src.stats.maxHp, src.hp + dmg * src.stats.lifesteal);
+    if (tgt.stats.thorns && !opts.ranged && !opts.noExtra && !src.dead) {
+      const back = Math.max(1, Math.round(dmg * tgt.stats.thorns));
+      src.hp -= back; src.anim.hit = 0.1;
+      fx.text(src.x, src.y - 0.5, String(back), '#c8ff8a', 1);
+      if (src.hp <= 0) { src.hp = 0; run.onDeath(src, tgt); }
+    }
     if (tgt.hp <= 0) { tgt.hp = 0; run.onDeath(tgt, src); }
     return dmg;
   };
@@ -161,21 +179,29 @@
     u.anim.lx = dx / l; u.anim.ly = dy / l;
     u.facing = dx >= 0 ? 1 : -1;
     const opts = { mult: u.attack.mult || 1, dmgType: u.attack.dmgType, element: u.attack.element };
+    if (u.stats.mainEl && (!opts.element || opts.element === 'physical')) opts.vfx = u.stats.mainEl;
     const fx = G.render.fx;
-    if (u.attack.type === 'melee') {
-      const big = u.guardian || u.cls === 'warrior';
-      fx.slash(t.x, t.y - 0.25, u.facing, u.side === 'hero' ? '#ffffff' : '#ff7070', big);
-      C.damage(run, u, t, opts);
-    } else {
-      opts.ranged = true;
-      const sx = u.x + u.facing * 0.3, sy = u.y - 0.3;
-      if ((u.attack.projectile || 'arrow') !== 'arrow') fx.muzzle(sx, sy, C.vfxEl(opts));
-      run.projectiles.push({ x: sx, y: sy, src: u, tgt: t, kind: u.attack.projectile || 'arrow', opts, el: C.vfxEl(opts), life: 3, age: 0 });
+    const times = u.stats.echo && rng.chance(u.stats.echo) ? 2 : 1;
+    for (let k = 0; k < times; k++) {
+      if (t.dead) break;
+      if (u.attack.type === 'melee') {
+        const big = u.guardian || u.cls === 'warrior';
+        fx.slash(t.x, t.y - 0.25 - k * 0.2, u.facing, opts.vfx ? fx.colorOf(opts.vfx) : u.side === 'hero' ? '#ffffff' : '#ff7070', big);
+        if (opts.vfx) fx.impact(t.x, t.y - 0.2, opts.vfx, false);
+        C.damage(run, u, t, opts);
+      } else {
+        const o = Object.assign({}, opts, { ranged: true });
+        const sx = u.x + u.facing * 0.3, sy = u.y - 0.3;
+        if (k === 0 && ((u.attack.projectile || 'arrow') !== 'arrow' || o.vfx)) fx.muzzle(sx, sy, C.vfxEl(o));
+        run.projectiles.push({ x: sx, y: sy, src: u, tgt: t, kind: u.attack.projectile || 'arrow', opts: o, el: C.vfxEl(o), life: 3, age: 0, wait: k * 0.15 });
+      }
     }
+    if (times > 1) fx.text(u.x, u.y - 0.9, 'x2', '#ffe14d', 1);
   }
   C.updateProjectiles = function (run, dt) {
     const sp = B.projectileSpeed * dt;
     for (const p of run.projectiles) {
+      if (p.wait > 0) { p.wait -= dt; continue; }
       p.life -= dt; p.age += dt;
       if (p.tgt.dead) { p.life = 0; continue; }
       G.render.fx.trail(p.x, p.y, p.kind === 'arrow' ? 'rgba(232,224,200,0.6)' : G.render.fx.colorOf(p.el), p.kind === 'arrow' ? 1 : 2);
