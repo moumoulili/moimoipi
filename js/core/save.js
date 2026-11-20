@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 1;
+  const VERSION = 2;
   const S = {};
 
   S.fresh = function () {
@@ -18,15 +18,19 @@
       gold: 0,
       heroes: [], team: [],
       run: null, lastRun: null,
+      town: { buildings: { portal: 0 } },
       progress: { maxFloor: 0, maxCheckpoint: 0 },
       stats: { kills: 0, totalGold: 0, runs: 0, deaths: 0 },
-      settings: { checkpointMode: 'ask', autoRestart: true, speed: 1, vibrate: true },
+      settings: { checkpointMode: 'ask', autoRestart: true, speed: 1, vibrate: true, flashes: true, startFloor: 1 },
       // réservé aux phases suivantes : inventory, equipment, town, quests, bestiary, prestige...
     };
   };
 
   // migrations[v] transforme une sauvegarde de version v en version v+1
-  const migrations = {};
+  const migrations = {
+    // v1 -> v2 : arrivée du Portail ; le départ libre n'est plus gratuit
+    1: (st) => { st.town = { buildings: { portal: 0 } }; st.settings.startFloor = 1; },
+  };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }
     // complète les champs manquants avec les valeurs par défaut
@@ -34,6 +38,7 @@
     for (const k in def) if (st[k] === undefined) st[k] = def[k];
     for (const k in def.settings) if (st.settings[k] === undefined) st.settings[k] = def.settings[k];
     for (const k in def.stats) if (st.stats[k] === undefined) st.stats[k] = def.stats[k];
+    if (!st.town.buildings) st.town.buildings = {};
     for (const k in def.progress) if (st.progress[k] === undefined) st.progress[k] = def.progress[k];
     return st;
   }

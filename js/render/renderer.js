@@ -50,6 +50,11 @@
     const flip = u.facing < 0;
     const img = u.anim.hit > 0 ? (flip ? s.whiteFlip : s.white) : flip ? s.flip : s.img;
     if (u.dead) ctx.globalAlpha = Math.max(0, u.deadT / 0.6);
+    if (!u.dead && u.anim.atk > 0 && u.attack && u.attack.type === 'ranged' && u.attack.projectile !== 'arrow') {
+      ctx.globalCompositeOperation = 'lighter';
+      glow(Math.round(u.x * T - cam.x), Math.round(u.y * T - 6 - cam.y), 10, hexA(G.render.fx.colorOf(G.sys.combat.vfxEl(u.attack)), (u.anim.atk / 0.18) * 0.6));
+      ctx.globalCompositeOperation = 'source-over';
+    }
     ctx.drawImage(img, px, py, w, h);
     ctx.globalAlpha = 1;
     if (u.dead) return;
@@ -68,22 +73,88 @@
     }
   }
 
+  // halo lumineux (mode additif)
+  function glow(x, y, r, rgbaCore) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgbaCore); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  function hexA(hex, a) {
+    if (hex[0] !== '#') return hex;
+    const n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
   function drawProjectile(p) {
     const x = Math.round(p.x * T - cam.x), y = Math.round(p.y * T - cam.y);
-    const el = G.data.elements[p.opts.element] || G.data.elements.physical;
+    const dx = Math.cos(p.ang || 0), dy = Math.sin(p.ang || 0);
     if (p.kind === 'arrow') {
-      const dx = Math.cos(p.ang || 0), dy = Math.sin(p.ang || 0);
       ctx.fillStyle = '#e8e0c8';
-      for (let i = 0; i < 5; i++) ctx.fillRect(Math.round(x - dx * i), Math.round(y - dy * i), 1, 1);
-      ctx.fillStyle = '#c9d1dc'; ctx.fillRect(Math.round(x + dx), Math.round(y + dy), 1, 1);
+      for (let i = 0; i < 6; i++) ctx.fillRect(Math.round(x - dx * i), Math.round(y - dy * i), 1, 1);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(x + dx), Math.round(y + dy), 1, 1);
+      ctx.fillStyle = '#c0392b'; ctx.fillRect(Math.round(x - dx * 6), Math.round(y - dy * 6), 1, 1);
       return;
     }
-    const col = p.kind === 'holy' ? '#fff3a8' : p.kind === 'fire' ? '#ff7a33' : p.kind === 'ice' ? '#7fd8ff' : p.kind === 'spark' ? '#ffe14d' : el.color === '#e8e8e8' ? '#c78bff' : el.color;
+    const col = G.render.fx.colorOf(p.el);
+    const pulse = 1 + Math.sin(p.age * 30) * 0.25;
     ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = col; ctx.globalAlpha = 0.35; ctx.fillRect(x - 3, y - 3, 6, 6);
-    ctx.globalAlpha = 1; ctx.fillRect(x - 1, y - 1, 3, 3);
+    glow(x, y, 9 * pulse, hexA(col, 0.55));
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 1, 1);
+    ctx.fillStyle = col;
+    if (p.kind === 'ice') { // éclat en losange
+      ctx.fillRect(x - 1, y - 2, 2, 4); ctx.fillRect(x - 2, y - 1, 4, 2);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y - 1, 1, 1);
+    } else if (p.kind === 'holy') { // croix lumineuse
+      ctx.fillRect(x - 2, y, 5, 1); ctx.fillRect(x, y - 2, 1, 5);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 1, 1);
+    } else if (p.kind === 'spark') { // crépitement
+      for (let i = 0; i < 4; i++) ctx.fillRect(x + Math.round(Math.random() * 4 - 2), y + Math.round(Math.random() * 4 - 2), 1, 1);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 1, 1);
+    } else { // orbe / boule de feu
+      const r = p.kind === 'fire' ? 2 : 1;
+      ctx.fillRect(x - r, y - r, r * 2 + 1, r * 2 + 1);
+      ctx.fillRect(Math.round(x - dx * 3), Math.round(y - dy * 3), 2, 2);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 1, 1);
+    }
+  }
+  // arc de lame : quelques pixels en croissant qui balaient
+  function drawArc(a) {
+    const k = a.t / a.life, cx = a.x * T - cam.x, cy = a.y * T - cam.y, r = a.r * T;
+    const start = -1.3 + k * 1.2, end = start + 1.6;
+    ctx.fillStyle = hexA(a.color, 1 - k * 0.7);
+    for (let t = start; t <= end; t += 0.12) {
+      const ang = a.dir > 0 ? t : Math.PI - t;
+      const px = Math.round(cx + Math.cos(ang) * r - a.dir * r * 0.4), py = Math.round(cy + Math.sin(ang) * r);
+      ctx.fillRect(px, py, 1, 1);
+      if (t > start + 0.4 && t < end - 0.4) ctx.fillRect(px - a.dir, py, 1, 1);
+    }
+  }
+  function drawRing(rg) {
+    const k = rg.t / rg.life, ease = 1 - Math.pow(1 - k, 2);
+    const r = (rg.inward ? 1 - ease : ease) * rg.r * T + 1;
+    const cx = rg.x * T - cam.x, cy = rg.y * T - cam.y;
+    ctx.fillStyle = hexA(rg.color, 1 - k);
+    const n = Math.max(10, Math.round(r * 2.2));
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * Math.PI * 2;
+      ctx.fillRect(Math.round(cx + Math.cos(ang) * r), Math.round(cy + Math.sin(ang) * r * 0.6), 1, 1);
+    }
+  }
+  function drawBeam(bm) {
+    const k = bm.t / bm.life;
+    const x0 = bm.x0 * T - cam.x, y0 = bm.y0 * T - cam.y, x1 = bm.x1 * T - cam.x, y1 = bm.y1 * T - cam.y;
+    const len = Math.hypot(x1 - x0, y1 - y0), n = Math.max(2, Math.round(len));
+    const nx = -(y1 - y0) / (len || 1), ny = (x1 - x0) / (len || 1);
+    for (const pass of [0, 1]) {
+      ctx.fillStyle = pass ? hexA('#ffffff', 1 - k) : hexA(bm.color, (1 - k) * 0.8);
+      for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        let off = 0;
+        if (bm.zig) off = Math.sin(t * 9 + bm.seed + bm.t * 60) * 2.5 * (1 - Math.abs(t - 0.5) * 2 + 0.3);
+        else off = Math.sin(t * 12 - bm.t * 30) * 0.8;
+        const px = Math.round(x0 + (x1 - x0) * t + nx * off), py = Math.round(y0 + (y1 - y0) * t + ny * off);
+        if (pass) ctx.fillRect(px, py, 1, 1); else ctx.fillRect(px - 1, py - 1, 3, 3);
+      }
+    }
   }
 
   function drawTorches(map, x0, y0, x1, y1) {
@@ -157,16 +228,12 @@
         ctx.drawImage(s.img, Math.round(u.x * T - 6 - cam.x), Math.round(u.y * T - 8 - cam.y));
       } else drawUnit(u, run);
     }
-    for (const s of fx.slashes) {
-      const k3 = s.t / s.life, px = s.x * T - cam.x, py = s.y * T - 6 - cam.y;
-      ctx.fillStyle = 'rgba(255,255,255,' + (1 - k3) + ')';
-      for (let i = 0; i < 6; i++) ctx.fillRect(Math.round(px - s.dir * 3 + s.dir * i), Math.round(py + i - 2 + k3 * 2), 1, 1);
-    }
-    for (const p of run.projectiles) drawProjectile(p);
+    // particules "matérielles" (éclats, pièces, débris) : sous l'obscurité
     for (const p of fx.parts) {
-      ctx.globalAlpha = 1 - p.t / p.life;
+      if (p.glow) continue;
+      ctx.globalAlpha = Math.min(1, 2 * (1 - p.t / p.life));
       ctx.fillStyle = p.color;
-      const sz = p.coin ? 2 : 1;
+      const sz = p.size || 1;
       ctx.fillRect(Math.round(p.x * T - cam.x), Math.round(p.y * T - cam.y), sz, sz);
     }
     ctx.globalAlpha = 1;
@@ -178,12 +245,30 @@
       const a = lightAt(run, i + 0.5, j + 0.5);
       if (a > 0.02) { ctx.fillStyle = 'rgba(4,2,10,' + a.toFixed(2) + ')'; ctx.fillRect(px, py, T, T); }
     }
+    // couche lumineuse : sorts, traînées, anneaux, rayons (brillent dans le noir)
+    for (const a of fx.arcs) drawArc(a);
+    for (const p of run.projectiles) drawProjectile(p);
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of fx.parts) {
+      if (!p.glow) continue;
+      let a = 1 - p.t / p.life;
+      if (p.twinkle && Math.random() < 0.3) a *= 0.3;
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.color;
+      const sz = p.size || 1;
+      ctx.fillRect(Math.round(p.x * T - cam.x), Math.round(p.y * T - cam.y), sz, sz);
+    }
+    ctx.globalAlpha = 1;
+    for (const rg of fx.rings) drawRing(rg);
+    for (const bm of fx.beams) drawBeam(bm);
+    ctx.globalCompositeOperation = 'source-over';
     // textes flottants (par-dessus la lumière)
     for (const t of fx.texts) {
       const a = 1 - Math.max(0, (t.t - t.life * 0.6) / (t.life * 0.4));
       ctx.globalAlpha = a;
       const px = t.x * T - cam.x, py = t.y * T - cam.y - (t.size > 1 ? 4 : 0);
-      if (!G.render.pixelText(ctx, t.txt, px, py, t.color, t.size)) {
+      const sz = t.size > 1 && t.t < 0.08 ? t.size + 1 : t.size;
+      if (!G.render.pixelText(ctx, t.txt, px, py, t.color, sz)) {
         ctx.font = '6px monospace'; ctx.textAlign = 'center';
         ctx.fillStyle = '#120c18'; ctx.fillText(t.txt, px + 1, py + 6);
         ctx.fillStyle = t.color; ctx.fillText(t.txt, px, py + 5);
@@ -237,6 +322,12 @@
     const run = G.sys.run.active;
     if (run && run.map) drawWorld(run, dt);
     else drawCamp(dt);
+    if (fx.flashT > 0) {
+      fx.flashT -= dt;
+      ctx.globalAlpha = Math.max(0, fx.flashT / fx.flashMax) * 0.45;
+      ctx.fillStyle = fx.flashCol; ctx.fillRect(0, 0, vw, vh);
+      ctx.globalAlpha = 1;
+    }
     if (fx.fadeT > 0) {
       fx.fadeT -= dt;
       const k = fx.fadeT / fx.fadeMax;

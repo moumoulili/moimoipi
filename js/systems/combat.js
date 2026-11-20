@@ -41,7 +41,7 @@
       uid: uidSeq++, id: md.id, side: 'monster', name, level: floor, family: md.family,
       x: sp.x + 0.5, y: sp.y + 0.5, r: 0.3 * Math.min(scale, 1.4), hp: st.maxHp, stats: st,
       attack: { type: md.behavior, range: md.range, dmgType: MAGIC_PROJ[md.projectile] ? 'magic' : 'phys', element: md.element, projectile: md.projectile },
-      weak: md.weak, resist: md.resist, threat: 1,
+      weak: md.weak, resist: md.resist, threat: 1, dive: !!md.dive,
       cd: rng.float(0.3, 1), facing: -1, scale, outline,
       sprite: Object.assign({ id: md.id }, md.sprite),
       anim: { hit: 0, atk: 0, bob: rng.next() * 6, lx: 0, ly: 0 },
@@ -49,6 +49,9 @@
       aggro: false, room: sp.room, elite: !!sp.elite, guardian: sp.guardian || null, goldMult, deadT: 0,
     };
   };
+
+  // élément utilisé pour l'effet visuel (la magie neutre est violette : « arcane »)
+  C.vfxEl = (opts) => (opts.element && opts.element !== 'physical' ? opts.element : opts.dmgType === 'magic' ? 'arcane' : 'physical');
 
   C.attackInterval = (u) => B.baseAttackTime * (u.attack.interval || 1) * 100 / Math.max(20, u.stats.spd);
   C.moveSpeed = (u) => B.moveSpeed * Math.max(0.6, Math.min(1.6, u.stats.spd / 100));
@@ -81,7 +84,18 @@
     if (tgt.side === 'hero') run.track(tgt.id, 'taken', dmg);
     const col = tgt.side === 'hero' ? '#ff5a5a' : em > 1 ? '#ffb347' : em < 1 ? '#a0a0a0' : '#ffffff';
     fx.text(tgt.x, tgt.y - 0.55 * tgt.scale, String(dmg), crit ? '#ffe14d' : col, crit ? 2 : 1);
-    if (el !== 'physical') fx.burst(tgt.x, tgt.y, G.data.elements[el].color, 4);
+    if (opts.ranged) fx.impact(tgt.x, tgt.y - 0.2, C.vfxEl(opts), crit);
+    else fx.burst(tgt.x, tgt.y - 0.2, tgt.side === 'hero' ? '#ff6060' : '#ffffff', crit ? 10 : 4);
+    if (crit) {
+      fx.shake(src.side === 'hero' ? 0.12 : 0.18);
+      fx.ring(tgt.x, tgt.y - 0.2, '#ffe14d', 0.9, 0.25);
+    }
+    // petit recul sur les coups au corps à corps
+    if (!opts.ranged && !tgt.guardian) {
+      const kx = tgt.x - src.x, ky = tgt.y - src.y, kl = Math.hypot(kx, ky) || 1, kb = crit ? 0.18 : 0.08;
+      if (P.free(run.map, tgt.x + (kx / kl) * kb, tgt.y + (ky / kl) * kb)) { tgt.x += (kx / kl) * kb; tgt.y += (ky / kl) * kb; }
+    }
+    if (tgt.side === 'hero' && dmg > tgt.stats.maxHp * 0.2) fx.flash('#ff2020', 0.08);
     if (tgt.side === 'monster' && !tgt.aggro) run.aggroRoom(tgt);
     if (tgt.hp <= 0) { tgt.hp = 0; run.onDeath(tgt, src); }
     return dmg;
@@ -92,8 +106,13 @@
     const real = Math.min(amount, tgt.stats.maxHp - tgt.hp);
     tgt.hp += real;
     run.track(src.id, 'heal', real);
-    G.render.fx.text(tgt.x, tgt.y - 0.55, '+' + amount, '#6dff8a', 1);
-    G.render.fx.burst(tgt.x, tgt.y, '#6dff8a', 6, -1.5);
+    const fx = G.render.fx;
+    fx.text(tgt.x, tgt.y - 0.55, '+' + amount, '#6dff8a', 1);
+    fx.beam(src.x, src.y - 0.35, tgt.x, tgt.y - 0.2, '#6dff8a', 0.3);
+    fx.ring(tgt.x, tgt.y, '#6dff8a', 0.7, 0.4);
+    fx.ring(tgt.x, tgt.y, '#d8ffe0', 0.45, 0.3);
+    fx.sparkle(tgt.x, tgt.y, '#6dff8a', 10);
+    fx.sparkle(src.x, src.y - 0.4, '#fff3a8', 4);
   };
 
   // ---------- Déplacement ----------
@@ -142,18 +161,24 @@
     u.anim.lx = dx / l; u.anim.ly = dy / l;
     u.facing = dx >= 0 ? 1 : -1;
     const opts = { mult: u.attack.mult || 1, dmgType: u.attack.dmgType, element: u.attack.element };
+    const fx = G.render.fx;
     if (u.attack.type === 'melee') {
+      const big = u.guardian || u.cls === 'warrior';
+      fx.slash(t.x, t.y - 0.25, u.facing, u.side === 'hero' ? '#ffffff' : '#ff7070', big);
       C.damage(run, u, t, opts);
-      G.render.fx.slash(t.x, t.y, u.facing);
     } else {
-      run.projectiles.push({ x: u.x + u.facing * 0.2, y: u.y - 0.15, src: u, tgt: t, kind: u.attack.projectile || 'arrow', opts, life: 3 });
+      opts.ranged = true;
+      const sx = u.x + u.facing * 0.3, sy = u.y - 0.3;
+      if ((u.attack.projectile || 'arrow') !== 'arrow') fx.muzzle(sx, sy, C.vfxEl(opts));
+      run.projectiles.push({ x: sx, y: sy, src: u, tgt: t, kind: u.attack.projectile || 'arrow', opts, el: C.vfxEl(opts), life: 3, age: 0 });
     }
   }
   C.updateProjectiles = function (run, dt) {
     const sp = B.projectileSpeed * dt;
     for (const p of run.projectiles) {
-      p.life -= dt;
+      p.life -= dt; p.age += dt;
       if (p.tgt.dead) { p.life = 0; continue; }
+      G.render.fx.trail(p.x, p.y, p.kind === 'arrow' ? 'rgba(232,224,200,0.6)' : G.render.fx.colorOf(p.el), p.kind === 'arrow' ? 1 : 2);
       const dx = p.tgt.x - p.x, dy = p.tgt.y - p.y, l = Math.hypot(dx, dy);
       p.ang = Math.atan2(dy, dx);
       if (l <= sp + 0.15) { p.life = 0; if (!p.src.dead || p.src.side === 'hero') C.damage(run, p.src, p.tgt, p.opts); }
@@ -226,7 +251,7 @@
       let best = null, bd = 1e9;
       for (const h of run.heroes) {
         if (h.dead) continue;
-        const d = Math.hypot(h.x - u.x, h.y - u.y) - (h.threat - 1) * 1.2;
+        const d = Math.hypot(h.x - u.x, h.y - u.y) + (u.dive ? (h.threat - 1) * B.diveAvoidTank - (1 - h.hp / h.stats.maxHp) * 2 : -(h.threat - 1) * 1.2);
         if (d < bd) { bd = d; best = h; }
       }
       u.target = best; u.retarget = 1.2;

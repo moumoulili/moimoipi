@@ -95,10 +95,8 @@
 
   // ---------- Démarrer une expédition ----------
   ui.startFloor = function () {
-    const st = G.state;
-    let f = st.settings.startFloor || 1;
-    if (f > st.progress.maxCheckpoint + 1) f = 1;
-    return f;
+    const f = G.state.settings.startFloor || 1;
+    return G.sys.town.canStartAt(f) ? f : 1;
   };
   ui.startRun = function (floor) {
     if (G.sys.run.active) return;
@@ -115,7 +113,7 @@
       title: '🏆 Gardien vaincu !',
       html: '<p>Butin de l\'expédition : <b class="gold">' + U.fmt(run.saved.gold) + '</b></p>' +
         '<p>Rentrer maintenant garde <b>100 %</b> du butin.<br>Prochaine sortie possible : <b>étage ' + (f + B.checkpointEvery) + '</b>.</p>' +
-        '<p class="muted">Tu pourras repartir directement de l\'étage ' + (f + 1) + '.</p>',
+        '<p class="muted">' + (G.sys.town.canStartAt(f + 1) ? 'Tu peux repartir directement de l\'étage ' + (f + 1) + '.' : 'Améliore le Portail (en ville) pour pouvoir repartir de l\'étage ' + (f + 1) + '.') + '</p>',
       buttons: [
         { label: '⚔️ Continuer l\'exploration', cls: 'primary', onClick: () => G.sys.run.resolveCheckpoint(false) },
         { label: '🚪 Rentrer en ville', cls: 'gold', onClick: () => G.sys.run.resolveCheckpoint(true) },

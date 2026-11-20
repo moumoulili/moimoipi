@@ -18,6 +18,7 @@
   // ---------- Démarrage / reprise ----------
   R.start = function (startFloor) {
     const st = G.state;
+    if (!G.sys.town.canStartAt(startFloor)) startFloor = 1;
     st.stats.runs++;
     st.run = {
       floor: startFloor, startFloor, gold: 0, kills: 0, hp: {}, exitAvailable: false,
@@ -120,17 +121,22 @@
     u.dead = true;
     const st = G.state, saved = run.saved, fx = G.render.fx;
     if (u.side === 'monster') {
-      u.deadT = 0.6;
+      u.deadT = 0;
+      const spr = G.render.getSprite(u.sprite, u.outline);
+      fx.shatter(u.x, u.y, spr.img, u.scale, u.facing < 0);
+      if (u.guardian || u.elite) { fx.ring(u.x, u.y - 0.3, u.guardian ? '#ff8a3b' : '#ffd34d', u.guardian ? 2.5 : 1.2, 0.5); }
       saved.kills++; st.stats.kills++;
       const gold = Math.max(1, Math.round(B.goldPerMonster(u.level) * u.goldMult * rng.float(0.8, 1.2)));
       saved.gold += gold;
       fx.coins(u.x, u.y, gold);
-      fx.burst(u.x, u.y, '#ffffff', 8);
       if (killer && killer.side === 'hero') run.track(killer.id, 'kills', 1);
       bus.emit('monster:kill', { id: u.id, family: u.family, elite: u.elite, guardian: u.guardian, floor: u.level });
       if (u.guardian) onGuardianKilled(run, u);
     } else {
-      fx.burst(u.x, u.y, '#ff4040', 12);
+      fx.burst(u.x, u.y, '#ff4040', 14);
+      fx.ring(u.x, u.y, '#ff4040', 1.2, 0.5);
+      fx.flash('#ff0000', 0.15);
+      fx.shake(0.25);
       log(u.name + ' est tombé au combat !', 'danger');
       if (run.heroes.every((h) => h.dead)) {
         run.state = 'defeat';
@@ -144,13 +150,14 @@
     saved.exitAvailable = true;
     if (saved.floor > st.progress.maxCheckpoint) {
       st.progress.maxCheckpoint = saved.floor;
-      st.settings.startFloor = saved.floor + 1; // nouveau point de départ sélectionné d'office
-      G.ui.toast && G.ui.toast('Départ débloqué : étage ' + (saved.floor + 1), 'gold');
+      if (!G.sys.town.canStartAt(saved.floor + 1)) G.ui.toast && G.ui.toast('Améliore le Portail pour repartir de l\'étage ' + (saved.floor + 1), 'gold');
     }
     log(u.name + ' est vaincu ! La sortie est accessible.', 'boss');
     G.ui.banner && G.ui.banner('Victoire !', u.name + ' est vaincu', 'gold');
     G.render.fx.shake(0.4);
-    G.render.fx.burst(u.x, u.y, '#ffd34d', 30);
+    G.render.fx.burst(u.x, u.y, '#ffd34d', 30, 0, true);
+    G.render.fx.ring(u.x, u.y, '#ffffff', 3.5, 0.7);
+    G.render.fx.flash('#ffffff', 0.25);
     U.vibrate([60, 40, 120]);
     bus.emit('boss:kill', { id: u.id, kind: u.guardian, floor: saved.floor });
     const mode = st.settings.checkpointMode;
@@ -266,6 +273,8 @@
     const gold = Math.round(B.goldPerMonster(run.saved.floor) * B.chestGold * rng.float(0.8, 1.3));
     run.saved.gold += gold;
     G.render.fx.coins(c.x + 0.5, c.y + 0.5, gold);
+    G.render.fx.sparkle(c.x + 0.5, c.y + 0.5, '#ffd34d', 12);
+    G.render.fx.ring(c.x + 0.5, c.y + 0.5, '#ffd34d', 1, 0.4);
     log('Coffre ouvert : +' + U.fmt(gold) + ' or', 'gold');
     bus.emit('chest:open', { floor: run.saved.floor });
   }
@@ -293,7 +302,9 @@
       h.hp -= dmg; h.anim.hit = 0.2;
       run.track(h.id, 'taken', dmg);
       G.render.fx.text(h.x, h.y - 0.6, String(dmg), '#ff5a5a', 1);
-      G.render.fx.burst(h.x, h.y, '#c8c8c8', 8);
+      G.render.fx.burst(h.x, h.y, '#c8c8c8', 10);
+      G.render.fx.ring(h.x, h.y, '#ff6060', 0.6, 0.25);
+      G.render.fx.shake(0.1);
       log('Piège ! ' + h.name + ' perd ' + dmg + ' PV.', 'danger');
       if (h.hp <= 0) { h.hp = 0; onDeath(run, h, null); }
     }

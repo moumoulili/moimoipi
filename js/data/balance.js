@@ -8,14 +8,14 @@ G.data.balance = {
   speeds: [1, 2, 4],       // vitesses disponibles
 
   // --- Puissance des monstres selon l'étage f ---
-  // étage 1 = x1, étage 10 ≈ x2,95, étage 50 ≈ x63, étage 100 ≈ x1300
-  floorMult: (f) => (1 + 0.1 * (f - 1)) * Math.pow(1.05, f - 1),
-  monsterBase: { hp: 30, atk: 7, def: 3, spd: 100 },
-  eliteChance: 0.1,
-  elite: { hp: 2.5, atk: 1.3, gold: 3 },
+  // étage 1 = x1, étage 10 ≈ x3,3, étage 50 ≈ x95, étage 100 ≈ x2200
+  floorMult: (f) => (1 + 0.12 * (f - 1)) * Math.pow(1.055, f - 1),
+  monsterBase: { hp: 40, atk: 9, def: 4, spd: 100 },
+  eliteChance: 0.16,
+  elite: { hp: 3, atk: 1.4, gold: 3 },
   guardian: {               // mini-boss (tous les 5 étages) et boss (tous les 10)
-    mini: { hp: 5, atk: 1.3, def: 1.2, gold: 10, scale: 1.4 },
-    boss: { hp: 12, atk: 1.5, def: 1.4, gold: 25, scale: 1.8 },
+    mini: { hp: 8, atk: 1.5, def: 1.3, spd: 1.1, gold: 12, scale: 1.4 },
+    boss: { hp: 18, atk: 1.8, def: 1.5, spd: 1.15, gold: 30, scale: 1.8 },
   },
 
   // --- Combat ---
@@ -30,13 +30,14 @@ G.data.balance = {
   weakMult: 1.5, resistMult: 0.5, resCap: 0.75,
   moveSpeed: 3.2,          // cases par seconde (à vitesse 100)
   exploreSpeed: 3.4,
-  aggroRadius: 4.5,
+  aggroRadius: 5,
+  diveAvoidTank: 2.5,      // les monstres « plongeurs » évitent le tank
   projectileSpeed: 11,
 
   // --- Exploration ---
   vision: 6.5,             // rayon de vision en cases
-  floorRegen: 0.25,        // % de PV rendus en prenant l'escalier
-  trapDmg: 0.12,           // % des PV max infligés par un piège
+  floorRegen: 0.15,        // % de PV rendus en prenant l'escalier
+  trapDmg: 0.15,           // % des PV max infligés par un piège
   checkpointEvery: 5,      // un gardien tous les 5 étages
   checkpointCountdown: 10, // secondes avant de continuer automatiquement
 
@@ -46,8 +47,8 @@ G.data.balance = {
     roomsMin: 8, roomsMax: 14, roomsPerFloor: 0.12,
     roomMin: 5, roomMax: 9,
     extraCorridors: 0.18,
-    monstersMin: 2, monstersMax: 3, monstersPerFloor: 1 / 8, monstersCap: 6,
-    trapsPerFloor: 3,
+    monstersMin: 2, monstersMax: 4, monstersPerFloor: 1 / 6, monstersCap: 7,
+    trapsPerFloor: 4,
   },
 
   // --- Économie ---

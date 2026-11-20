@@ -19,10 +19,11 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 ## Architecture
 ```
 js/core/    namespace, utils (fmt, $), rng (graine), bus (événements), save, loop (pas fixes 30/s × vitesse)
-js/data/    balance, elements, classes, monsters, biomes, rooms, names
+js/data/    balance, elements, classes, monsters, biomes, rooms, names, buildings
 js/render/  pixelart (modèles), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
-            fx (textes, particules), font (chiffres 3x5), renderer (caméra, lumière, brouillard)
-js/systems/ path (A*, BFS, ligne de vue), stats, heroes, dungeon (génération), combat (IA temps réel), run (expédition)
+            fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
+            font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
+js/systems/ path (A*, BFS, ligne de vue), stats, heroes, dungeon (génération), combat (IA temps réel), town (bâtiments, départs), run (expédition)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon), town, settings
 ```
 - Simulation séparée du rendu : `G.sys.run.update(dt)` est déterministe en temps de jeu
@@ -36,7 +37,11 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - Combat en temps réel sur la carte (pas de scène séparée).
 - Gardien tous les 5 étages (mini-boss), boss tous les 10. Après sa mort : **choix sortir (100 % du butin)
   ou continuer** (option : demander 10 s / toujours continuer / toujours rentrer). Sortie possible jusqu'à
-  la fin de l'étage. Chaque gardien battu débloque un départ à l'étage suivant (6, 11, 16…).
+  la fin de l'étage.
+- **Départ toujours à l'étage 1** sauf amélioration : le bâtiment **Portail des profondeurs** (niv. k)
+  autorise le départ à l'étage 5k+1, à condition d'avoir vaincu le gardien de l'étage 5k. Coût 2500 × 3^niv.
+- Difficulté relevée à la demande de l'utilisateur ; les monstres « dive » (rapides) évitent le tank et visent l'arrière.
+- Effets visuels riches demandés : chaque attaque/sort a un départ, une traînée et un impact propres à son élément.
 - Défaite ou fuite : retour en ville avec 50 % de l'or de l'expédition (objets gardés à partir de la phase 2).
 - Gains hors ligne (phase 7) : estimés à partir du rendement réel mesuré, pas de simulation complète.
 - Biomes tous les 10 étages (7 biomes, puis cycle « Cauchemar »).
@@ -46,7 +51,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   Assassin/Saboteur → Faucheur/Maître saboteur.
 
 ## Formules (balance.js)
-- Puissance monstres : `(1 + 0,1(f-1)) × 1,05^(f-1)` ; élite ×2,5 PV ; mini-boss ×5 PV ; boss ×12 PV.
+- Monstre de base 40 PV / 9 ATQ / 4 DEF. Puissance : `(1 + 0,12(f-1)) × 1,055^(f-1)` ; élite (16 %) ×3 PV ×1,4 ATQ ;
+  mini-boss ×8 PV ×1,5 ATQ ; boss ×18 PV ×1,8 ATQ. 2-4 monstres/salle (+1 tous les 6 étages). Régén. escalier 15 %.
 - Réduction défense : `DEF / (DEF + 50 + 10 × niv. attaquant)`, max 75 % ; magie ignore 50 % DEF.
 - Élément : faiblesse ×1,5, résistance ×0,5. Critique 5 % + AGI×0,1 % (×1,5). Esquive AGI×0,05 % (max 30 %).
 - Attaque = 2 × stat principale + 5. Intervalle d'attaque = 1,2 s × 100 / vitesse.
@@ -56,7 +62,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 ## État d'avancement
 - [x] **Phase 1** : donjon généré, exploration + combat temps réel, monstres (7 biomes définis), gardiens
       simples, or, coffres, pièges, défaite/retour, sortie après gardien, sauvegarde + export/import,
-      vitesse x1/x2/x4, PWA.
+      vitesse x1/x2/x4, PWA. Ajouts : Portail (départ payant), difficulté relevée, effets visuels.
 - [ ] Phase 2 : équipement, raretés, inventaire, boutique, potions auto, tri/vente auto
 - [ ] Phase 3 : XP, niveaux, classes (voleur recrutable), taverne, synergies
 - [ ] Phase 4 : compétences, arbres, priorités, éléments complets
@@ -69,4 +75,5 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 
 ## Tests
 Serveur local : `python3 -m http.server 8765` puis Playwright en viewport mobile. Simulation accélérée possible :
-`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 1 sans progression : l'équipe plafonne vers l'étage 8-11 (normal).
+`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 1 sans progression : l'équipe meurt vers l'étage 5-6 (gardien de l'étage 5 battu ~1 fois sur 3) — normal.
+Attention : recharger la page déclenche une sauvegarde (pagehide) ; neutraliser `G.core.save.save` avant d'éditer localStorage dans un test.
