@@ -2,10 +2,10 @@
 // Stratégie "réseau d'abord" : en ligne on a toujours la dernière version,
 // hors ligne on utilise la copie en cache.
 // Penser à changer VERSION à chaque mise à jour du jeu.
-const VERSION = 'moimoipi-p2-1';
+const VERSION = 'moimoipi-p2-2';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
-  'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
+  'assets/icons/icon-192.png', 'assets/fonts/cinzel.woff2', 'assets/icons/icon-512.png',
   'js/core/namespace.js', 'js/core/utils.js', 'js/core/rng.js', 'js/core/bus.js', 'js/core/save.js', 'js/core/loop.js',
   'js/data/balance.js', 'js/data/elements.js', 'js/data/classes.js', 'js/data/monsters.js', 'js/data/biomes.js', 'js/data/rooms.js', 'js/data/names.js', 'js/data/buildings.js', 'js/data/rarities.js', 'js/data/items.js', 'js/data/affixes.js', 'js/data/uniques.js', 'js/data/potions.js', 'js/data/materials.js',
   'js/render/pixelart.js', 'js/render/sprites.js', 'js/render/tiles.js', 'js/render/fx.js', 'js/render/font.js', 'js/render/itemart.js', 'js/render/renderer.js',

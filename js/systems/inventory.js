@@ -143,6 +143,68 @@
     }
     return changed;
   };
+  // ---------- Optimisation globale de l'équipe ----------
+  // Met en commun le sac + tout ce que portent les héros, puis donne à chaque
+  // fois l'objet au héros (et à l'emplacement) qui y gagne le plus, jusqu'à
+  // ce qu'aucun changement n'améliore plus rien. Les objets peuvent donc
+  // passer d'un héros à l'autre.
+  I.optimizeTeam = function () {
+    const team = G.sys.heroes.team();
+    const before = {};
+    for (const h of team) before[h.id] = I.score(h, h.equip);
+    const oldEq = {};
+    for (const h of team) oldEq[h.id] = Object.assign({}, h.equip);
+    let pool = st().inventory.slice();
+    for (const h of team) for (const s in h.equip) if (h.equip[s]) pool.push(h.equip[s]);
+    const eq = {};
+    for (const h of team) eq[h.id] = {};
+    const cache = {};
+    const bestMove = (h) => {
+      const base = I.score(h, eq[h.id]);
+      let best = null;
+      for (const it of pool) {
+        if (!IT.canUse(h, it)) continue;
+        for (const slot of IT.slotsFor(it)) {
+          const e = Object.assign({}, eq[h.id]); e[slot] = it;
+          const g = I.score(h, e) / base - 1;
+          if (g > 1e-4 && (!best || g > best.g)) best = { h, it, slot, g };
+        }
+      }
+      return best;
+    };
+    for (let guard = 0; guard < 400; guard++) {
+      let pick = null;
+      for (const h of team) {
+        if (!(h.id in cache)) cache[h.id] = bestMove(h);
+        const m = cache[h.id];
+        if (m && (!pick || m.g > pick.g)) pick = m;
+      }
+      if (!pick) break;
+      const old = eq[pick.h.id][pick.slot];
+      eq[pick.h.id][pick.slot] = pick.it;
+      pool.splice(pool.indexOf(pick.it), 1);
+      if (old) pool.push(old);
+      // invalider les héros concernés (celui qui a changé, et ceux qui visaient cet objet)
+      for (const h of team) if (h === pick.h || (cache[h.id] && cache[h.id].it === pick.it) || old) delete cache[h.id];
+    }
+    // sécurité : si le résultat est moins bon que l'actuel, on ne touche à rien
+    let tot = 0;
+    for (const h of team) tot += I.score(h, eq[h.id]) / before[h.id];
+    if (tot < team.length * 1.0005) return { changes: 0, gain: 0 };
+    // appliquer
+    let changes = 0;
+    for (const h of team) {
+      for (const s of G.data.slotOrder) if ((oldEq[h.id][s] || null) !== (eq[h.id][s] || null)) changes++;
+      h.equip = eq[h.id];
+      for (const s in h.equip) h.equip[s].isNew = false;
+    }
+    st().inventory = pool;
+    G.sys.run.refreshStats && G.sys.run.refreshStats();
+    let gain = 0;
+    for (const h of team) gain += I.score(h, h.equip) / before[h.id] - 1;
+    G.core.bus.emit('team:optimize', { changes });
+    return { changes, gain: gain / team.length };
+  };
   I.autoEquipTeam = function () { let n = 0; for (const h of G.sys.heroes.team()) n += I.autoEquip(h); return n; };
   G.sys.inventory = I;
 })();

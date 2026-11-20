@@ -21,7 +21,7 @@
       else list.reverse();
       const mats = Object.keys(G.data.materials).map((k) => '<span class="mat"><i style="background:' + G.data.materials[k].color + '"></i>' + G.data.materials[k].name + ' <b>' + U.fmt(st.materials[k] || 0) + '</b></span>').join('');
 
-      let h = '<div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">🎒 Sac</h2><b>' + st.inventory.length + ' / ' + INV.capacity() + '</b></div>' +
+      let h = ui.optimizeBtnHtml('bg-opt') + '<div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">🎒 Sac</h2><b>' + st.inventory.length + ' / ' + INV.capacity() + '</b></div>' +
         '<div class="mats">' + mats + '</div>' +
         '<div class="choices small">' + FILTERS.map(([k, n]) => '<button class="pxbtn small ' + (k === filter ? 'sel' : '') + '" data-f="' + k + '">' + n + '</button>').join('') +
         '<button class="pxbtn small" id="bg-sort">Tri : ' + SORTS[sort] + '</button></div>' +
@@ -37,7 +37,8 @@
         '<label class="lbl">Traiter automatiquement</label><select id="bg-ar">' + RAR_OPTS() + '</select>' +
         '<label class="lbl">Action</label><select id="bg-aa"><option value="sell">Vendre (or)</option><option value="salvage">Recycler (matériaux)</option></select>' +
         '<label class="toggle"><span>Garder quand même les objets meilleurs ▲</span><input type="checkbox" id="bg-ak"></label>' +
-        '<label class="toggle"><span>Équiper automatiquement les objets meilleurs</span><input type="checkbox" id="bg-ae"></label></div>';
+        '<label class="toggle"><span>Équiper automatiquement les objets meilleurs</span><input type="checkbox" id="bg-ae"></label>' +
+        '<label class="toggle"><span>Optimiser toute l\'équipe à chaque retour en ville</span><input type="checkbox" id="bg-ao"></label></div>';
 
       const R = st.potionRules;
       h += '<div class="panel"><h3>Potions</h3>';
@@ -53,6 +54,7 @@
       el.innerHTML = h;
 
       const rer = () => this.render();
+      ui.bindOptimize('bg-opt', rer);
       el.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => { filter = b.dataset.f; rer(); }));
       U.$('#bg-sort').onclick = () => { const k = Object.keys(SORTS); sort = k[(k.indexOf(sort) + 1) % k.length]; rer(); };
       el.querySelectorAll('.igrid .icell').forEach((b) => (b.onclick = () => ui.itemDetail(INV.find(b.dataset.uid), { from: 'bag', onDone: rer })));
@@ -67,6 +69,7 @@
       const aa = U.$('#bg-aa'); aa.value = s.action; aa.onchange = () => { s.action = aa.value; G.core.save.save(); };
       const ak = U.$('#bg-ak'); ak.checked = s.keepUpgrades; ak.onchange = () => { s.keepUpgrades = ak.checked; G.core.save.save(); };
       const ae = U.$('#bg-ae'); ae.checked = st.settings.autoEquip; ae.onchange = () => { st.settings.autoEquip = ae.checked; G.core.save.save(); };
+      const ao = U.$('#bg-ao'); ao.checked = st.settings.autoOptimize; ao.onchange = () => { st.settings.autoOptimize = ao.checked; G.core.save.save(); };
       el.querySelectorAll('[data-rule]').forEach((sel) => (sel.onchange = () => {
         const k = sel.dataset.rule;
         if (k === 'heal') R.heal = +sel.value; else if (k === 'revive') R.revive = sel.value === '1'; else R.buffs[k] = sel.value;

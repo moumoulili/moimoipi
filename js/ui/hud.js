@@ -157,10 +157,12 @@
       '<div>Or ramassé</div><div class="gold">' + U.fmt(lr.gold) + '</div>' +
       '<div>Or conservé' + (death ? ' (' + Math.round(B.deathKeep * 100) + ' %)' : '') + '</div><div class="gold"><b>' + U.fmt(lr.kept) + '</b></div>' +
       (death ? '<div class="muted small" style="grid-column:1/3">Les objets trouvés sont tous conservés.</div>' : '') +
+      (lr.optimized ? '<div class="small" style="grid-column:1/3;color:var(--gold)">✨ Équipement optimisé : ' + lr.optimized + ' changement(s)</div>' : '') +
       '</div><h3 style="margin:12px 0 4px;font-size:13px">Équipe</h3><div class="sum-grid">' + rows + '</div>';
     const again = { label: '⚔️ Repartir (étage ' + ui.startFloor() + ')', cls: 'primary', onClick: () => ui.startRun() };
     const town = { label: '🏰 Aller en ville', onClick: () => ui.show('town') };
-    const opts = { title: death ? '💀 Défaite' : '🏰 Retour en ville', html, buttons: [again, town] };
+    const optim = { label: '✨ Optimiser l\'équipement', cls: 'epic', onClick: () => { const r = G.sys.inventory.optimizeTeam(); ui.toast(r.changes ? '✨ ' + r.changes + ' changement(s) · puissance +' + Math.round(r.gain * 1000) / 10 + ' %' : 'Déjà optimal', 'gold'); } };
+    const opts = { title: death ? '💀 Défaite' : '🏰 Retour en ville', html, buttons: lr.optimized ? [again, town] : [again, optim, town] };
     if (death && G.state.settings.autoRestart) {
       opts.countdown = { seconds: 8, label: 'Nouvelle expédition dans {s} s… (désactivable dans Options)', onEnd: () => ui.startRun() };
     }

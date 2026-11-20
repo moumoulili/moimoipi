@@ -18,7 +18,7 @@ button { font: inherit; color: inherit; }
 .tb-item { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #tb-floor { flex: 1; }
 .gold { color: var(--gold); }
-.gold::before { content: ''; display: inline-block; width: 10px; height: 10px; margin-right: 5px; background: var(--gold); box-shadow: inset -2px -2px 0 #b8901a; vertical-align: -1px; }
+#tb-gold::before { content: ''; display: inline-block; width: 10px; height: 10px; margin-right: 5px; background: var(--gold); box-shadow: inset -2px -2px 0 #b8901a; vertical-align: -1px; }
 .run-gold { color: #c8a838; font-size: 12px; font-weight: 600; }
 
 /* Boutons pixel */
@@ -28,7 +28,6 @@ button { font: inherit; color: inherit; }
 .pxbtn.primary { background: #3a6a2a; border-color: #6ab84a; }
 .pxbtn.danger { background: #6a2a2a; border-color: #b84a4a; }
 .pxbtn.gold { background: #6a5320; border-color: var(--gold); color: #fff; }
-.pxbtn.gold::before { display: none; }
 .pxbtn.wide { width: 100%; }
 .pxbtn:disabled { opacity: .4; }
 .pxbtn.pulse { animation: pulse 1s infinite; }
@@ -74,7 +73,7 @@ button { font: inherit; color: inherit; }
 #log { height: 92px; overflow: hidden; padding: 6px 10px; background: #0c0812; border-top: 2px solid var(--line); font-size: 13px; display: flex; flex-direction: column; justify-content: flex-end; }
 #log.expanded { position: absolute; inset: 0; height: auto; z-index: 5; overflow-y: auto; justify-content: flex-start; }
 #log div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#log .gold { color: var(--gold); } #log .gold::before { display: none; }
+#log .gold { color: var(--gold); }
 #log .danger { color: var(--red); } #log .boss { color: var(--orange); font-weight: 700; } #log .info { color: var(--blue); }
 
 /* Onglets */
@@ -118,7 +117,7 @@ select { font: inherit; background: var(--panel2); color: var(--text); border: 2
 /* Notifications */
 #toasts { position: absolute; top: calc(52px + var(--safe-t)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; z-index: 30; }
 .toast { background: var(--panel2); border: 2px solid var(--line2); padding: 8px 14px; font-weight: 700; font-size: 14px; animation: toast 2.8s forwards; max-width: 90%; text-align: center; }
-.toast.gold { border-color: var(--gold); color: var(--gold); } .toast.gold::before { display: none; }
+.toast.gold { border-color: var(--gold); color: var(--gold); }
 .toast.danger { border-color: var(--red); }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-8px); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 
@@ -177,3 +176,140 @@ select { font: inherit; background: var(--panel2); color: var(--text); border: 2
 .pot.active { border-color: var(--gold); animation: pulse 1s infinite; }
 .toast.rarity { border-color: var(--orange); }
 #log .muted { color: #6a5e80; }
+
+/* =====================================================================
+   THÈME FANTASY / ÉPIQUE
+   Boutons sculptés à coins taillés, cadres dorés, titres gravés (Cinzel).
+   ===================================================================== */
+/* Cinzel seulement pour les lettres : ses chiffres (1 = I) sont peu lisibles, ils tombent sur la police suivante */
+@font-face { font-family: 'Cinzel'; src: url('../assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; font-display: swap;
+  unicode-range: U+0020-002F, U+003A-00FF, U+0131, U+0152-0153, U+2000-206F; }
+@font-face { font-family: 'EpicDigits'; src: local('Georgia Bold'), local('Georgia-Bold'), local('DejaVu Serif Bold'), local('Times New Roman Bold'); unicode-range: U+0030-0039; font-weight: 400 900; }
+:root {
+  --epic-font: 'Cinzel', 'EpicDigits', Georgia, 'Times New Roman', serif;
+  --trim: #e3b341; --trim-dk: #8a6a2a; --trim-lt: #fff3c0;
+  --cut: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+  --cut-in: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px);
+}
+body { background: radial-gradient(ellipse at 50% 0%, #2a1d36 0%, #120c18 60%) fixed, #120c18; }
+#app { background: radial-gradient(ellipse at 50% 40%, rgba(80, 50, 110, .18), transparent 70%); }
+
+/* ---- Boutons ---- */
+.pxbtn {
+  --b1: #c9a468; --b2: #4a3820; --f1: #3e3554; --f2: #1f182b; --tx: #f3e9d2;
+  position: relative; isolation: isolate; background: none; border: 0; box-shadow: none; border-radius: 0;
+  clip-path: var(--cut); color: var(--tx);
+  font-family: var(--epic-font); font-weight: 900; letter-spacing: .4px; text-shadow: 0 2px 0 rgba(0, 0, 0, .75);
+  padding: 12px 16px; transition: filter .1s, transform .08s;
+}
+.pxbtn::before {
+  content: ''; position: absolute; inset: 0; z-index: -2; clip-path: var(--cut);
+  background: linear-gradient(180deg, var(--b1), var(--b2));
+}
+.pxbtn::after {
+  content: ''; position: absolute; inset: 2px; z-index: -1; clip-path: var(--cut-in);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 48%, rgba(0, 0, 0, .25)), linear-gradient(180deg, var(--f1), var(--f2));
+}
+.pxbtn:active { transform: translateY(2px); box-shadow: none; filter: brightness(1.25); }
+.pxbtn.small { padding: 6px 12px; font-size: 13px; }
+.pxbtn.primary { --b1: #ffe08a; --b2: #7a5a1e; --f1: #3f9a3a; --f2: #17451a; }
+.pxbtn.gold    { --b1: #fff3c0; --b2: #8a6020; --f1: #c8922e; --f2: #6a4410; --tx: #fffbe8; }
+.pxbtn.danger  { --b1: #f0b080; --b2: #5a1a10; --f1: #a83232; --f2: #4a1012; }
+.pxbtn.sel     { --b1: #fff3c0; --b2: #b88a2a; --f1: #5a4422; --f2: #2e2210; }
+.pxbtn:disabled { filter: grayscale(.85) brightness(.7); opacity: .6; }
+/* bouton « épique » : violet et or avec reflet qui balaie */
+.pxbtn.epic { --b1: #fff3c0; --b2: #b45cff; --f1: #7a3fd0; --f2: #2a124e; --tx: #fff; font-size: 15px; }
+.pxbtn.epic::after {
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 240, 200, .45) 45%, transparent 60%) no-repeat, linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 50%), linear-gradient(180deg, var(--f1), var(--f2));
+  background-size: 250% 100%, 100% 100%, 100% 100%;
+  animation: shimmer 2.8s ease-in-out infinite;
+}
+.pxbtn.epic::before { background: linear-gradient(90deg, #fff3c0, #b45cff, #ffd34d, #b45cff, #fff3c0); background-size: 300% 100%; animation: shimmer 4s linear infinite; }
+@keyframes shimmer { 0% { background-position: 150% 0, 0 0, 0 0; } 100% { background-position: -100% 0, 0 0, 0 0; } }
+.optimize { margin-bottom: 10px; min-height: 54px; }
+.pxbtn.pulse { animation: pulse 1s infinite; }
+
+/* ---- Panneaux encadrés avec coins dorés ---- */
+.panel {
+  border: 2px solid var(--trim-dk); border-radius: 0;
+  background:
+    linear-gradient(135deg, var(--trim) 0 5px, transparent 5px) top left / 14px 14px no-repeat,
+    linear-gradient(225deg, var(--trim) 0 5px, transparent 5px) top right / 14px 14px no-repeat,
+    linear-gradient(45deg, var(--trim) 0 5px, transparent 5px) bottom left / 14px 14px no-repeat,
+    linear-gradient(315deg, var(--trim) 0 5px, transparent 5px) bottom right / 14px 14px no-repeat,
+    linear-gradient(180deg, #2b2136, #18111f);
+  box-shadow: inset 0 0 0 2px #0e0912, inset 0 0 0 3px rgba(227, 179, 65, .22), inset 0 12px 24px rgba(255, 220, 150, .04), 0 3px 0 #000;
+}
+.panel h2, .modal h2, #banner .b-title {
+  font-family: var(--epic-font); font-weight: 900; letter-spacing: 1.5px;
+  background: linear-gradient(180deg, var(--trim-lt) 10%, var(--trim) 55%, #9a6a22 90%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 #000);
+}
+.panel h3 {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--epic-font); font-weight: 900; color: var(--trim); letter-spacing: 1.2px; font-size: 14px;
+  text-shadow: 0 2px 0 #000;
+}
+.panel h3::before { content: '◆'; font-size: 10px; color: var(--trim-lt); }
+.panel h3::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, var(--trim-dk), transparent); }
+
+/* ---- Barre du haut ---- */
+#topbar { background: linear-gradient(180deg, #33263f, #1a1222); border-bottom: 3px double var(--trim-dk); box-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
+#tb-floor { font-family: var(--epic-font); font-weight: 900; color: var(--trim-lt); text-shadow: 0 2px 0 #000; letter-spacing: .5px; }
+#tb-gold::before { transform: rotate(45deg); background: linear-gradient(135deg, #fff3a8, #e3b341 60%, #8a6020); box-shadow: 0 0 6px rgba(255, 211, 77, .6); }
+
+/* ---- Onglets ---- */
+#tabs { background: linear-gradient(180deg, #2a1f34, #140e1a); border-top: 3px double var(--trim-dk); }
+#tabs button { font-family: var(--epic-font); font-weight: 700; letter-spacing: .3px; position: relative; }
+#tabs button .ti { filter: drop-shadow(0 2px 0 #000); transition: transform .15s; }
+#tabs button.active { color: var(--trim-lt); background: radial-gradient(ellipse at 50% 100%, rgba(227, 179, 65, .28), transparent 70%); box-shadow: none; }
+#tabs button.active .ti { transform: translateY(-3px) scale(1.15); }
+#tabs button.active::before { content: ''; position: absolute; top: -3px; left: 18%; right: 18%; height: 3px; background: linear-gradient(90deg, transparent, var(--trim-lt), transparent); }
+
+/* ---- Fenêtres ---- */
+.modal-back { background: radial-gradient(ellipse at center, rgba(20, 10, 30, .6), rgba(0, 0, 0, .88)); }
+.modal {
+  border: 3px solid var(--trim-dk);
+  background:
+    linear-gradient(135deg, var(--trim) 0 7px, transparent 7px) top left / 18px 18px no-repeat,
+    linear-gradient(225deg, var(--trim) 0 7px, transparent 7px) top right / 18px 18px no-repeat,
+    linear-gradient(45deg, var(--trim) 0 7px, transparent 7px) bottom left / 18px 18px no-repeat,
+    linear-gradient(315deg, var(--trim) 0 7px, transparent 7px) bottom right / 18px 18px no-repeat,
+    linear-gradient(180deg, #2e2339, #17101e);
+  box-shadow: 0 0 0 2px #000, inset 0 0 0 2px #0e0912, inset 0 0 0 3px rgba(227, 179, 65, .3), 0 10px 40px rgba(0, 0, 0, .8), 0 0 30px rgba(180, 92, 255, .15);
+  animation: modalIn .18s ease-out;
+}
+.modal h2 { padding-bottom: 8px; border-bottom: 2px solid transparent; border-image: linear-gradient(90deg, transparent, var(--trim), transparent) 1; }
+@keyframes modalIn { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---- Notifications ---- */
+.toast { background: linear-gradient(180deg, #33263f, #1e1628); border: 2px solid var(--trim-dk); box-shadow: 0 0 0 1px #000, 0 4px 12px rgba(0, 0, 0, .7); clip-path: var(--cut); padding: 9px 18px; }
+.toast.gold { border-color: var(--trim); }
+.toast.rarity { border-color: var(--orange); box-shadow: 0 0 14px rgba(255, 154, 46, .5); }
+
+/* ---- Bannière ---- */
+#banner .b-title { font-size: 30px; }
+#banner .b-sub { font-family: var(--epic-font); font-weight: 700; letter-spacing: 1px; }
+#banner.boss .b-title { background: linear-gradient(180deg, #ffd0a0, #ff7a33 55%, #a02a10); -webkit-background-clip: text; background-clip: text; }
+
+/* ---- Héros et barres ---- */
+#party { background: linear-gradient(180deg, #241a2e, #18111f); border-top: 3px double var(--trim-dk); }
+.hcard { background: linear-gradient(180deg, #2e243a, #1b1424); border: 2px solid #5a4630; box-shadow: inset 0 0 0 1px #0e0912; }
+.hcard .hn { font-family: var(--epic-font); font-weight: 900; color: var(--trim-lt); }
+.bar { height: 8px; background: #2a0e10; border: 1px solid #000; box-shadow: 0 0 0 1px #5a4630; }
+.bar > i { background: linear-gradient(180deg, #9af08a, #3aa63a 60%, #237a23); }
+#dungeon-actions, #potion-bar { background: #18111f; }
+.pot { background: linear-gradient(180deg, #2e243a, #1b1424); border: 2px solid #5a4630; clip-path: var(--cut); }
+#log { background: linear-gradient(180deg, #0d0812, #120c18); border-top: 2px solid #3a2c20; }
+
+/* ---- Formulaires ---- */
+select, textarea { border: 2px solid var(--trim-dk); background: linear-gradient(180deg, #221a2c, #150f1b); }
+select { appearance: none; -webkit-appearance: none; padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--trim) 50%), linear-gradient(135deg, var(--trim) 50%, transparent 50%), linear-gradient(180deg, #221a2c, #150f1b);
+  background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%, 0 0; background-size: 5px 5px, 5px 5px, 100% 100%; background-repeat: no-repeat; }
+.tag { border-color: var(--trim-dk); background: #2a1f34; font-family: var(--epic-font); font-weight: 700; }
+.htab, .eslot, .pick { clip-path: var(--cut); }
+.htab { background: linear-gradient(180deg, #2e243a, #1b1424); border-color: #5a4630; font-family: var(--epic-font); }
+.htab.sel { border-color: var(--trim); box-shadow: inset 0 0 12px rgba(227, 179, 65, .3); }
+.hero-line img, .portrait { border-color: var(--trim-dk); }

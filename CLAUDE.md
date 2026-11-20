@@ -14,6 +14,9 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 - Toutes les données dans `js/data/`. Toutes les constantes d'équilibrage dans `js/data/balance.js`.
 - Pixel art généré en code (`js/render/pixelart.js`, modèles 12x12 en caractères + palette).
   Remplaçable par des PNG via `G.render.spriteFiles = { id: 'assets/sprites/id.png' }`.
+- **Style visuel « fantasy/épique »** (demande utilisateur) : boutons `.pxbtn` sculptés (coins taillés via clip-path,
+  bordure = ::before, remplissage = ::after ; variantes primary/gold/danger/sel/epic), panneaux à coins dorés,
+  titres en police **Cinzel** (assets/fonts, OFL) — Cinzel exclut les chiffres (unicode-range) car son « 1 » ressemble à « I ».
 - L'utilisateur n'est pas développeur : expliquer brièvement chaque étape, en français.
 
 ## Architecture
@@ -79,6 +82,9 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - [x] **Phase 2** : équipement (11 emplacements, restrictions par classe), 6 raretés, bonus aléatoires, 10 uniques,
       mythiques, inventaire 40, comparaison, vente/recyclage/verrouillage, vente groupée, tri auto, auto-équipement,
       boutique (potions + stock d'objets), 5 potions avec règles auto, matériaux, colonne de lumière au drop.
+      **Optimiser l'équipe** (`inventory.optimizeTeam`) : sac + objets portés mis en commun, attribution gloutonne
+      au meilleur gain relatif (les objets peuvent changer de héros), annulée si pas meilleure ; boutons Équipe/Sac/Ville/fin
+      d'expédition + option « optimiser à chaque retour en ville ». Thème visuel fantasy.
 - [ ] Phase 3 : XP, niveaux, classes (voleur recrutable), taverne, synergies
 - [ ] Phase 4 : compétences, arbres, priorités, éléments complets
 - [ ] Phase 5 : mécaniques de boss, salles spéciales, biomes visibles

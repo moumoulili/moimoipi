@@ -42,7 +42,7 @@
         (stock.length ? stock.map((it) => ui.itemCell(it, { up: !!G.sys.inventory.upgradeFor(it) })).join('') : '<p class="muted">Tout est vendu !</p>') + '</div>' +
         '<button class="pxbtn small wide" id="tw-restock"' + (st.gold < SH.refreshCost() ? ' disabled' : '') + '>Renouveler le stock · ' + U.fmt(SH.refreshCost()) + ' or</button></div>';
 
-      h += '<div class="panel"><h3>Équipe</h3>';
+      h += '<div class="panel"><h3>Équipe</h3>' + ui.optimizeBtnHtml('tw-opt');
       for (const hero of G.sys.heroes.team()) {
         const c = G.data.classes[hero.cls], s = G.sys.stats.hero(hero);
         h += '<div class="hero-line"><img alt="" src="' + G.render.spriteURL(c.sprite, 4) + '"><div class="info">' +
@@ -68,6 +68,7 @@
         if (G.sys.town.buy(b.dataset.buy)) { ui.toast(G.data.buildings[b.dataset.buy].name + ' amélioré !', 'gold'); ui.invalidateHud(); this.render(); }
       }));
       const rer = () => this.render();
+      ui.bindOptimize('tw-opt', rer);
       el.querySelectorAll('[data-pot]').forEach((b) => (b.onclick = () => {
         const n = SH.buyPotion(b.dataset.pot, +b.dataset.n);
         if (n) ui.toast('+' + n + ' ' + G.data.potions[b.dataset.pot].name); rer();

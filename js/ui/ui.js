@@ -74,6 +74,20 @@
     close.box = box;
     return close;
   };
+  // bouton commun "Optimiser l'équipe"
+  ui.optimizeBtnHtml = (id) => '<button class="pxbtn epic wide optimize" id="' + id + '">✨ Optimiser l\'équipement de l\'équipe</button>';
+  ui.bindOptimize = function (id, after) {
+    const b = document.getElementById(id);
+    if (!b) return;
+    b.onclick = () => {
+      const r = G.sys.inventory.optimizeTeam();
+      if (r.changes) {
+        ui.toast('✨ ' + r.changes + ' changement(s) · puissance +' + Math.round(r.gain * 1000) / 10 + ' %', 'gold');
+        G.render.fx && G.sys.run.active && G.sys.run.active.heroes.forEach((h) => !h.dead && G.render.fx.sparkle(h.x, h.y, '#ffd34d', 8));
+      } else ui.toast('L\'équipement est déjà optimal');
+      after && after();
+    };
+  };
   ui.confirm = function (title, html, okLabel, onOk, cls) {
     ui.modal({ title, html, buttons: [{ label: okLabel, cls: cls || 'danger', onClick: onOk }, { label: 'Annuler' }] });
   };

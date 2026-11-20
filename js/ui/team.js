@@ -13,7 +13,7 @@
       const team = G.sys.heroes.team();
       if (!team.find((h) => h.id === selId)) selId = team[0].id;
       const hero = G.sys.heroes.get(selId), c = G.data.classes[hero.cls], s = G.sys.stats.hero(hero);
-      let h = '<div class="hero-tabs">' + team.map((t) => '<button class="htab ' + (t.id === selId ? 'sel' : '') + '" data-h="' + t.id + '"><img alt="" src="' + G.render.spriteURL(G.data.classes[t.cls].sprite, 3) + '"><span>' + U.esc(t.name) + '</span></button>').join('') + '</div>';
+      let h = ui.optimizeBtnHtml('tm-opt') + '<div class="hero-tabs">' + team.map((t) => '<button class="htab ' + (t.id === selId ? 'sel' : '') + '" data-h="' + t.id + '"><img alt="" src="' + G.render.spriteURL(G.data.classes[t.cls].sprite, 3) + '"><span>' + U.esc(t.name) + '</span></button>').join('') + '</div>';
       const magic = c.attack.dmgType === 'magic';
       let extra = '';
       const add = (n, v) => (extra += '<div>' + n + ' <b>' + v + '</b></div>');
@@ -50,7 +50,7 @@
           h += '<button class="eslot empty" data-slot="' + slot + '"><span class="es-e">+</span><span class="es-n">' + sd.short + '</span><span class="es-s">' + (n ? n + ' dispo.' : 'vide') + '</span></button>';
         }
       }
-      h += '</div><div class="row" style="margin-top:10px"><button class="pxbtn primary" style="flex:1" id="tm-auto">⚡ Équiper le meilleur</button><button class="pxbtn" style="flex:1" id="tm-all">⚡ Toute l\'équipe</button></div></div>';
+      h += '</div><div class="row" style="margin-top:10px"><button class="pxbtn primary" style="flex:1" id="tm-auto">⚡ Équiper le meilleur</button><button class="pxbtn" style="flex:1" id="tm-all">⚡ Sac → toute l\'équipe</button></div></div>';
       h += '<div class="panel muted small">Recrutement à la taverne, niveaux et classes : phase 3.</div>';
       el.innerHTML = h;
       el.querySelectorAll('[data-h]').forEach((b) => (b.onclick = () => { selId = b.dataset.h; this.render(); }));
@@ -60,6 +60,7 @@
         if (it) ui.itemDetail(it, { from: 'equipped', hero, slot, onDone: rer });
         else ui.slotPicker(hero, slot, rer);
       }));
+      ui.bindOptimize('tm-opt', () => this.render());
       U.$('#tm-auto').onclick = () => { const n = INV.autoEquip(hero); ui.toast(n ? n + ' objet(s) équipé(s)' : 'Déjà le meilleur équipement'); this.render(); };
       U.$('#tm-all').onclick = () => { const n = INV.autoEquipTeam(); ui.toast(n ? n + ' objet(s) équipé(s)' : 'Déjà le meilleur équipement'); this.render(); };
     },

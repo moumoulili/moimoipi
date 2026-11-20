@@ -217,6 +217,7 @@
     st.lastRun = { reason, floor: s.floor, startFloor: s.startFloor, gold: s.gold, kept, kills: s.kills, items: s.items || 0, mats: s.mats || {}, time: Math.round(run.t + (s.time || 0)), heroStats: run.stats };
     st.run = null;
     R.active = null;
+    if (st.settings.autoOptimize) { const o = G.sys.inventory.optimizeTeam(); st.lastRun.optimized = o.changes; }
     G.core.save.save();
     bus.emit('run:end', st.lastRun);
     G.ui.onRunEnd && G.ui.onRunEnd(st.lastRun);
