@@ -36,7 +36,7 @@ G.data.balance = {
 
   // --- Exploration ---
   vision: 6.5,             // rayon de vision en cases
-  floorRegen: 0.15,        // % de PV rendus en prenant l'escalier
+  floorRegen: 0,           // % de PV rendus en prenant l'escalier (aucun : seul le prêtre soigne)
   trapDmg: 0.15,           // % des PV max infligés par un piège
   checkpointEvery: 5,      // un gardien tous les 5 étages
   checkpointCountdown: 10, // secondes avant de continuer automatiquement

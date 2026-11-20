@@ -52,7 +52,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 
 ## Formules (balance.js)
 - Monstre de base 40 PV / 9 ATQ / 4 DEF. Puissance : `(1 + 0,12(f-1)) × 1,055^(f-1)` ; élite (16 %) ×3 PV ×1,4 ATQ ;
-  mini-boss ×8 PV ×1,5 ATQ ; boss ×18 PV ×1,8 ATQ. 2-4 monstres/salle (+1 tous les 6 étages). Régén. escalier 15 %.
+  mini-boss ×8 PV ×1,5 ATQ ; boss ×18 PV ×1,8 ATQ. 2-4 monstres/salle (+1 tous les 6 étages). L'escalier ne rend aucun PV.
 - Réduction défense : `DEF / (DEF + 50 + 10 × niv. attaquant)`, max 75 % ; magie ignore 50 % DEF.
 - Élément : faiblesse ×1,5, résistance ×0,5. Critique 5 % + AGI×0,1 % (×1,5). Esquive AGI×0,05 % (max 30 %).
 - Attaque = 2 × stat principale + 5. Intervalle d'attaque = 1,2 s × 100 / vitesse.
