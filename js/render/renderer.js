@@ -47,15 +47,30 @@
     // ombre
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath(); ctx.ellipse(Math.round(u.x * T - cam.x), Math.round(u.y * T + 4 - cam.y), 4 * sc, 1.6 * sc, 0, 0, Math.PI * 2); ctx.fill();
+    // montée de niveau : aura dorée, colonne de lumière, rebond
+    if (u.lvlFx > 0 && !u.dead) {
+      const k = Math.min(1, u.lvlFx / 2), cx = Math.round(u.x * T - cam.x), cy = Math.round(u.y * T - cam.y);
+      ctx.globalCompositeOperation = 'lighter';
+      glow(cx, cy - 6, 18 + Math.sin(time * 10) * 3, 'rgba(255,215,80,' + (0.55 * k) + ')');
+      const g = ctx.createLinearGradient(0, cy - 44, 0, cy + 2);
+      g.addColorStop(0, 'rgba(255,240,180,0)'); g.addColorStop(1, 'rgba(255,220,100,' + (0.45 * k) + ')');
+      ctx.fillStyle = g; ctx.fillRect(cx - 6, cy - 44, 12, 46);
+      ctx.globalCompositeOperation = 'source-over';
+    }
     const flip = u.facing < 0;
     const img = u.anim.hit > 0 || (u.enraged && Math.sin(time * 14) > 0.85) ? (flip ? s.whiteFlip : s.white) : flip ? s.flip : s.img;
     if (u.dead) ctx.globalAlpha = Math.max(0, u.deadT / 0.6);
+    let lvlScale = 1;
+    if (u.lvlFx > 1.4) lvlScale = 1 + Math.sin(((2 - u.lvlFx) / 0.6) * Math.PI) * 0.25;
     if (!u.dead && u.anim.atk > 0 && u.attack && u.attack.type === 'ranged' && u.attack.projectile !== 'arrow') {
       ctx.globalCompositeOperation = 'lighter';
       glow(Math.round(u.x * T - cam.x), Math.round(u.y * T - 6 - cam.y), 10, hexA(G.render.fx.colorOf(G.sys.combat.vfxEl(u.attack)), (u.anim.atk / 0.18) * 0.6));
       ctx.globalCompositeOperation = 'source-over';
     }
-    ctx.drawImage(img, px, py, w, h);
+    if (lvlScale !== 1) { const w2 = Math.round(w * lvlScale), h2 = Math.round(h * lvlScale); ctx.drawImage(img, px - ((w2 - w) >> 1), py - (h2 - h), w2, h2); }
+    else ctx.drawImage(img, px, py, w, h);
+    // clignotement lumineux pendant la montée de niveau
+    if (u.lvlFx > 0 && !u.dead && Math.floor(time * 8) % 2 === 0) { ctx.globalAlpha = 0.55 * Math.min(1, u.lvlFx); ctx.drawImage(flip ? s.whiteFlip : s.white, px, py, w, h); }
     ctx.globalAlpha = 1;
     if (u.dead) return;
     if (u.guardian) {

@@ -139,8 +139,29 @@
     else if (id === 'crit') { tone(sfxBus, 0.125, 1760, t, 0.06, 0.3); tone(sfxBus, 0.125, 2349, t + 0.04, 0.08, 0.25); }
     else if (id === 'break') { noise(sfxBus, t, 0.2, 0.6, 300); tone(sfxBus, 0.5, 523, t + 0.05, 0.08, 0.25); tone(sfxBus, 0.5, 784, t + 0.11, 0.12, 0.25); }
     else if (id === 'up' || id === 'craft') [523, 659, 784, 1047].forEach((f, k) => tone(sfxBus, 0.25, f, t + k * 0.07, 0.1, 0.25));
-    else if (id === 'level') [392, 523, 659, 784, 1047].forEach((f, k) => tone(sfxBus, 0.25, f, t + k * 0.06, 0.12, 0.22));
+    else if (id === 'level') A.fanfare();
     else if (id === 'loot') [880, 1175, 1568].forEach((f, k) => tone(sfxBus, 0.125, f, t + k * 0.08, 0.14, 0.22));
+  };
+  // fanfare de montée de niveau (composition originale, ~1,6 s) ; la musique baisse pendant ce temps
+  A.fanfare = function () {
+    if (!ctx || !S().sfx) return;
+    const t = ctx.currentTime + 0.02, n = (m) => freq(m);
+    const normal = S().music ? 0.32 * S().musicVol : 0;
+    musicBus.gain.cancelScheduledValues(t);
+    musicBus.gain.setTargetAtTime(normal * 0.25, t, 0.05);
+    musicBus.gain.setTargetAtTime(normal, t + 1.5, 0.3);
+    // montée rapide (sol - do - mi - sol - si - ré)
+    [67, 72, 76, 79, 83, 86].forEach((m, k) => tone(sfxBus, 0.25, n(m), t + k * 0.055, 0.09, 0.22));
+    // accord tenu : do majeur puis ré - mi
+    const c = t + 0.36;
+    tone(sfxBus, 0.25, n(84), c, 0.42, 0.24); tone(sfxBus, 0.5, n(76), c, 0.42, 0.1); tone(sfxBus, 0.5, n(79), c, 0.42, 0.1);
+    tone(sfxBus, 'triangle', n(48), c, 0.42, 0.3);
+    tone(sfxBus, 0.25, n(86), c + 0.45, 0.12, 0.22);
+    tone(sfxBus, 0.25, n(88), c + 0.6, 0.7, 0.24); tone(sfxBus, 0.5, n(79), c + 0.6, 0.7, 0.1); tone(sfxBus, 0.5, n(84), c + 0.6, 0.7, 0.1);
+    tone(sfxBus, 'triangle', n(43), c + 0.6, 0.7, 0.3);
+    // scintillements
+    for (let k = 0; k < 6; k++) tone(sfxBus, 0.125, n(96 + (k % 3) * 2), c + 0.65 + k * 0.08, 0.05, 0.08);
+    noise(sfxBus, c + 0.6, 0.25, 0.12, 6000);
   };
   G.sys.audio = A;
 })();

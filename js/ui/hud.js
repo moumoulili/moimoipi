@@ -42,6 +42,7 @@
       if (u) { hp = u.hp; max = u.stats.maxHp; dead = u.dead; }
       else { const st = G.sys.stats.hero(G.sys.heroes.get(id)); hp = max = st.maxHp; }
       card.classList.toggle('dead', dead);
+      card.classList.toggle('lvlup', !!(u && u.lvlFx > 0));
       card.querySelector('.bar.mp > i').style.width = (u ? Math.max(0, (u.mp / u.stats.maxMp) * 100) : 100) + '%';
       const hero = G.sys.heroes.get(id);
       card.querySelector('.lvl-badge').textContent = hero.level;

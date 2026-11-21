@@ -396,6 +396,7 @@
     run.t += dt;
     for (const u of run.units) {
       u.cd -= dt; if (u.healCd > 0) u.healCd -= dt; if (u.ghostT > 0) u.ghostT -= dt;
+      if (u.lvlFx > 0) { u.lvlFx -= dt; if (Math.random() < dt * 14) G.render.fx.sparkle(u.x, u.y, Math.random() < 0.5 ? '#ffe14d' : '#ffffff', 1); }
       if (u.side === 'hero' && !u.dead) {
         if (u.skillLock > 0) u.skillLock -= dt;
         for (const k in u.skillCd) if (u.skillCd[k] > 0) u.skillCd[k] -= dt;

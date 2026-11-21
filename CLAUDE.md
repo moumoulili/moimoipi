@@ -100,6 +100,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - **Musique 8-bit originale** « style JRPG rétro » (ne jamais reproduire de mélodie existante, ex. Final Fantasy, droits d'auteur) :
   le thème suit la situation (camp / donjon / boss). Options : musique, volume, effets sonores.
 - **Ville = carte cliquable** (demande utilisateur) : plus de liste ; chaque bâtiment ouvre sa fenêtre. ▲ = amélioration possible.
+- Montée de niveau : fanfare 8-bit originale (`audio.fanfare`, la musique baisse ~1,5 s) + effet sur le héros (`u.lvlFx` 2 s :
+  aura et colonne dorées, rebond, clignotement, « NIVEAU X ! » en police pixel) + fiche du héros qui brille (`.hcard.lvlup`).
 - Titres : `ui.fixTitles` isole l'émoji de tête (sinon le dégradé doré le recouvre).
 - **Progression de classe (spécification de l'utilisateur)** :
   Aventurier (niv. 1-10, branche V, « Premiers soins » offert ; équipe de départ et recrues) → **niv. 10** : choix d'une classe

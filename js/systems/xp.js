@@ -59,13 +59,19 @@
   function onLevelUp(run, u, h, ups) {
     run.track(h.id, 'levels', ups);
     const fx = G.render.fx;
-    // petit soin à la montée de niveau
+    // petit soin + grand effet doré sur le héros (aura, colonne de lumière, rebond, « NIVEAU X ! »)
     u.levelHeal = true;
-    fx.beam(u.x, u.y - 3.5, u.x, u.y, '#ffe14d', 0.7);
-    fx.ring(u.x, u.y, '#ffe14d', 1.3, 0.6);
-    fx.ring(u.x, u.y, '#ffffff', 0.8, 0.45);
-    fx.sparkle(u.x, u.y, '#fff3a8', 18);
-    fx.text(u.x, u.y - 1.1, 'NIV ' + h.level, '#ffe14d', 1);
+    u.lvlFx = 2;
+    fx.beam(u.x, u.y - 4, u.x, u.y, '#ffe14d', 0.8);
+    fx.beam(u.x - 0.3, u.y - 3.5, u.x - 0.3, u.y, '#ffffff', 0.6);
+    fx.beam(u.x + 0.3, u.y - 3.5, u.x + 0.3, u.y, '#ffffff', 0.6);
+    fx.ring(u.x, u.y, '#ffe14d', 1.6, 0.7);
+    fx.ring(u.x, u.y, '#ffffff', 1, 0.5);
+    fx.ring(u.x, u.y, '#ffd34d', 0.6, 0.9, true);
+    fx.sparkle(u.x, u.y, '#fff3a8', 30);
+    fx.burst(u.x, u.y - 0.3, '#ffe14d', 16, -1.5, true);
+    fx.text(u.x, u.y - 1.3, 'NIVEAU ' + h.level + ' !', '#ffe14d', 2, 1.8, 0.45);
+    fx.flash('#fff3c0', 0.12);
     G.ui.log('⭐ ' + h.name + ' passe niveau ' + h.level + ' !', 'gold');
     G.core.bus.emit('hero:levelup', { hero: h.id, level: h.level });
   }

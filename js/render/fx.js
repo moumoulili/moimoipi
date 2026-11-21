@@ -10,9 +10,9 @@
   const MAXP = 600;
   function part(p) { if (fx.parts.length >= MAXP) fx.parts.shift(); p.t = 0; fx.parts.push(p); }
 
-  fx.text = function (x, y, txt, color, size) {
+  fx.text = function (x, y, txt, color, size, life, rise) {
     if (fx.texts.length > 60) fx.texts.shift();
-    fx.texts.push({ x: x + rnd(-0.15, 0.15), y, txt, color, size: size || 1, t: 0, life: size > 1 ? 1.1 : 0.9 });
+    fx.texts.push({ x: x + rnd(-0.15, 0.15), y, txt, color, size: size || 1, t: 0, life: life || (size > 1 ? 1.1 : 0.9), rise: rise == null ? 0.9 : rise });
   };
   fx.burst = function (x, y, color, n, vyBias, glow) {
     for (let i = 0; i < n; i++) {
@@ -117,7 +117,7 @@
   fx.clear = function () { fx.drops.length = 0; fx.texts.length = 0; fx.parts.length = 0; fx.arcs.length = 0; fx.rings.length = 0; fx.beams.length = 0; };
 
   fx.update = function (dt) {
-    for (const t of fx.texts) { t.t += dt; t.y -= dt * 0.9; }
+    for (const t of fx.texts) { t.t += dt; t.y -= dt * t.rise; }
     fx.texts = fx.texts.filter((t) => t.t < t.life);
     for (const p of fx.parts) {
       p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt; p.vx *= 0.96;
