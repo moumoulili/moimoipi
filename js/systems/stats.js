@@ -15,7 +15,8 @@
     const c = G.data.classes[hero.cls];
     const L = hero.level;
     const qg = G.sys.tavern ? G.sys.tavern.quality(hero.quality).growth : 1; // potentiel de la recrue
-    const g = (k) => c.base[k] + c.growth[k] * (L - 1) * qg;
+    const leg = 1 + G.data.balance.legacyBonus * (hero.legacy || 0); // Héritage : +20 % par changement de classe
+    const g = (k) => (c.base[k] + c.growth[k] * (L - 1) * qg) * (k === 'crit' || k === 'spd' ? 1 : leg);
     const eq = opts.equip || hero.equip || {};
     const buffs = opts.buffs || {};
     const add = {};

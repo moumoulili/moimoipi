@@ -5,9 +5,18 @@
 //  threat : plus c'est haut, plus les monstres ciblent ce héros.
 // =====================================================================
 G.data.roles = {
-  tank: 'Tank', melee: 'Mêlée', ranged: 'Distance', healer: 'Soin', support: 'Soutien', control: 'Contrôle',
+  adventurer: 'Polyvalent', tank: 'Tank', melee: 'Mêlée', ranged: 'Distance', healer: 'Soin', support: 'Soutien', control: 'Contrôle',
 };
 G.data.classes = {
+  // Classe de départ de tous les héros : au niveau 20, elle choisit une vraie classe (et repasse niveau 1)
+  adventurer: {
+    name: 'Aventurier', role: 'adventurer', tier: -1, threat: 1.5, starter: true,
+    desc: 'Débutant polyvalent : un peu de tout. Au niveau 20, il choisit sa voie.',
+    base:   { hp: 115, mp: 40, str: 7, agi: 7, int: 7, def: 9, spd: 100, crit: 0.05 },
+    growth: { hp: 11, mp: 3, str: 1.4, agi: 1.4, int: 1.4, def: 1.2, spd: 0.4, crit: 0 },
+    attack: { type: 'melee', stat: 'str', range: 1.15, dmgType: 'phys', element: 'physical' },
+    sprite: { tpl: 'warrior', pal: { m: '#8a6a3a', s: '#f1c59a', e: '#1a1020', a: '#7a8a4a', b: '#6a4a24', c: '#c9a070' } },
+  },
   warrior: {
     name: 'Guerrier', role: 'tank', tier: 0, threat: 3,
     desc: 'Robuste, encaisse les coups en première ligne.',
@@ -49,5 +58,6 @@ G.data.classes = {
     sprite: { tpl: 'rogue', pal: { b: '#2e2a3a', w: '#ffd34d', s: '#f1c59a', a: '#4a4560', c: '#a4343a', m: '#c9d1dc' } },
   },
 };
-// Équipe de départ (la taverne permettra de recruter en phase 3)
-G.data.startingTeam = ['warrior', 'archer', 'mage', 'priest'];
+// Équipe de départ : 4 aventuriers
+G.data.startingTeam = ['adventurer', 'adventurer', 'adventurer', 'adventurer'];
+G.data.baseClasses = ['warrior', 'archer', 'mage', 'priest', 'rogue']; // choix proposés à l'aventurier

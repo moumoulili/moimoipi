@@ -12,31 +12,37 @@
     const opts = H.evoOptions(h), next = H.nextEvoLevel(h), e = H.evo(h);
     let s = '';
     if (e) s += '<div class="evo-cur">' + e.icon + ' <b>' + e.name + '</b> <span class="muted small">' + bonusList(H.evoBonus(h)) + '</span></div>';
-    if (opts.length) s += '<button class="pxbtn epic wide" id="tm-evolve">✨ Évolution disponible !</button>';
-    else if (next) s += '<p class="muted small">Prochaine évolution au niveau ' + next + '.</p>';
+    if (h.legacy) s += '<div class="small" style="margin-top:6px">🏛️ <b>Héritage ' + h.legacy + '</b> : +' + Math.round(G.data.balance.legacyBonus * h.legacy * 100) + ' % de stats de base</div>';
+    if (opts.length) s += '<button class="pxbtn epic wide" id="tm-evolve">✨ ' + (h.cls === 'adventurer' ? 'Choisir une classe !' : 'Évolution disponible !') + '</button>';
+    else if (next) s += '<p class="muted small">' + (h.cls === 'adventurer' ? 'Choix de classe' : 'Prochaine évolution') + ' au niveau ' + next + ' (le héros repassera niveau 1).</p>';
     return s;
   };
   ui.evolveModal = function (h, after) {
-    const opts = H.evoOptions(h);
-    let html = '<p class="small" style="text-align:center">' + U.esc(h.name) + ' peut choisir sa voie. Ce choix est définitif.</p>';
+    const opts = H.evoOptions(h), B = G.data.balance;
+    const newLeg = (h.legacy || 0) + 1;
+    let html = '<p class="small" style="text-align:center">' + U.esc(h.name) + ' peut choisir sa voie. Ce choix est définitif.</p>' +
+      '<p class="small warnbox">⚠ Le héros <b>repassera niveau 1</b>. Il garde son équipement (s\'il peut le porter), ses compétences apprises, et gagne ' +
+      '<b>Héritage ' + newLeg + '</b> : +' + Math.round(B.legacyBonus * newLeg * 100) + ' % de stats de base.</p>';
     for (const id of opts) {
-      const e = G.data.evolutions[id], c = H.evoCost(id);
-      const skills = Object.values(G.data.skills).filter((s) => s.evo === id).sort((a, b) => a.row - b.row);
-      const spr = { tpl: G.data.classes[h.cls].sprite.tpl, pal: Object.assign({}, G.data.classes[h.cls].sprite.pal, e.pal), id };
-      html += '<div class="evo-card"><div class="row"><img alt="" src="' + G.render.spriteURL(spr, 4) + '"><div style="flex:1"><div class="iname sk">' + e.icon + ' ' + e.name + '</div>' +
+      const e = H.optionInfo(id), c = H.evoCost(id), isClass = !G.data.evolutions[id];
+      const skills = Object.values(G.data.skills).filter((s) => (isClass ? s.cls === id && !s.evo : s.evo === id)).sort((a, b) => (a.branch + a.row > b.branch + b.row ? 1 : -1));
+      const spr = isClass ? Object.assign({ id }, e.sprite) : { tpl: G.data.classes[h.cls].sprite.tpl, pal: Object.assign({}, G.data.classes[h.cls].sprite.pal, e.pal), id };
+      const gear = isClass ? G.data.classGear[id] : null;
+      html += '<div class="evo-card"><div class="row"><img alt="" src="' + G.render.spriteURL(spr, 4) + '"><div style="flex:1"><div class="iname sk">' + (e.icon ? e.icon + ' ' : '') + e.name + '</div>' +
         '<span class="tag">' + G.data.roles[e.role] + '</span></div></div><p class="small">' + e.desc + '</p>' +
-        '<p class="small"><b>Bonus :</b> ' + bonusList(e.bonus) + '</p>' +
-        '<p class="small"><b>Nouvelles compétences :</b> ' + skills.map((s) => s.icon + ' ' + s.name + (s.ult ? ' ⭐' : '')).join(', ') + '</p>' +
+        (e.bonus ? '<p class="small"><b>Bonus :</b> ' + bonusList(e.bonus) + '</p>' : '') +
+        (gear ? '<p class="small"><b>Armes :</b> ' + gear.weapons.map((w) => G.data.itemBases[w].name).join(', ') + ' · <b>Armures :</b> ' + gear.armor.map((w) => ({ heavy: 'lourdes', medium: 'moyennes', light: 'légères' }[w])).join(', ') + '</p>' : '') +
+        '<p class="small"><b>' + (isClass ? 'Compétences' : 'Nouvelles compétences') + ' :</b> ' + skills.map((s) => s.icon + ' ' + s.name + (s.ult ? ' ⭐' : '')).join(', ') + '</p>' +
         '<p class="small"><b>Coût :</b> ' + F.costText(c) + haveTxt(c) + '</p>' +
         '<button class="pxbtn primary wide" data-evo="' + id + '"' + (H.canAfford(c) ? '' : ' disabled') + '>Devenir ' + e.name + '</button></div>';
     }
-    const close = ui.modal({ title: '✨ Évolution', html, buttons: [{ label: 'Plus tard' }], dismissable: true });
+    const close = ui.modal({ title: '✨ ' + (h.cls === 'adventurer' ? 'Choix de classe' : 'Évolution'), html, buttons: [{ label: 'Plus tard' }], dismissable: true });
     close.box.querySelectorAll('[data-evo]').forEach((b) => (b.onclick = () => {
       const r = H.evolve(h, b.dataset.evo);
       close();
       if (r === 'ok') {
-        const e = G.data.evolutions[b.dataset.evo];
-        ui.toast(e.icon + ' ' + U.esc(h.name) + ' devient ' + e.name + ' !', 'gold');
+        const e = H.optionInfo(b.dataset.evo);
+        ui.toast('✨ ' + U.esc(h.name) + ' devient ' + e.name + ' (niveau 1, Héritage ' + h.legacy + ')', 'gold');
         ui.banner(e.name, h.name, 'gold');
         G.core.U.vibrate([60, 40, 120]);
         ui.invalidateHud();

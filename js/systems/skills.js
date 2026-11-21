@@ -12,10 +12,12 @@
   // ---------- Arbre ----------
   K.forClass = (cls) => Object.values(SK()).filter((s) => s.cls === cls && !s.evo);
   // compétences du héros : classe de base + branches débloquées par ses évolutions
-  K.forHero = (h) => Object.values(SK()).filter((s) => s.cls === h.cls && (!s.evo || s.evo === h.adv || s.evo === h.ult));
-  K.branches = (h) => ['A', 'B'].concat(h.adv ? ['C'] : [], h.ult ? ['D'] : []);
+  // (+ branches des classes précédentes : un ancien aventurier garde sa branche « Aventurier »)
+  K.forHero = (h) => Object.values(SK()).filter((s) => (s.cls === h.cls || (h.pastCls || []).indexOf(s.cls) >= 0) && (!s.evo || s.evo === h.adv || s.evo === h.ult));
+  K.branches = (h) => (h.cls === 'adventurer' ? [] : ['A', 'B']).concat((h.pastCls || []).indexOf('adventurer') >= 0 || h.cls === 'adventurer' ? ['V'] : [], h.adv ? ['C'] : [], h.ult ? ['D'] : []);
   K.branchInfo = function (h, b) {
     if (b === 'C' || b === 'D') { const e = G.data.evolutions[b === 'C' ? h.adv : h.ult]; return { name: e.name, icon: e.icon }; }
+    if (b === 'V') return G.data.skillBranches.adventurer.V;
     return G.data.skillBranches[h.cls][b];
   };
   // rang 1 offert pour les compétences de départ (innate)

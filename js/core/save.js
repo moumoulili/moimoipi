@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 6;
+  const VERSION = 7;
   const S = {};
 
   S.fresh = function () {
@@ -44,6 +44,8 @@
     4: (st) => { for (const h of st.heroes) { h.skills = h.skills || {}; h.skillOrder = h.skillOrder || []; h.skillRules = h.skillRules || {}; } },
     // v5 -> v6 : « Soin majeur » devient une compétence de départ (rang 1 offert) : on rend le point déjà payé
     5: (st) => { for (const h of st.heroes) if (h.cls === 'priest' && h.skills && h.skills.p_heal >= 1) h.sp = (h.sp || 0) + 1; },
+    // v6 -> v7 : classe de départ « Aventurier » ; les héros existants ont déjà une classe => 1 Héritage
+    6: (st) => { for (const h of st.heroes) if (h.cls !== 'adventurer') h.legacy = (h.legacy || 0) + 1 + (h.adv ? 1 : 0) + (h.ult ? 1 : 0); },
   };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }

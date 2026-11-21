@@ -56,7 +56,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v6) : gold, heroes[{id,name,cls (classe de base),adv,ult (évolutions),level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
+- État sauvegardé `G.state` (v7) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
   tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
@@ -80,7 +80,12 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   « demander » (15 s, sinon choix prudent) ou « auto » ; marchand « s'arrêter » (20 s) ou « ignorer ».
 - Bénédictions (autel/événements) : bonus jusqu'à la fin de l'expédition, passés aux stats via `run.runBuffs` (avec les élixirs).
 - Titres : `ui.fixTitles` isole l'émoji de tête (sinon le dégradé doré le recouvre).
-- Classes : guerrier, archer, mage, prêtre, voleur → 2 évolutions chacune (niv. 20) → ultimes (niv. 50) :
+- **Classe de départ « Aventurier »** (demande utilisateur) : tous les héros (équipe de départ et recrues) commencent
+  aventurier (branche de compétences V, « Premiers soins » offert). Au niveau 20 : choix parmi les 5 classes de base.
+  **Chaque changement de classe ramène au niveau 1** et donne +1 Héritage (+20 % de stats de base, `hero.legacy`) ;
+  équipement (si portable), compétences et branches des classes précédentes (`hero.pastCls`) sont conservés.
+  Paliers : 0 aventurier→classe (niv. 20, 500 or), 1 classe→avancée (niv. 20), 2 avancée→ultime (niv. 20).
+- Classes : guerrier, archer, mage, prêtre, voleur → 2 évolutions chacune → ultimes :
   Paladin/Berserker → Templier sacré/Seigneur de guerre ; Tireur d'élite/Rôdeur → Œil-de-faucon/Maître des bêtes ;
   Pyromancien/Nécromancien → Archimage/Liche ; Clerc/Inquisiteur → Saint/Grand Inquisiteur ;
   Assassin/Saboteur → Faucheur/Maître saboteur.
@@ -103,7 +108,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   « Soin majeur » est une compétence de départ (`innate`, rang 1 offert, `K.freeRank`), 10 mana. Contrôles 2× plus courts sur les gardiens.
 - Éléments à l'impact : feu brûlure 20 %, glace ralenti 25 % (gel 8 %), foudre étourdit 10 %, terre armure brisée 15 %,
   ombre affaiblit 20 %, lumière +30 % contre morts-vivants/démons ; chance × (1 − résistance).
-- Évolutions : niv. 20 (3000 or + 10 poussière) puis niv. 50 (60 000 or + 5 éther). Branche C (4 nœuds) / D (3 nœuds, ultime).
+- Évolutions : avancée 3000 or + 10 poussière, ultime 60 000 or + 5 éther (chacune au niv. 20 de la classe actuelle).
+  Branche C (4 nœuds) / D (3 nœuds, ultime).
 - Sets : objet ≥ rare → 12 % pièce de set (base forcée, nom « Base · Set »). Bonus comptés par pièces portées (anneaux ×2).
 - Forge : +1 = +10 % stats plates/dégâts, +5 % stats en % ; max +10 ; réussite 100 % jusqu'à +5 puis −12 %/niveau (min 30 %),
   échec = coût perdu. Coût or `valeur × 1,5 × (up+1)^1,6` + ferraille (+ poussière dès +3, éther dès +6). Relance d'un bonus
@@ -145,7 +151,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 
 ## Tests
 Serveur local : `python3 -m http.server 8765` puis Playwright en viewport mobile. Simulation accélérée possible :
-`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 4 (joueur simulé : optimise, vend, potions soin+mana, Portail, compétences auto ; sans régén. de mana ni soin
-de base) : ét. 4 au 1er essai, ~7 après 4, ~10 après 8 — nettement plus dur.
+`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 6 (joueur simulé : 4 aventuriers, optimise, vend, potions soin+mana, Portail, compétences auto, change de classe
+dès que possible) : ét. 5 après 3, ~14 après 10, mur ~14 ; niveau 14 après 20 expéditions → choix de classe vers ~35.
 L'or s'accumule sans débouché au-delà du Portail : la forge (phase 6) et la ville (phase 7) l'absorberont.
 Attention : recharger la page déclenche une sauvegarde (pagehide) ; neutraliser `G.core.save.save` avant d'éditer localStorage dans un test.

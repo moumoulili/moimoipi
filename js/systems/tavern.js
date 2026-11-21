@@ -12,7 +12,7 @@
 
   function makeRecruit(rng) {
     const q = rng.weighted(G.data.recruitQualities.map((x) => ({ id: x.id, w: x.w }))).id;
-    const cls = rng.pick(Object.keys(G.data.classes).filter((c) => G.data.classes[c].tier === 0));
+    const cls = 'adventurer'; // toutes les recrues commencent aventurier
     const [a, b] = B.tavern.levelBelowAvg;
     const level = Math.max(1, T.avgLevel() - rng.int(a, b));
     const used = new Set(st().heroes.map((h) => h.name).concat((st().tavern.recruits || []).map((r) => r.name)));

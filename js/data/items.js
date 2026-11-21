@@ -61,6 +61,7 @@ G.data.itemBases = {
 
 // Ce que chaque classe peut utiliser
 G.data.classGear = {
+  adventurer: { weapons: ['sword', 'dagger', 'mace', 'bow', 'staff', 'wand'], offhand: ['shield', 'tome', 'quiver', 'parry', 'relic'], armor: ['medium', 'light'] },
   warrior: { weapons: ['sword', 'axe', 'mace', 'spear'], offhand: ['shield'], armor: ['heavy', 'medium'] },
   archer:  { weapons: ['bow', 'crossbow'], offhand: ['quiver'], armor: ['medium', 'light'] },
   mage:    { weapons: ['staff', 'wand'], offhand: ['tome'], armor: ['light'] },

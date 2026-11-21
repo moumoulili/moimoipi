@@ -20,6 +20,19 @@
   const S = {};
   function sk(id, o) { o.id = id; S[id] = o; }
 
+  // ---------------------------- AVENTURIER ----------------------------
+  sk('v_firstaid', { cls: 'adventurer', branch: 'V', row: 0, maxRank: 5, type: 'active', name: 'Premiers soins', icon: '🩹', innate: true,
+    kind: 'heal', cd: 8, mp: 8, target: 'allyLow', range: 4, mult: (r) => 1.2 + 0.2 * r, rule: { mode: 'allyHp', value: 0.5 },
+    desc: (r) => 'Soigne l\'allié le plus blessé de ' + P(1.2 + 0.2 * r) + ' de la puissance magique' });
+  sk('v_strike', { cls: 'adventurer', branch: 'V', row: 1, maxRank: 5, type: 'active', name: 'Coup d\'estoc', icon: '🗡️',
+    kind: 'damage', cd: 6, mp: 6, target: 'target', range: 1.3, dmgType: 'phys', element: 'physical', mult: (r) => 1.4 + 0.12 * r, vfx: 'stab',
+    rule: { mode: 'always' }, desc: (r) => P(1.4 + 0.12 * r) + ' de dégâts' });
+  sk('v_endurance', { cls: 'adventurer', branch: 'V', row: 2, maxRank: 5, type: 'passive', name: 'Endurance', icon: '💪',
+    passive: (r) => ({ hpPct: 0.04 * r, defPct: 0.03 * r }), desc: (r) => '+' + P(0.04 * r) + ' de PV, +' + P(0.03 * r) + ' de défense' });
+  sk('v_rally', { cls: 'adventurer', branch: 'V', row: 3, maxRank: 3, type: 'active', name: 'Ralliement', icon: '🚩',
+    kind: 'buff', target: 'team', cd: 25, mp: 15, dur: 8, buff: (r) => ({ dmgPct: 0.1 + 0.03 * r }), rule: { mode: 'boss' },
+    desc: (r) => 'L\'équipe gagne +' + P(0.1 + 0.03 * r) + ' de dégâts pendant 8 s' });
+
   // ---------------------------- GUERRIER ----------------------------
   sk('w_iron', { cls: 'warrior', branch: 'A', row: 0, maxRank: 5, type: 'passive', name: 'Peau de fer', icon: '🛡️',
     passive: (r) => ({ defPct: 0.06 * r }), desc: (r) => '+' + P(0.06 * r) + ' de défense' });
@@ -136,6 +149,7 @@
 
   G.data.skills = S;
   G.data.skillBranches = {
+    adventurer: { V: { name: 'Aventurier', icon: '🎒' } },
     warrior: { A: { name: 'Rempart', icon: '🛡️' }, B: { name: 'Carnage', icon: '⚔️' } },
     archer: { A: { name: 'Précision', icon: '🎯' }, B: { name: 'Chasse', icon: '🏹' } },
     mage: { A: { name: 'Feu', icon: '🔥' }, B: { name: 'Tempête', icon: '⚡' } },

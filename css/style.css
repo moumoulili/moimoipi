@@ -521,3 +521,4 @@ h2 .ico, h3 .ico { -webkit-text-fill-color: initial; color: initial; background:
 .reroll { padding: 4px 0; border-bottom: 1px solid rgba(120, 80, 30, .3); }
 .fuse { padding: 6px 0; border-bottom: 1px solid rgba(120, 80, 30, .3); }
 .iname.sk { text-shadow: none; color: #4a1406; font-family: var(--epic-font); font-weight: 900; }
+.warnbox { padding: 6px 8px; border: 1px solid #a3201a; background: rgba(163, 32, 26, .08); }

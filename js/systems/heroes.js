@@ -38,15 +38,20 @@
     for (const id of [h.adv, h.ult]) { const e = G.data.evolutions[id]; if (e) for (const k in e.bonus) out[k] = (out[k] || 0) + e.bonus[k]; }
     return out;
   };
-  // évolutions proposées maintenant (niveau atteint)
+  // prochain palier de changement de classe (0, 1, 2) ou null
+  H.nextTier = (h) => (h.cls === 'adventurer' ? 0 : !h.adv ? 1 : !h.ult ? 2 : null);
+  // choix proposés maintenant (niveau atteint) : ids de classes (palier 0) ou d'évolutions
   H.evoOptions = function (h) {
-    const E = G.data.evolutions, B = G.data.balance.evolution;
-    if (!h.adv) return h.level >= B[1].level ? Object.keys(E).filter((k) => E[k].tier === 1 && E[k].base === h.cls) : [];
-    if (!h.ult) return h.level >= B[2].level ? Object.keys(E).filter((k) => E[k].tier === 2 && E[k].from === h.adv) : [];
-    return [];
+    const E = G.data.evolutions, B = G.data.balance.evolution, t = H.nextTier(h);
+    if (t == null || h.level < B[t].level) return [];
+    if (t === 0) return G.data.baseClasses.slice();
+    if (t === 1) return Object.keys(E).filter((k) => E[k].tier === 1 && E[k].base === h.cls);
+    return Object.keys(E).filter((k) => E[k].tier === 2 && E[k].from === h.adv);
   };
-  H.nextEvoLevel = (h) => (!h.adv ? G.data.balance.evolution[1].level : !h.ult ? G.data.balance.evolution[2].level : null);
-  H.evoCost = (id) => G.data.balance.evolution[G.data.evolutions[id].tier];
+  H.nextEvoLevel = (h) => { const t = H.nextTier(h); return t == null ? null : G.data.balance.evolution[t].level; };
+  H.evoTier = (id) => (G.data.evolutions[id] ? G.data.evolutions[id].tier : 0);
+  H.evoCost = (id) => G.data.balance.evolution[H.evoTier(id)];
+  H.optionInfo = (id) => G.data.evolutions[id] || G.data.classes[id];
   H.canAfford = function (c) {
     if (G.state.gold < (c.gold || 0)) return false;
     for (const k in c.mats || {}) if ((G.state.materials[k] || 0) < c.mats[k]) return false;
@@ -58,7 +63,13 @@
     const c = H.evoCost(id);
     if (!H.canAfford(c)) return 'cost';
     H.pay(c);
-    if (G.data.evolutions[id].tier === 1) h.adv = id; else h.ult = id;
+    const tier = H.evoTier(id);
+    if (tier === 0) { h.pastCls = (h.pastCls || []).concat([h.cls]); h.cls = id; }
+    else if (tier === 1) h.adv = id; else h.ult = id;
+    // nouveau départ : niveau 1, +1 Héritage ; compétences et points déjà gagnés conservés
+    h.level = 1; h.xp = 0; h.legacy = (h.legacy || 0) + 1;
+    // l'équipement que la nouvelle classe ne peut pas porter retourne au sac
+    for (const slot in h.equip) if (h.equip[slot] && !G.sys.items.canUse(h, h.equip[slot])) { G.state.inventory.push(h.equip[slot]); delete h.equip[slot]; }
     G.sys.synergy && G.sys.synergy.invalidate();
     G.sys.run.refreshStats && G.sys.run.refreshStats();
     G.core.bus.emit('hero:evolve', { hero: h.id, evo: id });
