@@ -84,12 +84,23 @@
         if (ex) ex.v += p.value, ex.special = true; else item.affixes.push({ stat: p.stat, v: p.value, special: true });
       }
     }
+    // pièce de set ?
+    if (!unique && IT.rIdx(rarity) >= 2 && !opts.noSet && rng.chance(B.setChance)) {
+      const sets = Object.keys(D().sets).filter((k) => !opts.base || D().sets[k].pieces.indexOf(opts.base) >= 0);
+      if (sets.length) {
+        const sid = rng.pick(sets), pb = opts.base || rng.pick(D().sets[sid].pieces);
+        if (pb !== base) return IT.create(rng, Object.assign({}, opts, { base: pb, forceSet: sid }));
+        item.set = sid;
+      }
+    }
+    if (opts.forceSet) item.set = opts.forceSet;
     item.name = IT.makeName(item);
     return item;
   };
 
   IT.makeName = function (item) {
     if (item.unique) return D().uniques.find((u) => u.id === item.unique).name;
+    if (item.set) return IT.base(item).name + ' · ' + D().sets[item.set].name;
     const b = IT.base(item);
     const main = item.affixes.find((a) => !a.special) || null;
     const af = main && D().affixes.find((a) => a.stat === main.stat);
@@ -99,10 +110,13 @@
   };
 
   // toutes les stats d'un objet additionnées { stat: valeur }
+  // multiplicateur de forge (+1, +2…)
+  IT.upMult = (item, stat) => 1 + (D().pctStats[stat] ? B.forge.upPct : B.forge.upFlat) * (item.up || 0);
+  IT.dmg = (item) => (item.dmg || 0) * (1 + B.forge.upFlat * (item.up || 0));
   IT.stats = function (item) {
     const s = {};
-    for (const k in item.implicit) s[k] = (s[k] || 0) + item.implicit[k];
-    for (const a of item.affixes) s[a.stat] = (s[a.stat] || 0) + a.v;
+    for (const k in item.implicit) s[k] = (s[k] || 0) + item.implicit[k] * IT.upMult(item, k);
+    for (const a of item.affixes) s[a.stat] = (s[a.stat] || 0) + a.v * IT.upMult(item, a.stat);
     return s;
   };
   IT.fmtStat = function (stat, v) {
@@ -113,13 +127,13 @@
   IT.lines = function (item) {
     const out = [];
     const b = IT.base(item);
-    if (item.dmg) out.push({ t: (b.dmgType === 'magic' ? 'Puissance magique ' : 'Dégâts ') + String(Math.round(item.dmg * 10) / 10).replace('.', ',') + (b.spd !== 1 ? ' · vitesse ' + (b.spd > 1 ? '+' : '') + Math.round((b.spd - 1) * 100) + ' %' : ''), cls: 'main' });
-    for (const k in item.implicit) out.push({ t: IT.fmtStat(k, item.implicit[k]), cls: 'implicit' });
-    for (const a of item.affixes) out.push({ t: IT.fmtStat(a.stat, a.v), cls: a.special ? 'special' : '' });
+    if (item.dmg) out.push({ t: (b.dmgType === 'magic' ? 'Puissance magique ' : 'Dégâts ') + String(Math.round(IT.dmg(item) * 10) / 10).replace('.', ',') + (b.spd !== 1 ? ' · vitesse ' + (b.spd > 1 ? '+' : '') + Math.round((b.spd - 1) * 100) + ' %' : ''), cls: 'main' });
+    for (const k in item.implicit) out.push({ t: IT.fmtStat(k, item.implicit[k] * IT.upMult(item, k)), cls: 'implicit' });
+    for (const a of item.affixes) out.push({ t: IT.fmtStat(a.stat, a.v * IT.upMult(item, a.stat)), cls: a.special ? 'special' : '' });
     if (item.unique) out.push({ t: D().uniques.find((u) => u.id === item.unique).desc, cls: 'desc' });
     return out;
   };
-  IT.value = (item) => Math.max(1, Math.round(B.goldPerMonster(item.ilvl) * B.itemSellBase * IT.rarity(item.rarity).sellMult));
+  IT.value = (item) => Math.max(1, Math.round(B.goldPerMonster(item.ilvl) * B.itemSellBase * IT.rarity(item.rarity).sellMult * (1 + 0.25 * (item.up || 0)) * (item.set ? 1.5 : 1)));
   IT.salvageOf = (item) => B.salvage[IT.rIdx(item.rarity)];
 
   IT.slotsFor = (item) => (IT.base(item).slot === 'ring' ? ['ring1', 'ring2'] : [IT.base(item).slot]);

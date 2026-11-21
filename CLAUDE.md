@@ -31,7 +31,9 @@ js/data/    balance, elements, classes, monsters, biomes, rooms, names, building
             synergies (conditions classes/rôles + bonus + cible), recruits (qualités des recrues),
             skills (40 compétences : 2 branches × 4 rangées par classe, actives/passives/ultimes, règles par défaut),
             effects (statuts + effets d'impact des éléments), bosses (mini-boss + boss par biome et mécaniques),
-            events (événements à choix) + blessings, rooms (poids des salles + salles spéciales)
+            events (événements à choix) + blessings, rooms (poids des salles + salles spéciales),
+            evolutions (20 classes avancées/ultimes : base, from, tier, rôle, bonus, palette, attaque), skills_adv (70 compétences
+            des branches C/D, descriptions auto), sets (6 sets, bonus 2/4/6 pièces)
 js/render/  pixelart (modèles), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
             fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
             font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
@@ -42,7 +44,9 @@ js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), syne
             tryCast/cast ; run.pending = événements programmés pour vagues/délais), bosses (mécaniques : summon, aoe, slam,
             charge, barrage, shield, phaseSummon, enrage, regen ; zones annoncées run.telegraphs, que les héros esquivent),
             rooms (fontaine, autel/bénédictions run.saved.blessings, marchand, événements ; pauses run.state merchant/event),
-            heroes, dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
+            heroes (+ évolutions : evo/className/role/sprite/attack/evoBonus/evoOptions/evolve — toujours passer par ces
+            fonctions plutôt que G.data.classes[h.cls] pour le nom, le rôle, l'apparence et l'attaque), forge (améliorer/relancer/fusionner),
+            dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
             loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments, départs), run (expédition)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon + barre de potions), items (case, fiche,
             comparaison, sélecteur d'emplacement), team (héros : niveau/XP/stats, sous-onglets Équipement/Compétences, composition,
@@ -52,7 +56,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v6) : gold, heroes[{id,name,cls,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
+- État sauvegardé `G.state` (v6) : gold, heroes[{id,name,cls (classe de base),adv,ult (évolutions),level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
   tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
@@ -99,6 +103,11 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   « Soin majeur » est une compétence de départ (`innate`, rang 1 offert, `K.freeRank`), 10 mana. Contrôles 2× plus courts sur les gardiens.
 - Éléments à l'impact : feu brûlure 20 %, glace ralenti 25 % (gel 8 %), foudre étourdit 10 %, terre armure brisée 15 %,
   ombre affaiblit 20 %, lumière +30 % contre morts-vivants/démons ; chance × (1 − résistance).
+- Évolutions : niv. 20 (3000 or + 10 poussière) puis niv. 50 (60 000 or + 5 éther). Branche C (4 nœuds) / D (3 nœuds, ultime).
+- Sets : objet ≥ rare → 12 % pièce de set (base forcée, nom « Base · Set »). Bonus comptés par pièces portées (anneaux ×2).
+- Forge : +1 = +10 % stats plates/dégâts, +5 % stats en % ; max +10 ; réussite 100 % jusqu'à +5 puis −12 %/niveau (min 30 %),
+  échec = coût perdu. Coût or `valeur × 1,5 × (up+1)^1,6` + ferraille (+ poussière dès +3, éther dès +6). Relance d'un bonus
+  (pas les spéciaux). Fusion 3 → 1 de la rareté suivante (hors verrouillés/améliorés/uniques/▲).
 - Recrues : qualité Ordinaire 70 % / Doué 25 % (+12 % de gains par niveau) / Héroïque 5 % (+25 %) ; niveau = moyenne équipe − 0..3 ;
   prix `150 × (1+niv)^1,6 × (1 / 2,2 / 5)`. Équipe 4, compagnie 8 (la taverne améliorée en phase 7 augmentera).
 - 10 synergies (data/synergies.js), ex. tank+soigneur +15 % déf., 2 mages +12 % dégâts des mages, 4 rôles distincts +5 % PV/dégâts.
@@ -127,7 +136,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
       réinitialisation, répartition auto, priorités réglables, mana + potion de mana, 10 effets de statut, effets des éléments.
 - [x] **Phase 5** : 14 boss/mini-boss uniques (apparence, mécaniques, barre de vie, bannière, rage, boucliers, renforts),
       zones de danger annoncées et esquivées, 5 salles spéciales, 6 événements à choix, 7 bénédictions, ambiance des biomes.
-- [ ] Phase 6 : évolutions de classe, sets, forge
+- [x] **Phase 6** : 10 classes avancées + 10 ultimes (choix au niv. 20, ultime au niv. 50, nouvelles branches, bonus,
+      apparence, rôle, élément), 70 compétences, 6 sets, forge (amélioration +10, relance, fusion) dans la fiche objet et la Ville.
 - [ ] Phase 7 : ville améliorable, hors ligne, auto-farm
 - [ ] Phase 8 : rebirth
 - [ ] Phase 9 : quêtes, succès, bestiaire, donjon du jour

@@ -13,7 +13,7 @@
       '<img alt="" src="' + G.render.itemIconURL(item, 3) + '">' +
       '<span class="ilvl">' + item.ilvl + '</span>' +
       (opts.up ? '<span class="iup">▲</span>' : '') + (item.locked ? '<span class="ilock">🔒</span>' : '') +
-      (item.isNew && !opts.up ? '<span class="inew"></span>' : '') + '</button>';
+      (item.isNew && !opts.up ? '<span class="inew"></span>' : '') + (item.set ? '<span class="iset">◆</span>' : '') + (item.up ? '<span class="iupg">+' + item.up + '</span>' : '') + '</button>';
   };
 
   // lignes de comparaison des stats d'un héros avec/sans l'objet
@@ -24,7 +24,7 @@
   ];
   ui.compareHtml = function (hero, newEquip) {
     const a = G.sys.stats.hero(hero), b = G.sys.stats.hero(hero, { equip: newEquip });
-    const cls = G.data.classes[hero.cls];
+    const cls = { attack: G.sys.heroes.attack(hero), role: G.sys.heroes.role(hero) };
     const rows = [];
     for (const [k, name, pct] of CMP) {
       if (k === 'atk' && cls.attack.dmgType === 'magic') continue;
@@ -43,13 +43,23 @@
       '<div class="gain ' + (g > 0.001 ? 'pos' : g < -0.001 ? 'neg' : '') + '">Puissance estimée : ' + (g >= 0 ? '+' : '') + Math.round(g * 1000) / 10 + ' %</div>';
   };
 
+  // bloc « set » : pièces et bonus (le nombre porté est celui du héros qui porte l'objet, s'il y en a un)
+  function setHtml(item) {
+    if (!item.set) return '';
+    const st = G.data.sets[item.set];
+    const owner = G.state.heroes.find((h) => Object.values(h.equip).indexOf(item) >= 0);
+    const n = owner ? Object.values(owner.equip).filter((i) => i && i.set === item.set).length : 0;
+    return '<div class="setbox"><b style="color:' + G.data.setColor + '">' + st.icon + ' ' + st.name + '</b>' + (owner ? ' <span class="muted small">(' + n + ' portées par ' + U.esc(owner.name) + ')</span>' : '') +
+      Object.keys(st.bonus).map((k) => '<div class="small ' + (n >= +k ? 'pos' : 'muted') + '">(' + k + ') ' + Object.keys(st.bonus[k]).map((s) => IT.fmtStat(s, st.bonus[k][s])).join(', ') + '</div>').join('') +
+      '<div class="muted small">Pièces : ' + st.pieces.map((b) => G.data.itemBases[b].name).join(', ') + '</div></div>';
+  }
   function itemHead(item) {
     const r = IT.rarity(item.rarity), b = IT.base(item);
     const lines = IT.lines(item).map((l) => '<div class="il ' + l.cls + '">' + U.esc(l.t) + '</div>').join('');
     return '<div class="item-head"><img alt="" class="ibig" style="--rc:' + r.color + '" src="' + G.render.itemIconURL(item, 4) + '"><div>' +
       '<div class="iname" style="color:' + r.color + '">' + U.esc(item.name) + '</div>' +
       '<div class="muted small">' + r.name + ' · ' + b.name + ' · niv. ' + item.ilvl + '</div></div></div>' +
-      '<div class="ilines">' + lines + '</div><div class="muted small">Utilisable par : ' + IT.usersText(item) + '</div>';
+      '<div class="ilines">' + lines + '</div>' + setHtml(item) + '<div class="muted small">Utilisable par : ' + IT.usersText(item) + '</div>';
   }
 
   // fiche d'un objet. ctx : { from: 'bag'|'equipped'|'shop', hero, slot, onDone }
@@ -61,6 +71,7 @@
     const btns = [];
     if (ctx.from === 'equipped') {
       btns.push({ label: 'Changer d\'objet', cls: 'primary', onClick: () => ui.slotPicker(ctx.hero, ctx.slot, ctx.onDone) });
+      btns.push({ label: '⚒ Forge (+' + (item.up || 0) + ')', onClick: () => ui.forgeModal(item, done) });
       btns.push({ label: 'Retirer', onClick: () => { if (!INV.unequip(ctx.hero, ctx.slot)) ui.toast('Sac plein', 'danger'); done(); } });
     } else if (ctx.from === 'view') {
       // consultation seule (marchand)
@@ -69,6 +80,7 @@
       btns.push({ label: 'Acheter · ' + U.fmt(p) + ' or', cls: 'gold', onClick: () => { if (!G.sys.shop.buyItem(item.uid)) ui.toast(G.sys.inventory.full() ? 'Sac plein' : 'Pas assez d\'or', 'danger'); else ui.toast('Acheté : ' + U.esc(item.name)); done(); } });
     } else {
       if (hero) btns.push({ label: 'Équiper sur ' + U.esc(hero.name), cls: 'primary', id: 'eqbtn', onClick: () => { INV.equip(hero, item, ctx.slot || INV.bestSlot(hero, item).slot); ui.toast(U.esc(hero.name) + ' équipe ' + U.esc(item.name)); done(); } });
+      btns.push({ label: '⚒ Forge (+' + (item.up || 0) + ')', onClick: () => ui.forgeModal(item, done) });
       btns.push({ label: 'Vendre · +' + U.fmt(IT.value(item)) + ' or', cls: 'gold', onClick: () => { if (item.locked) return ui.toast('Objet verrouillé', 'danger'); INV.sell(item); done(); } });
       btns.push({ label: 'Recycler · ' + INV.matsText(IT.salvageOf(item)), onClick: () => { if (item.locked) return ui.toast('Objet verrouillé', 'danger'); INV.salvage(item); done(); } });
       btns.push({ label: item.locked ? '🔓 Déverrouiller' : '🔒 Verrouiller', onClick: () => { item.locked = !item.locked; done(); } });
@@ -107,7 +119,7 @@
     const accepts = G.data.slots[slot].accepts || slot;
     const list = G.state.inventory.filter((it) => IT.base(it).slot === accepts && IT.canUse(hero, it))
       .map((it) => ({ it, g: INV.gain(hero, it, slot) })).sort((a, b) => b.g - a.g);
-    let html = '<h2>' + G.data.slots[slot].name + '</h2><p class="muted small" style="text-align:center">' + U.esc(hero.name) + ' · ' + G.data.classes[hero.cls].name + '</p>';
+    let html = '<h2>' + G.data.slots[slot].name + '</h2><p class="muted small" style="text-align:center">' + U.esc(hero.name) + ' · ' + G.sys.heroes.className(hero) + '</p>';
     if (!list.length) html += '<p class="muted">Aucun objet compatible dans le sac.</p>';
     html += '<div class="pick-list">' + list.map(({ it, g }) => {
       const r = IT.rarity(it.rarity);

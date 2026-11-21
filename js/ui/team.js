@@ -24,10 +24,10 @@
     if (run) h += '<p class="muted small">⚠ Composition modifiable seulement au camp (hors expédition).</p>';
     const order = G.sys.heroes.team().concat(G.sys.heroes.bench());
     for (const hero of order) {
-      const c = G.data.classes[hero.cls], idx = st.team.indexOf(hero.id), inTeam = idx >= 0;
-      h += '<div class="hero-line comp ' + (inTeam ? '' : 'bench') + '"><img alt="" src="' + G.render.spriteURL(c.sprite, 4) + '"><div class="info">' +
+      const HH = G.sys.heroes, idx = st.team.indexOf(hero.id), inTeam = idx >= 0;
+      h += '<div class="hero-line comp ' + (inTeam ? '' : 'bench') + '"><img alt="" src="' + G.render.spriteURL(HH.sprite(hero), 4) + '"><div class="info">' +
         '<b>' + (inTeam ? '<span class="pos-badge">' + (idx + 1) + '</span> ' : '') + U.esc(hero.name) + '</b> <span class="muted small">niv. ' + hero.level + '</span><br>' +
-        '<span class="tag">' + c.name + '</span><span class="tag">' + G.data.roles[c.role] + '</span>' + ui.qualityTag(hero) + '</div><div class="comp-btns">' +
+        '<span class="tag">' + HH.className(hero) + '</span><span class="tag">' + G.data.roles[HH.role(hero)] + '</span>' + ui.qualityTag(hero) + '</div><div class="comp-btns">' +
         (inTeam ? (idx > 0 ? '<button class="pxbtn small" data-up="' + hero.id + '"' + (run ? ' disabled' : '') + '>▲</button>' : '') +
           '<button class="pxbtn small danger" data-tog="' + hero.id + '"' + (run || st.team.length <= 1 ? ' disabled' : '') + '>Retirer</button>'
           : '<button class="pxbtn small primary" data-tog="' + hero.id + '"' + (run || st.team.length >= TV.teamSize() ? ' disabled' : '') + '>Ajouter</button>') +
@@ -52,8 +52,8 @@
       if (!roster.find((h) => h.id === selId)) selId = roster[0].id;
       const hero = G.sys.heroes.get(selId), c = G.data.classes[hero.cls], s = G.sys.stats.hero(hero);
       const inTeam = G.state.team.indexOf(hero.id) >= 0;
-      let h = ui.optimizeBtnHtml('tm-opt') + '<div class="hero-tabs">' + roster.map((t) => '<button class="htab ' + (t.id === selId ? 'sel ' : '') + (G.state.team.indexOf(t.id) < 0 ? 'bench' : '') + '" data-h="' + t.id + '"><img alt="" src="' + G.render.spriteURL(G.data.classes[t.cls].sprite, 3) + '"><span>' + U.esc(t.name) + '</span><small>niv. ' + t.level + '</small></button>').join('') + '</div>';
-      const magic = c.attack.dmgType === 'magic';
+      let h = ui.optimizeBtnHtml('tm-opt') + '<div class="hero-tabs">' + roster.map((t) => '<button class="htab ' + (t.id === selId ? 'sel ' : '') + (G.state.team.indexOf(t.id) < 0 ? 'bench' : '') + '" data-h="' + t.id + '"><img alt="" src="' + G.render.spriteURL(G.sys.heroes.sprite(t), 3) + '"><span>' + U.esc(t.name) + '</span><small>niv. ' + t.level + '</small></button>').join('') + '</div>';
+      const HH = G.sys.heroes, magic = HH.attack(hero).dmgType === 'magic';
       let extra = '';
       const add = (n, v) => (extra += '<div>' + n + ' <b>' + v + '</b></div>');
       add('Régén. mana', s.mpRegen ? '+' + String(Math.round(s.mpRegen * 10) / 10).replace('.', ',') + '/s' : 'aucune');
@@ -67,8 +67,8 @@
       if (s.magicFind) add('Chance de butin', '+' + pct(s.magicFind));
       for (const e in s.elemDmg) add(G.data.elements[e].icon + ' Dégâts ' + G.data.elements[e].name.toLowerCase(), Math.round(s.elemDmg[e]));
       for (const e in s.res) add(G.data.elements[e].icon + ' Résist. ' + G.data.elements[e].name.toLowerCase(), pct(s.res[e]));
-      h += '<div class="panel"><div class="row"><img alt="" class="portrait" src="' + G.render.spriteURL(c.sprite, 5) + '"><div style="flex:1;min-width:0"><h2 style="margin:0">' + U.esc(hero.name) + '</h2>' +
-        '<span class="tag">' + c.name + '</span><span class="tag">' + G.data.roles[c.role] + '</span>' + ui.qualityTag(hero) + (inTeam ? '' : '<span class="tag">Réserve</span>') +
+      h += '<div class="panel"><div class="row"><img alt="" class="portrait" src="' + G.render.spriteURL(HH.sprite(hero), 5) + '"><div style="flex:1;min-width:0"><h2 style="margin:0">' + U.esc(hero.name) + '</h2>' +
+        '<span class="tag">' + HH.className(hero) + '</span><span class="tag">' + G.data.roles[HH.role(hero)] + '</span>' + ui.qualityTag(hero) + (inTeam ? '' : '<span class="tag">Réserve</span>') +
         '<div style="margin-top:6px"><b>Niveau ' + hero.level + '</b>' + (hero.sp ? ' <span class="small" style="color:var(--gold)">· ' + hero.sp + ' point(s) de compétence</span>' : '') + ui.xpBarHtml(hero) + '</div></div></div>' +
         '<div class="stat-grid" style="margin-top:8px">' +
         '<div>PV <b>' + U.fmt(s.maxHp) + '</b></div><div>Mana <b>' + U.fmt(s.maxMp) + '</b></div><div>' + (magic ? 'Puissance mag.' : 'Attaque') + ' <b>' + Math.round(magic ? s.matk : s.atk) + '</b></div>' +
@@ -78,7 +78,7 @@
         '<div>Dégâts crit. <b>' + pct(s.critDmg) + '</b></div><div>Esquive <b>' + pct(s.dodge) + '</b></div>' +
         '<div>Vit. d\'attaque <b>' + (s.wspd * (1 + s.atkSpd) >= 1 ? '+' : '') + pct(s.wspd * (1 + s.atkSpd) - 1) + '</b></div>' +
         (s.dmgMult > 1 ? '<div>Dégâts <b>+' + pct(s.dmgMult - 1) + '</b></div>' : '') + extra +
-        '</div><p class="muted small" style="margin:8px 0 0">' + c.desc + '<br>Armes : ' + G.data.classGear[hero.cls].weapons.map((w) => G.data.itemBases[w].name).join(', ') +
+        '</div>' + ui.evoHtml(hero) + '<p class="muted small" style="margin:8px 0 0">' + (HH.evo(hero) ? HH.evo(hero).desc : c.desc) + '<br>Armes : ' + G.data.classGear[hero.cls].weapons.map((w) => G.data.itemBases[w].name).join(', ') +
         ' · Armures : ' + G.data.classGear[hero.cls].armor.map((w) => ({ heavy: 'lourdes', medium: 'moyennes', light: 'légères' }[w])).join(', ') + '</p>' +
         (!inTeam ? '<button class="pxbtn small danger" id="tm-dismiss"' + (TV.canDismiss(hero) ? '' : ' disabled') + '>Renvoyer ce héros</button>' : '') + '</div>';
 
@@ -121,6 +121,7 @@
       }));
       el.querySelectorAll('[data-up]').forEach((b) => (b.onclick = () => { TV.moveUp(b.dataset.up); ui.invalidateHud(); rer(); }));
       U.$('#tm-tavern').onclick = () => ui.tavernModal(rer);
+      const ev = U.$('#tm-evolve'); if (ev) ev.onclick = () => ui.evolveModal(hero, rer);
       const dm = U.$('#tm-dismiss');
       if (dm) dm.onclick = () => ui.confirm('Renvoyer ' + U.esc(hero.name) + ' ?', '<p>Le héros quitte définitivement ta compagnie. Son équipement retourne dans le sac.</p>', 'Renvoyer', () => { TV.dismiss(hero.id); selId = null; rer(); });
     },

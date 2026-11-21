@@ -10,20 +10,27 @@
   const SK = () => G.data.skills;
 
   // ---------- Arbre ----------
-  K.forClass = (cls) => Object.values(SK()).filter((s) => s.cls === cls);
+  K.forClass = (cls) => Object.values(SK()).filter((s) => s.cls === cls && !s.evo);
+  // compétences du héros : classe de base + branches débloquées par ses évolutions
+  K.forHero = (h) => Object.values(SK()).filter((s) => s.cls === h.cls && (!s.evo || s.evo === h.adv || s.evo === h.ult));
+  K.branches = (h) => ['A', 'B'].concat(h.adv ? ['C'] : [], h.ult ? ['D'] : []);
+  K.branchInfo = function (h, b) {
+    if (b === 'C' || b === 'D') { const e = G.data.evolutions[b === 'C' ? h.adv : h.ult]; return { name: e.name, icon: e.icon }; }
+    return G.data.skillBranches[h.cls][b];
+  };
   // rang 1 offert pour les compétences de départ (innate)
   K.freeRank = (id) => (SK()[id] && SK()[id].innate ? 1 : 0);
   K.rank = (h, id) => Math.max((h.skills && h.skills[id]) || 0, K.freeRank(id));
-  K.pointsIn = (h, branch) => K.forClass(h.cls).filter((s) => s.branch === branch).reduce((a, s) => a + K.rank(h, s.id), 0);
-  K.spent = (h) => K.forClass(h.cls).reduce((a, s) => a + K.rank(h, s.id) - K.freeRank(s.id), 0);
+  K.pointsIn = (h, branch) => K.forHero(h).filter((s) => s.branch === branch).reduce((a, s) => a + K.rank(h, s.id), 0);
+  K.spent = (h) => K.forHero(h).reduce((a, s) => a + K.rank(h, s.id) - K.freeRank(s.id), 0);
   // raison du blocage, ou '' si on peut apprendre
   K.lockReason = function (h, id) {
     const s = SK()[id];
     if (K.rank(h, id) >= s.maxRank) return 'Rang maximum';
     const need = s.row * G.data.skillRowCost;
-    if (K.pointsIn(h, s.branch) < need) return need + ' points requis dans la branche ' + G.data.skillBranches[s.cls][s.branch].name;
+    if (K.pointsIn(h, s.branch) < need) return need + ' points requis dans la branche ' + K.branchInfo(h, s.branch).name;
     if (s.row > 0) {
-      const prev = K.forClass(h.cls).find((x) => x.branch === s.branch && x.row === s.row - 1);
+      const prev = K.forHero(h).find((x) => x.branch === s.branch && x.row === s.row - 1);
       if (prev && K.rank(h, prev.id) < 1) return 'Requiert « ' + prev.name + ' »';
     }
     return '';
@@ -53,7 +60,7 @@
   K.autoSpend = function (h) {
     let n = 0;
     while ((h.sp || 0) > 0 && n < 200) {
-      const avail = K.forClass(h.cls).filter((s) => !K.lockReason(h, s.id));
+      const avail = K.forHero(h).filter((s) => !K.lockReason(h, s.id));
       if (!avail.length) break;
       avail.sort((a, b) => {
         const ra = K.rank(h, a.id), rb = K.rank(h, b.id);
@@ -69,7 +76,7 @@
   // ---------- Bonus passifs ----------
   K.passiveBonuses = function (h) {
     const out = {};
-    for (const s of K.forClass(h.cls)) {
+    for (const s of K.forHero(h)) {
       if (s.type !== 'passive') continue;
       const r = K.rank(h, s.id);
       if (!r) continue;
@@ -94,7 +101,7 @@
   K.ruleOf = (h, id) => (h.skillRules && h.skillRules[id]) || SK()[id].rule;
   // compétences actives apprises, dans l'ordre de priorité du joueur
   K.activeList = function (h) {
-    const learned = K.forClass(h.cls).filter((s) => s.type === 'active' && K.rank(h, s.id) > 0).map((s) => s.id);
+    const learned = K.forHero(h).filter((s) => s.type === 'active' && K.rank(h, s.id) > 0).map((s) => s.id);
     const order = (h.skillOrder || []).filter((id) => learned.indexOf(id) >= 0);
     for (const id of learned) if (order.indexOf(id) < 0) order.push(id);
     h.skillOrder = order;
@@ -229,6 +236,7 @@
             for (let k = 0; k < 8; k++) {
               const px = cx + (Math.random() - 0.5) * s.aoe * 2, py = cy + (Math.random() - 0.5) * s.aoe * 2;
               if (s.vfx === 'rain') F.beam(px + 0.3, py - 1.6, px, py, '#e8e0c8', 0.12);
+              else if (s.vfx === 'firerain') { F.beam(px + 0.6, py - 2.2, px, py, '#ff7a33', 0.16); if (k < 2) F.burst(px, py, '#ff7a33', 3, 0, true); }
               else F.parts.push({ x: px, y: py - 1.2, vx: 0, vy: 3, color: '#e8ffff', t: 0, life: 0.4, g: 0, glow: true, size: 1 });
             }
             aoeAt(run, u, s, r, cx, cy, s.aoe);
@@ -251,7 +259,8 @@
       // projectile ou coup direct, éventuellement avec zone
       for (const t of tg) {
         const onHit = (tt) => {
-          if (s.aoe) aoeAt(run, u, s, r, tt.x, tt.y, s.aoe); else hit(run, u, s, r, tt);
+          if (s.aoe) aoeAt(run, u, s, r, tt.x, tt.y, s.aoe);
+          else for (let k = 0; k < (s.hits || 1); k++) { hit(run, u, s, r, tt); if (k) F.slash(tt.x, tt.y - 0.2 - k * 0.1, k % 2 ? 1 : -1, '#ffffff', false); }
           if (s.vfx === 'smite') F.beam(tt.x, tt.y - 4, tt.x, tt.y, '#fff3a8', 0.35);
         };
         if (s.proj) {
@@ -266,7 +275,7 @@
       return;
     }
     if (s.kind === 'heal') {
-      for (const t of tg) G.sys.combat.heal(run, u, t, u.stats.matk * s.mult(r));
+      for (const t of tg) G.sys.combat.heal(run, u, t, (s.healStat === 'atk' ? u.stats.atk : u.stats.matk) * s.mult(r));
       if (s.target === 'team') F.ring(u.x, u.y, '#6dff8a', 3, 0.5);
       return;
     }

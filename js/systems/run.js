@@ -105,6 +105,7 @@
       const ratio = u.hp / u.stats.maxHp;
       u.stats = G.sys.stats.hero(h, { buffs });
       u.level = h.level;
+      u.attack = G.sys.heroes.attack(h); u.sprite = G.sys.heroes.sprite(h);
       G.sys.skills.buildUnit(u, h);
       u.mp = Math.min(u.mp, u.stats.maxMp);
       if (!u.dead) u.hp = Math.max(1, Math.round(ratio * u.stats.maxHp));

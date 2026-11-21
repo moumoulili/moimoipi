@@ -25,8 +25,14 @@
       if (!it) continue;
       const s = G.sys.items.stats(it);
       for (const k in s) add[k] = (add[k] || 0) + s[k];
-      if (slot === 'weapon') { const b = G.data.itemBases[it.base]; wdmg = it.dmg || 0; wtype = b.dmgType; wspd = b.spd || 1; }
+      if (slot === 'weapon') { const b = G.data.itemBases[it.base]; wdmg = G.sys.items.dmg(it); wtype = b.dmgType; wspd = b.spd || 1; }
     }
+    // bonus de sets (2 / 4 / 6 pièces)
+    const sc = {};
+    for (const slot in eq) if (eq[slot] && eq[slot].set) sc[eq[slot].set] = (sc[eq[slot].set] || 0) + 1;
+    for (const sid in sc) { const bs = G.data.sets[sid].bonus; for (const n in bs) if (sc[sid] >= +n) for (const k in bs[n]) add[k] = (add[k] || 0) + bs[n][k]; }
+    // évolution de classe
+    if (hero.adv) { const eb = G.sys.heroes.evoBonus(hero); for (const k in eb) add[k] = (add[k] || 0) + eb[k]; }
     // bonus hors équipement : synergies (et plus tard passifs, ville, rebirth)
     if (G.sys.synergy) { const gb = G.sys.synergy.bonusesFor(hero); for (const k in gb) add[k] = (add[k] || 0) + gb[k]; }
     if (G.sys.skills && hero.skills) { const pb = G.sys.skills.passiveBonuses(hero); for (const k in pb) add[k] = (add[k] || 0) + pb[k]; }
@@ -40,7 +46,7 @@
     st.maxHp = Math.round((g('hp') + A('hp')) * (1 + A('hpPct')));
     st.maxMp = Math.round(g('mp') + st.int * B.mpPerInt + A('mp'));
     st.def = (g('def') + A('def')) * (1 + A('defPct'));
-    st.atk = B.statToAtk * st[c.attack.stat] + B.unarmedDmg + (wtype === 'phys' ? wdmg : 0) + A('atk');
+    st.atk = B.statToAtk * st[(G.sys.heroes && G.sys.heroes.attack ? G.sys.heroes.attack(hero) : c.attack).stat] + B.unarmedDmg + (wtype === 'phys' ? wdmg : 0) + A('atk');
     st.matk = (B.statToAtk * st.int + B.unarmedDmg + (wtype === 'magic' ? wdmg : 0) + A('matk')) * (1 + A('matkPct'));
     st.crit = Math.min(B.critCap, g('crit') + st.agi * B.critPerAgi + A('crit'));
     st.critDmg = B.critDmg + A('critDmg');

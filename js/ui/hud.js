@@ -19,16 +19,15 @@
   function buildParty() {
     const run = G.sys.run.active;
     const team = G.sys.heroes.team();
-    const key = team.map((h) => h.id).join() + '|' + !!run;
+    const key = team.map((h) => h.id + (h.ult || h.adv || '')).join() + '|' + !!run;
     if (key === partyKey) return;
     partyKey = key;
     const el = U.$('#party');
     el.innerHTML = '';
     for (const h of team) {
-      const c = G.data.classes[h.cls];
       const card = U.el('div', 'hcard');
       card.dataset.id = h.id;
-      card.innerHTML = '<span class="lvl-badge"></span><img alt="" src="' + G.render.spriteURL(c.sprite, 3) + '"><div class="hn">' + U.esc(h.name) + '</div>' +
+      card.innerHTML = '<span class="lvl-badge"></span><img alt="" src="' + G.render.spriteURL(G.sys.heroes.sprite(h), 3) + '"><div class="hn">' + U.esc(h.name) + '</div>' +
         '<div class="bar hp"><i></i></div><div class="bar mp thin"><i></i></div><div class="bar xp thin"><i></i></div><div class="hp-txt"></div>';
       el.appendChild(card);
     }
@@ -169,7 +168,7 @@
     hudT = 0.2;
     updateTop();
     const tb = document.querySelector('#tabs [data-tab=team]');
-    if (tb) tb.classList.toggle('notif', G.state.heroes.some((h) => h.sp > 0) && !G.state.settings.autoSkills);
+    if (tb) tb.classList.toggle('notif', (G.state.heroes.some((h) => h.sp > 0) && !G.state.settings.autoSkills) || G.state.heroes.some((h) => G.sys.heroes.evoOptions(h).length));
     if (ui.current === 'dungeon') { updateParty(); updatePotions(); updateActions(); updateBoss(); ui.renderLog(); }
   };
 

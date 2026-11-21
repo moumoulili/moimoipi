@@ -507,3 +507,17 @@ textarea { background-image: none; background: #f6e8c6; }
 .m-off .icell { width: 48px; flex: 0 0 auto; }
 .m-off .info { flex: 1; min-width: 0; }
 h2 .ico, h3 .ico { -webkit-text-fill-color: initial; color: initial; background: none; filter: none; text-shadow: none; margin-right: 6px; }
+
+/* ===== Phase 6 : évolutions, sets, forge ===== */
+.evo-cur { margin-top: 8px; padding: 6px 8px; border: 1px solid #8a5a2a; background: rgba(180, 92, 255, .1); }
+.evo-card { padding: 10px; margin-bottom: 10px; border: 2px solid #8a5a2a; background: rgba(110, 70, 25, .1); clip-path: var(--cut); }
+.evo-card img { width: 52px; height: 52px; image-rendering: pixelated; margin-right: 8px; }
+.evo-card p { margin: 4px 0; }
+.branch.evo .bh { color: #6a1a8a; }
+.branch.evo .snode { border-color: #8a4ab0; }
+.setbox { margin: 6px 0; padding: 6px 8px; border: 1px solid #2fd6b0; background: rgba(47, 214, 176, .08); }
+.icell .iset { position: absolute; left: 2px; top: 0; font-size: 11px; color: #2fd6b0; text-shadow: 0 0 3px #000; }
+.icell .iupg { position: absolute; right: 2px; bottom: 0; font: 900 10px Georgia, serif; color: #ffe08a; text-shadow: 1px 1px 0 #000; }
+.reroll { padding: 4px 0; border-bottom: 1px solid rgba(120, 80, 30, .3); }
+.fuse { padding: 6px 0; border-bottom: 1px solid rgba(120, 80, 30, .3); }
+.iname.sk { text-shadow: none; color: #4a1406; font-family: var(--epic-font); font-weight: 900; }

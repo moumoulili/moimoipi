@@ -13,20 +13,21 @@
   }
 
   ui.skillTreeHtml = function (h) {
-    const br = G.data.skillBranches[h.cls];
     let html = '<div class="panel"><div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:6px"><h3 style="flex:1;margin:0">Arbre de compétences</h3>' +
       '<span class="sp-badge' + (h.sp ? ' has' : '') + '">' + (h.sp || 0) + ' point' + ((h.sp || 0) > 1 ? 's' : '') + '</span></div>' +
       '<div class="tree">';
-    for (const b of ['A', 'B']) {
-      const nodes = K.forClass(h.cls).filter((s) => s.branch === b).sort((x, y) => x.row - y.row);
-      html += '<div class="branch"><div class="bh">' + br[b].icon + ' ' + br[b].name + ' <small>(' + K.pointsIn(h, b) + ')</small></div>';
+    for (const b of K.branches(h)) {
+      const nodes = K.forHero(h).filter((s) => s.branch === b).sort((x, y) => x.row - y.row);
+      const bi = K.branchInfo(h, b);
+      html += '<div class="branch' + (b > 'B' ? ' evo' : '') + '"><div class="bh">' + bi.icon + ' ' + bi.name + ' <small>(' + K.pointsIn(h, b) + ')</small></div>';
       nodes.forEach((s, i) => {
         if (i) html += '<div class="link' + (K.rank(h, nodes[i - 1].id) ? ' on' : '') + '"></div>';
         html += nodeHtml(h, s);
       });
       html += '</div>';
     }
-    html += '</div><p class="muted small">Chaque rangée demande ' + G.data.skillRowCost + ' points de plus dans sa branche. ⭐ = compétence ultime. Les classes avancées (phase 6) ajouteront des branches.</p>' +
+    const nx = G.sys.heroes.nextEvoLevel(h);
+    html += '</div><p class="muted small">Chaque rangée demande ' + G.data.skillRowCost + ' points de plus dans sa branche. ⭐ = compétence ultime.' + (nx ? ' Une nouvelle branche s\'ajoutera à l\'évolution (niveau ' + nx + ').' : '') + '</p>' +
       '<div class="row" style="gap:6px"><button class="pxbtn small primary" style="flex:1" id="sk-auto"' + (h.sp ? '' : ' disabled') + '>Répartir auto</button>' +
       '<button class="pxbtn small danger" style="flex:1" id="sk-reset"' + (K.spent(h) ? '' : ' disabled') + '>Réinitialiser · ' + U.fmt(K.respecCost(h)) + ' or</button></div>' +
       '<label class="toggle"><span>Répartir automatiquement les points de tous les héros à chaque niveau</span><input type="checkbox" id="sk-autoall"></label></div>';
@@ -78,7 +79,7 @@
     const s = SK()[id], r = K.rank(h, id), lock = K.lockReason(h, id);
     const typ = s.ult ? 'Ultime' : s.type === 'active' ? 'Compétence active' : 'Passif';
     let html = '<div class="item-head"><span class="sbig">' + s.icon + '</span><div><div class="iname sk">' + s.name + '</div><div class="muted small">' + typ + ' · ' +
-      G.data.skillBranches[s.cls][s.branch].name + ' · rang ' + r + '/' + s.maxRank + '</div></div></div>';
+      K.branchInfo(h, s.branch).name + ' · rang ' + r + '/' + s.maxRank + '</div></div></div>';
     if (s.type === 'active') html += '<p class="small">⏱ Recharge ' + s.cd + ' s · 💧 ' + K.manaCost({ stats: G.sys.stats.hero(h), level: h.level }, s) + ' mana' + (s.element && s.element !== 'physical' ? ' · ' + G.data.elements[s.element].icon + ' ' + G.data.elements[s.element].name : '') + '</p>';
     if (s.innate) html += '<p class="small" style="color:var(--green)">🎁 Compétence de départ : le rang 1 est offert.</p>';
     if (r) html += '<p><b>Actuel :</b> ' + s.desc(r) + '</p>';

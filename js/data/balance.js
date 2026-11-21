@@ -73,6 +73,21 @@ G.data.balance = {
   startPotions: { heal: 3 },
   shop: { items: 4, refreshMinutes: 15, priceMult: 5, minRarity: 'uncommon' },
 
+  // --- Évolutions, sets, forge (phase 6) ---
+  evolution: { 1: { level: 20, gold: 3000, mats: { dust: 10 } }, 2: { level: 50, gold: 60000, mats: { ether: 5 } } },
+  setChance: 0.12,               // un objet rare ou mieux a 12 % de chance d'être une pièce de set
+  forge: {
+    maxUp: 10,                   // amélioration max (+10) ; la forge de la ville l'augmentera (phase 7)
+    upFlat: 0.1,                 // +10 % des stats plates et des dégâts par +1
+    upPct: 0.05,                 // +5 % des stats en pourcentage par +1
+    upCost: (item, up) => ({ gold: Math.round(G.sys.items.value(item) * 1.5 * Math.pow(up + 1, 1.6)),
+      mats: Object.assign({ scrap: 2 * (up + 1) }, up >= 3 ? { dust: up - 2 } : {}, up >= 6 ? { ether: up - 5 } : {}) }),
+    upChance: (up) => (up < 5 ? 1 : Math.max(0.3, 1 - (up - 4) * 0.12)), // +6 : 88 %, +10 : 40 %… ; un échec ne perd que le coût
+    rerollCost: (item) => ({ gold: Math.round(G.sys.items.value(item) * 0.8), mats: { dust: 1 + G.sys.items.rIdx(item.rarity) } }),
+    fuseCost: (rIdx) => ({ gold: Math.round(200 * Math.pow(3, rIdx) * Math.pow(Math.max(1, G.state.progress.maxFloor), 0.8)),
+      mats: rIdx >= 3 ? { ether: rIdx - 2 } : { dust: rIdx + 1 } }),
+  },
+
   // --- Expérience et niveaux (phase 3) ---
   xpToNext: (L) => Math.round(100 * Math.pow(L, 2.3)),
   monsterXp: (lvl) => 4 * Math.pow(lvl, 1.3),

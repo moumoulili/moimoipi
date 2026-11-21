@@ -425,8 +425,7 @@
     ctx.fillStyle = '#ffe14d'; ctx.fillRect(cx - 1, cy - 1, 2, 2);
     const team = G.state ? G.sys.heroes.team() : [];
     team.forEach((h, i) => {
-      const c = G.data.classes[h.cls];
-      const s = G.render.getSprite(Object.assign({ id: h.cls }, c.sprite));
+      const s = G.render.getSprite(G.sys.heroes.sprite(h));
       const px = Math.round(cx + (i - (team.length - 1) / 2) * 18) - 6;
       const py = Math.round(cy + (i % 2 ? 10 : -16) + Math.sin(time * 2 + i) * 0.5) - 6;
       ctx.drawImage(px + 6 < cx ? s.img : s.flip, px, py);

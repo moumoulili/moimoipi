@@ -19,9 +19,9 @@
     const u0 = {
       uid: uidSeq++, id: h.id, side: 'hero', name: h.name, cls: h.cls, level: h.level,
       x: 0, y: 0, r: 0.3, hp: hp != null ? Math.min(hp, st.maxHp) : st.maxHp, stats: st,
-      attack: c.attack, threat: c.threat || 1,
+      attack: G.sys.heroes.attack(h), threat: c.threat || 1,
       cd: rng.float(0, 0.6), healCd: 0, potCd: 0, facing: 1, scale: 1,
-      sprite: Object.assign({ id: h.cls }, c.sprite),
+      sprite: G.sys.heroes.sprite(h),
       anim: { hit: 0, atk: 0, bob: rng.next() * 6, lx: 0, ly: 0 },
       path: null, pathKey: '', repath: 0, dead: false, target: null, retarget: 0,
       mp: st.maxMp, skillCd: {}, skillLock: 0, effects: [],

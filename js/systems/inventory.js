@@ -13,18 +13,18 @@
   // ---------- Score d'un héros (pour comparer les objets) ----------
   I.score = function (hero, equip) {
     const s = G.sys.stats.hero(hero, { equip });
-    const c = G.data.classes[hero.cls];
+    const role = G.sys.heroes.role(hero), att = G.sys.heroes.attack(hero);
     const f = Math.max(1, st().progress.maxFloor);
-    const atk = c.attack.dmgType === 'magic' ? s.matk : s.atk;
+    const atk = att.dmgType === 'magic' ? s.matk : s.atk;
     let elem = 0; for (const k in s.elemDmg) elem += s.elemDmg[k];
-    const rate = (s.spd / 100) * s.wspd * (1 + s.atkSpd) / (c.attack.interval || 1);
+    const rate = (s.spd / 100) * s.wspd * (1 + s.atkSpd) / (att.interval || 1);
     const off = (atk * s.dmgMult + elem) * (1 + s.crit * (s.critDmg - 1)) * rate * (1 + s.echo) * (1 + s.bossDmg * 0.3);
     const red = s.def / (s.def + B.defK + B.defPerLvl * f);
     const ehp = (s.maxHp / (1 - red) / (1 - s.dodge)) * (1 + s.thorns * 0.3 + s.lifesteal * 2 + s.onKillHeal);
     const util = (1 + s.goldFind * 0.15) * (1 + s.magicFind * 0.15) * (1 + Math.min(1, s.mpRegen * 0.6)); // la régén. de mana permet de lancer plus de compétences
     let sc;
-    if (c.role === 'tank') sc = Math.pow(off, 0.35) * Math.pow(ehp, 0.65);
-    else if (c.role === 'healer') sc = Math.pow(s.matk * s.healMult, 0.6) * Math.pow(ehp, 0.4);
+    if (role === 'tank') sc = Math.pow(off, 0.35) * Math.pow(ehp, 0.65);
+    else if (role === 'healer') sc = Math.pow(s.matk * s.healMult, 0.6) * Math.pow(ehp, 0.4);
     else sc = Math.pow(off, 0.65) * Math.pow(ehp, 0.35);
     return sc * util;
   };
