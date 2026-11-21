@@ -35,7 +35,7 @@
 
   X.onKill = function (run, m) {
     const mult = m.guardian ? B.xpMult[m.guardian] : m.elite ? B.xpMult.elite : 1;
-    const base = B.monsterXp(m.level) * mult * (m.summoned ? 0.3 : 1) * (1 + X.bonus());
+    const base = B.monsterXp(m.level) * mult * (m.xpMult || 1) * (m.summoned ? 0.3 : 1) * (1 + X.bonus());
     const leveled = [];
     for (const u of run.heroes) {
       if (u.dead) continue;

@@ -36,8 +36,8 @@ G.data.biomes = [
     guardians: { mini: { monster: 'gold_golem', name: 'Sentinelle dorée' }, boss: { monster: 'seraph', name: 'Archange déchu' } } },
 ];
 // Biome d'un étage
-G.data.biomeFor = function (floor) {
+G.data.biomeFor = function (floor, shift) {
   const list = G.data.biomes;
-  const idx = Math.floor((floor - 1) / 10);
+  const idx = Math.floor((floor - 1) / 10) + (shift || 0);
   return { biome: list[idx % list.length], cycle: Math.floor(idx / list.length) };
 };

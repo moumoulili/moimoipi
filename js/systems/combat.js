@@ -30,7 +30,8 @@
     return u0;
   };
   const MAGIC_PROJ = { orb: 1, holy: 1, fire: 1, ice: 1, spark: 1 };
-  C.monsterUnit = function (sp, floor) {
+  // floor = niveau réel des monstres ; dg = donjon (multiplicateurs de difficulté / récompense)
+  C.monsterUnit = function (sp, floor, dg) {
     const md = G.data.monsters[sp.id];
     let mods = {}, scale = 1, outline = null, goldMult = 1, name = md.name;
     let bossDef = null;
@@ -44,7 +45,11 @@
       mods = B.elite; outline = '#ffd34d'; goldMult = B.elite.gold; name = md.name + ' élite';
     }
     const st = G.sys.stats.monster(md, floor, mods);
+    const dm = dg ? dg.mult : 1;
+    if (dm !== 1) { st.maxHp = Math.round(st.maxHp * dm); st.atk *= dm; st.matk = st.atk; st.def *= dm; }
+    if (dg && dg.reward) goldMult *= dg.reward;
     return {
+      xpMult: (dg && dg.reward) || 1,
       uid: uidSeq++, id: md.id, side: 'monster', name, level: floor, family: md.family,
       x: sp.x + 0.5, y: sp.y + 0.5, r: 0.3 * Math.min(scale, 1.4), hp: st.maxHp, stats: st,
       attack: { type: md.behavior, range: md.range, dmgType: MAGIC_PROJ[md.projectile] ? 'magic' : 'phys', element: md.element, projectile: md.projectile },

@@ -38,8 +38,9 @@ js/data/    balance, elements, classes, monsters, biomes, rooms, names, building
             ores (7 minerais), music (3 thèmes originaux camp/dungeon/boss : accords + mélodie « NOTE:pas »),
             evolutions (10 spécialités + 20 ultimes : base, from, tier, rôle, bonus, palette, attaque), skills_adv (100 compétences
             des branches C/D, descriptions auto), sets (6 sets, bonus 2/4/6 pièces),
+            dungeons (4 donjons : offset de niveau, mult, reward, mf, shift de biome, teinte, unlock),
             cards (42 cartes générées depuis monstres/biomes/boss — charger après bosses.js ; cardDrop)
-js/render/  pixelart (modèles), icons (icônes des onglets), townart (ville : décor + 9 bâtiments dessinés en code, townLayout), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
+js/render/  pixelart (modèles), icons (icônes des onglets), townart (ville : décor + 9 bâtiments dessinés en code, townLayout), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (pré-rendu carte : dalles biseautées, pavés de couloir, briques en relief, bord des murs, décor mural/sol par biome (STYLE), tapis, mosaïques, cercle d'entrée),
             fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
             font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
 js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), synergy (synergies actives + bonusesFor(hero) =
@@ -51,7 +52,7 @@ js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), syne
             rooms (fontaine, autel/bénédictions run.saved.blessings, marchand, événements ; pauses run.state merchant/event),
             heroes (+ évolutions : evo/className/role/sprite/attack/evoBonus/evoOptions/evolve — toujours passer par ces
             fonctions plutôt que G.data.classes[h.cls] pour le nom, le rôle, l'apparence et l'attaque), forge (améliorer/relancer/fusionner),
-            dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
+            dungeon (génération + donjons multiples : def/cur/prog(id)/level/unlocked/bestLevel), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
             loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments : T.val(id) = valeurs actuelles,
             départs, syncLibrary, deathKeep, heroBonus), offline (rendement mesuré state.rate + gains hors ligne + auto-minage), cards (collection : stars, bonus() en cache, onKill, give), mine (toucher, auto-minage,
             améliorations, profondeur, atelier de fabrication), run (expédition, auto-farm)
@@ -64,7 +65,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v11 : + cards {id: étoiles} ; v10 : + mine {ores, sel, hp, power, auto, crit, depth, broken}, settings.music/musicVol/sfx) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
+- État sauvegardé `G.state` (sans changement de version : settings.dungeon, progress.dg{id:{maxFloor,maxCheckpoint}} — le donjon principal garde progress.maxFloor/maxCheckpoint —, run.dungeon, lastRun.off ; v11 : + cards {id: étoiles} ; v10 : + mine {ores, sel, hp, power, auto, crit, depth, broken}, settings.music/musicVol/sfx) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
   tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
@@ -118,6 +119,11 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   Pyromancien → Archimage / Phénix ; Nécromancien → Liche / Prince des ombres ; Clerc → Saint / Oracle ;
   Inquisiteur → Grand Inquisiteur / Exalté ; Assassin → Faucheur / Lame fantôme ; Saboteur → Maître saboteur / Alchimiste.
 
+- **Donjons multiples** (demande utilisateur, choix au Portail) : Donjon des Oubliés (niv. conseillé 1-40), Catacombes sanglantes
+  (30-60, monstres niv. étage+30, ×1,3, or/XP ×1,35, butin +10 %, ouvert à l'ét. 35 du premier), Citadelle du Chaos (55-85, +55, ×1,65,
+  ×1,75, +20 %, ét. 30 du 2e), Trône du Néant (80-100, +80, ×2,1, ×2,3, +35 %, ét. 30 du 3e). Record, départs du Portail et auto-farm
+  par donjon ; `run.level` = niveau réel des monstres (butin, or, XP, marchand, événements) ; boutique/score via `bestLevel()`.
+  Rendu : vignette, teinte et couleur d'accent (bannières, tapis) propres au donjon.
 - **Collection de cartes de monstres** (demande utilisateur) : chaque monstre/gardien/boss a une carte, drop très rare
   (normal 0,15 %, élite 0,1 %, gardien 0,06 %, boss 0,03 % — plus puissant = plus rare, demande utilisateur, × chance de butin), doublon = +1 ★ (max 5, ensuite or). Bonus léger
   par carte (famille/élément, ×étoiles) appliqué à **tous les héros** via stats.js. Consultable dans la **Salle des trophées** (ville).

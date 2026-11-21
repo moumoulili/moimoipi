@@ -58,7 +58,7 @@
     else if (rng.chance(B.materialDrops.scrap)) giveMat(run, 'scrap', 1);
   };
   L.onChest = function (run, c) {
-    for (let i = 0; i < B.chestItems; i++) give(run, IT.create(rng, { rarity: IT.rollRarity(rng, run.saved.floor, (run.magicFind || 0) + 0.3), ilvl: run.saved.floor }), c.x + 0.5, c.y + 0.5);
+    for (let i = 0; i < B.chestItems; i++) give(run, IT.create(rng, { rarity: IT.rollRarity(rng, run.level, (run.magicFind || 0) + 0.3), ilvl: run.level }), c.x + 0.5, c.y + 0.5);
   };
   G.sys.loot = L;
 })();

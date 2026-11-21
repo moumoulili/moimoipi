@@ -24,8 +24,8 @@
     return true;
   };
   // départs possibles : étage 1 + (5k+1) si portail niveau >= k ET gardien 5k vaincu
-  T.startFloors = function () {
-    const out = [1], lvl = T.level('portal'), maxCp = G.state.progress.maxCheckpoint;
+  T.startFloors = function (dgId) {
+    const out = [1], lvl = T.level('portal'), maxCp = G.sys.dungeon.prog(dgId).maxCheckpoint;
     for (let k = 1; k <= lvl; k++) {
       const f = k * B.checkpointEvery;
       if (f > maxCp) break;
@@ -33,7 +33,7 @@
     }
     return out;
   };
-  T.canStartAt = (f) => T.startFloors().indexOf(f) >= 0;
+  T.canStartAt = (f, dgId) => T.startFloors(dgId).indexOf(f) >= 0;
   // bibliothèque : chaque niveau offre 1 point de compétence à chaque héros (y compris les futures recrues)
   T.syncLibrary = function () {
     const l = T.level('library');

@@ -14,7 +14,7 @@
   I.score = function (hero, equip) {
     const s = G.sys.stats.hero(hero, { equip });
     const role = G.sys.heroes.role(hero), att = G.sys.heroes.attack(hero);
-    const f = Math.max(1, st().progress.maxFloor);
+    const f = Math.max(1, G.sys.dungeon.bestLevel());
     const atk = att.dmgType === 'magic' ? s.matk : s.atk;
     let elem = 0; for (const k in s.elemDmg) elem += s.elemDmg[k];
     const rate = (s.spd / 100) * s.wspd * (1 + s.atkSpd) / (att.interval || 1);

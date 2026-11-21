@@ -20,14 +20,34 @@
     const st = G.state, run = G.sys.run.active, starts = T().startFloors(), cur = ui.startFloor();
     let h = '<h3 class="cmp-title">⚔️ Expédition</h3>';
     if (run) return h + '<p class="small">Ton équipe explore l\'<b>étage ' + run.saved.floor + '</b>.</p><button class="pxbtn wide primary" id="tw-view">Voir le donjon</button>';
-    const fm = st.settings.farm;
+    const fm = st.settings.farm, DG = G.sys.dungeon;
+    h += dungeonsHtml();
     if (!fm.on) h += '<p class="muted small">Point de départ :</p><div class="choices small">' + starts.map((f) => '<button class="pxbtn small ' + (f === cur ? 'sel' : '') + '" data-f="' + f + '">Ét. ' + f + '</button>').join('') + '</div>';
     h += '<label class="toggle"><span>🔁 <b>Auto-farm</b> : rejouer un étage déjà atteint en boucle</span><input type="checkbox" id="tw-farm"' + (fm.on ? ' checked' : '') + '></label>';
     if (fm.on) {
-      const mx = Math.max(1, st.progress.maxFloor);
+      const mx = Math.max(1, DG.prog().maxFloor);
       h += '<div class="row"><button class="pxbtn small" id="tw-fmm">−</button><b style="flex:1;text-align:center">Étage ' + Math.min(fm.floor, mx) + ' / ' + mx + '</b><button class="pxbtn small" id="tw-fmp">+</button></div>';
     }
     return h + '<button class="pxbtn wide primary" id="tw-go">' + (fm.on ? '🔁 Farmer l\'étage ' + cur : '⚔️ Partir à l\'étage ' + cur) + '</button>';
+  }
+  // liste des donjons : tranche de niveau conseillée, difficulté, récompenses, condition d'ouverture
+  function dungeonsHtml() {
+    const DG = G.sys.dungeon, cur = DG.curId(), team = G.sys.heroes.team();
+    const avg = Math.round(team.reduce((a, h) => a + h.level, 0) / Math.max(1, team.length));
+    const pct = (x) => '×' + String(Math.round(x * 100) / 100).replace('.', ',');
+    let h = '<p class="muted small">Donjon (niveau moyen de l\'équipe : <b>' + avg + '</b>) :</p><div class="dg-list">';
+    for (const d of G.data.dungeons) {
+      const open = DG.unlocked(d.id), pr = DG.prog(d.id), u = d.unlock;
+      const warn = open && avg < d.lvl[0] ? '<span class="dg-warn">⚠ Trop dangereux pour ton équipe</span>' : '';
+      h += '<button class="dg-card' + (d.id === cur ? ' sel' : '') + (open ? '' : ' locked') + '" data-dg="' + d.id + '"' + (open ? '' : ' disabled') + ' style="--dga:' + d.color + '">' +
+        '<span class="dg-ico">' + (open ? d.icon : '🔒') + '</span><span class="dg-txt"><b>' + d.name + '</b>' +
+        '<span class="dg-lvl">Niv. conseillé ' + d.lvl[0] + '–' + d.lvl[1] + '</span>' +
+        (open ? '<span class="dg-info">' + (d.mult > 1 ? 'Monstres ' + pct(d.mult) + ' · Or/XP ' + pct(d.reward) + ' · Butin +' + Math.round(d.mf * 100) + ' %' : d.desc) + '</span>' +
+          '<span class="dg-info">Record : ét. ' + pr.maxFloor + (pr.maxFloor ? ' (monstres niv. ' + (pr.maxFloor + d.offset) + ')' : '') + '</span>' + warn
+          : '<span class="dg-info">Atteindre l\'étage ' + u.floor + ' : ' + DG.def(u.from).name + ' (record ' + DG.prog(u.from).maxFloor + ')</span>') +
+        '</span></button>';
+    }
+    return h + '</div>';
   }
   function shopHtml() {
     const st = G.state, SH = G.sys.shop;
@@ -70,10 +90,16 @@
         if (T().buy(b.dataset.buy)) { ui.toast(bd.name + ' : niveau ' + T().level(id) + ' !', 'gold'); G.sys.audio && G.sys.audio.sfx('up'); ui.invalidateHud(); }
         re();
       }));
+      box.querySelectorAll('[data-dg]').forEach((b) => (b.onclick = () => {
+        if (!G.sys.dungeon.unlocked(b.dataset.dg)) return;
+        st.settings.dungeon = b.dataset.dg; st.settings.startFloor = 1;
+        st.settings.farm.floor = Math.max(1, Math.min(st.settings.farm.floor, G.sys.dungeon.prog().maxFloor || 1));
+        G.core.save.save(); re();
+      }));
       box.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => { st.settings.startFloor = +b.dataset.f; re(); }));
       const fmc = box.querySelector('#tw-farm');
-      if (fmc) fmc.onchange = () => { st.settings.farm.on = fmc.checked; st.settings.farm.floor = Math.max(1, Math.min(st.settings.farm.floor, st.progress.maxFloor || 1)); G.core.save.save(); ui.invalidateHud(); re(); };
-      const fd = (d) => () => { st.settings.farm.floor = Math.max(1, Math.min(st.progress.maxFloor || 1, st.settings.farm.floor + d)); re(); };
+      if (fmc) fmc.onchange = () => { st.settings.farm.on = fmc.checked; st.settings.farm.floor = Math.max(1, Math.min(st.settings.farm.floor, G.sys.dungeon.prog().maxFloor || 1)); G.core.save.save(); ui.invalidateHud(); re(); };
+      const fd = (d) => () => { st.settings.farm.floor = Math.max(1, Math.min(G.sys.dungeon.prog().maxFloor || 1, st.settings.farm.floor + d)); re(); };
       if (box.querySelector('#tw-fmm')) { box.querySelector('#tw-fmm').onclick = fd(-1); box.querySelector('#tw-fmp').onclick = fd(1); }
       const go = box.querySelector('#tw-go'); if (go) go.onclick = done(() => ui.startRun());
       const view = box.querySelector('#tw-view'); if (view) view.onclick = done(() => ui.show('dungeon'));
@@ -96,7 +122,7 @@
     render() {
       const st = G.state, el = U.$('#screen-town'), L = G.render.townLayout, S = G.render.townScene;
       let h = '<div class="panel town-head"><div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:4px"><h2 style="margin:0">🏰 Ville</h2>' +
-        '<span class="small">Record <b>ét. ' + st.progress.maxFloor + '</b> · ' + st.stats.runs + ' expéditions</span></div>' +
+        '<span class="small">' + G.sys.dungeon.cur().icon + ' Record <b>ét. ' + G.sys.dungeon.prog().maxFloor + '</b> · ' + st.stats.runs + ' expéditions</span></div>' +
         '<div class="small muted">' + Object.keys(G.data.materials).map((k) => G.data.materials[k].icon + ' ' + G.data.materials[k].name + ' <b>' + U.fmt(st.materials[k] || 0) + '</b>').join(' · ') + '</div></div>';
       h += '<div class="town-scene" style="background-image:url(' + G.render.townSceneURL() + ')">';
       for (const id in L) {

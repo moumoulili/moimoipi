@@ -13,10 +13,28 @@
   D.isCheckpoint = (f) => f % B.checkpointEvery === 0;
   D.guardianKind = (f) => (f % 10 === 0 ? 'boss' : f % 5 === 0 ? 'mini' : null);
 
-  D.generate = function (floor, seed) {
+  // ---------- Plusieurs donjons (data/dungeons.js) ----------
+  D.def = (id) => G.data.dungeonById[id || D.curId()] || G.data.dungeons[0];
+  D.curId = () => { const st = G.state, r = st.run; const id = (r && r.dungeon) || st.settings.dungeon || 'main'; return G.data.dungeonById[id] ? id : 'main'; };
+  D.cur = () => D.def(D.curId());
+  // record d'un donjon : le donjon principal garde progress.maxFloor / maxCheckpoint (anciennes sauvegardes)
+  D.prog = function (id) {
+    id = id || D.curId();
+    const p = G.state.progress;
+    if (id === 'main') return p;
+    p.dg = p.dg || {};
+    return (p.dg[id] = p.dg[id] || { maxFloor: 0, maxCheckpoint: 0 });
+  };
+  D.level = (floor, id) => floor + D.def(id).offset;               // niveau réel des monstres
+  D.unlocked = (id) => { const u = D.def(id).unlock; return !u || D.prog(u.from).maxFloor >= u.floor; };
+  // meilleur niveau atteint, tous donjons confondus (boutique, prix…)
+  D.bestLevel = () => Math.max(0, ...G.data.dungeons.map((d) => (D.prog(d.id).maxFloor ? D.prog(d.id).maxFloor + d.offset : 0)));
+
+  D.generate = function (floor, seed, dgId) {
     const rng = new G.core.RNG(seed);
     const C = B.dungeon, W = C.w, H = C.h;
-    const { biome, cycle } = G.data.biomeFor(floor);
+    const dg = D.def(dgId);
+    const { biome, cycle } = G.data.biomeFor(floor, dg.shift);
     const tiles = new Uint8Array(W * H);
     const rooms = [];
     const target = Math.min(C.roomsMax, Math.round(C.roomsMin + floor * C.roomsPerFloor) + rng.int(0, 2));
@@ -140,7 +158,7 @@
     for (const r of rooms) for (let j = r.y; j < r.y + r.h; j++) for (let i = r.x; i < r.x + r.w; i++) roomAt[j * W + i] = r.id;
 
     return {
-      floor, seed, biome, cycle, w: W, h: H, tiles, variant, rooms, roomAt, entrance, exit, stairs,
+      floor, seed, biome, cycle, dungeon: dg, w: W, h: H, tiles, variant, rooms, roomAt, entrance, exit, stairs,
       spawns, chests, traps, decor, torches, specials, seen: new Uint8Array(W * H), guardianKind: gk,
     };
   };

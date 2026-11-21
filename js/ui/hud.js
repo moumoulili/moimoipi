@@ -10,7 +10,7 @@
   // ---------- Barre du haut ----------
   function updateTop() {
     const st = G.state, run = G.sys.run.active;
-    U.$('#tb-floor').innerHTML = run ? '<span class="tbf-n">' + (run.saved.farm ? '🔁 ' : '') + 'Étage ' + run.saved.floor + '</span><span class="tbf-b">' + run.map.biome.name + '</span>' : '<span class="tbf-n">Au camp</span><span class="tbf-b">Repos des héros</span>';
+    U.$('#tb-floor').innerHTML = run ? '<span class="tbf-n">' + (run.saved.farm ? '🔁 ' : '') + 'Étage ' + run.saved.floor + '</span><span class="tbf-b">' + (run.dg && run.dg.id !== 'main' ? run.dg.icon + ' ' : '') + run.map.biome.name + '</span>' : '<span class="tbf-n">Au camp</span><span class="tbf-b">Repos des héros</span>';
     U.$('#tb-gold').innerHTML = U.fmt(st.gold) + (st.run ? ' <span class="run-gold">+' + U.fmt(st.run.gold) + '</span>' : '');
     U.$('#tb-speed').textContent = 'x' + G.core.loop.speed;
   }
@@ -180,7 +180,7 @@
   // ---------- Démarrer une expédition ----------
   ui.startFloor = function () {
     const fm = G.state.settings.farm;
-    if (fm && fm.on) return Math.max(1, Math.min(fm.floor, G.state.progress.maxFloor || 1));
+    if (fm && fm.on) return Math.max(1, Math.min(fm.floor, G.sys.dungeon.prog().maxFloor || 1));
     const f = G.state.settings.startFloor || 1;
     return G.sys.town.canStartAt(f) ? f : 1;
   };

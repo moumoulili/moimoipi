@@ -5,7 +5,7 @@
 (function () {
   const B = G.data.balance, IT = G.sys.items;
   const S = {};
-  const floorRef = () => Math.max(1, G.state.progress.maxFloor);
+  const floorRef = () => Math.max(1, G.sys.dungeon.bestLevel());
   const sv = () => G.sys.town.val('shop');
   S.priceMult = () => Math.pow(floorRef(), 1.2) * (1 - sv().discount);
   S.potionPrice = (id) => Math.round(G.data.potions[id].price * S.priceMult() * (id === 'revive' ? 1 - G.sys.town.val('temple').revive : 1));

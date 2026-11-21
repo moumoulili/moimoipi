@@ -41,7 +41,7 @@
         const x = u.x + Math.cos(a) * d, y = u.y + Math.sin(a) * d;
         if (G.sys.path.free(run.map, x, y)) { px = x; py = y; break; }
       }
-      const m = G.sys.combat.monsterUnit({ id, x: Math.floor(px), y: Math.floor(py), room: u.room, summoned: true }, run.saved.floor);
+      const m = G.sys.combat.monsterUnit({ id, x: Math.floor(px), y: Math.floor(py), room: u.room, summoned: true }, run.level || run.saved.floor, run.dg);
       m.x = px; m.y = py; m.aggro = true; m.goldMult = 0.25;
       run.monsters.push(m); run.units.push(m);
       fx().ring(px, py, '#a46bff', 0.8, 0.4); fx().burst(px, py, '#a46bff', 10, -1, true);

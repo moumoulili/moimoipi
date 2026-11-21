@@ -35,7 +35,7 @@
   C.give = function (id, x, y) {
     const card = G.data.cardById[id], before = C.stars(id), max = G.data.cardDrop.maxStars;
     const res = { card, isNew: before === 0, stars: Math.min(max, before + 1), maxed: before >= max };
-    if (res.maxed) { const g = Math.round(G.data.balance.goldPerMonster(Math.max(1, G.state.progress.maxFloor)) * 50); G.state.gold += g; res.gold = g; }
+    if (res.maxed) { const g = Math.round(G.data.balance.goldPerMonster(Math.max(1, G.sys.dungeon.bestLevel())) * 50); G.state.gold += g; res.gold = g; }
     else st()[id] = res.stars;
     C.invalidate();
     G.sys.run.refreshStats && G.sys.run.refreshStats();

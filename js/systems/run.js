@@ -19,12 +19,14 @@
   R.start = function (startFloor) {
     const st = G.state;
     const farm = st.settings.farm && st.settings.farm.on;
-    if (farm) startFloor = Math.max(1, Math.min(st.settings.farm.floor, st.progress.maxFloor || 1));
-    else if (!G.sys.town.canStartAt(startFloor)) startFloor = 1;
+    const DG = G.sys.dungeon, dgId = DG.unlocked(st.settings.dungeon) ? DG.def(st.settings.dungeon).id : 'main';
+    st.settings.dungeon = dgId;
+    if (farm) startFloor = Math.max(1, Math.min(st.settings.farm.floor, DG.prog(dgId).maxFloor || 1));
+    else if (!G.sys.town.canStartAt(startFloor, dgId)) startFloor = 1;
     st.stats.runs++;
     st.run = {
       floor: startFloor, startFloor, gold: 0, kills: 0, hp: {}, exitAvailable: false,
-      seedBase: st.seed + ':' + st.stats.runs, time: 0, farm: farm ? startFloor : 0, loop: 0,
+      seedBase: st.seed + ':' + st.stats.runs, time: 0, farm: farm ? startFloor : 0, loop: 0, dungeon: dgId,
     };
     build(st.run);
     log('L\'équipe entre dans le donjon.', 'info');
@@ -53,7 +55,10 @@
     const st = G.state, saved = run.saved;
     saved.floor = floor;
     saved.exitAvailable = false;
-    const map = G.sys.dungeon.generate(floor, G.core.hashStr(saved.seedBase + ':' + floor + (saved.loop ? ':' + saved.loop : '')));
+    const DG = G.sys.dungeon, dgId = saved.dungeon || 'main';
+    run.dg = DG.def(dgId);
+    run.level = DG.level(floor, dgId); // niveau réel des monstres de l'étage
+    const map = G.sys.dungeon.generate(floor, G.core.hashStr((dgId === 'main' ? '' : dgId + ':') + saved.seedBase + ':' + floor + (saved.loop ? ':' + saved.loop : '')), dgId);
     map.trapAt = new Map(map.traps.map((t) => [t.x + ',' + t.y, t]));
     run.map = map;
     // héros
@@ -69,7 +74,7 @@
       if (mp != null) u.mp = Math.min(mp, u.stats.maxMp); // la mana est conservée d'un étage à l'autre
       return u;
     });
-    run.monsters = map.spawns.map((sp) => C.monsterUnit(sp, floor));
+    run.monsters = map.spawns.map((sp) => C.monsterUnit(sp, run.level, run.dg));
     for (const m of run.monsters) if (m.bossId) G.sys.bosses.init(m);
     run.units = run.heroes.concat(run.monsters);
     teamBonuses(run);
@@ -78,9 +83,17 @@
     revealRoom(map, e);
     reveal(run);
     G.render.onFloor && G.render.onFloor(run);
-    if (floor > st.progress.maxFloor) st.progress.maxFloor = floor;
+    const pr = DG.prog(dgId);
+    if (floor > pr.maxFloor) {
+      pr.maxFloor = floor;
+      // nouveau donjon débloqué ?
+      for (const d of G.data.dungeons) if (d.unlock && d.unlock.from === dgId && d.unlock.floor === floor) {
+        G.ui.toast && G.ui.toast(d.icon + ' Nouveau donjon débloqué : ' + d.name + ' !', 'gold');
+        log(d.icon + ' Nouveau donjon débloqué : ' + d.name + ' (Portail)', 'gold');
+      }
+    }
     const cyc = map.cycle ? ' (Cauchemar ' + map.cycle + ')' : '';
-    G.ui.banner && G.ui.banner('Étage ' + floor, map.biome.name + cyc + (map.guardianKind === 'boss' ? ' · BOSS' : map.guardianKind === 'mini' ? ' · Gardien' : ''), map.guardianKind ? 'boss' : '');
+    G.ui.banner && G.ui.banner((dgId === 'main' ? '' : run.dg.icon + ' ') + 'Étage ' + floor, (dgId === 'main' ? '' : run.dg.name + ' · ') + map.biome.name + cyc + (map.guardianKind === 'boss' ? ' · BOSS' : map.guardianKind === 'mini' ? ' · Gardien' : ''), map.guardianKind ? 'boss' : '');
     if (map.guardianKind) log((map.guardianKind === 'boss' ? 'Un boss' : 'Un gardien') + ' garde l\'escalier de cet étage…', 'boss');
     bus.emit('floor:enter', { floor });
   }
@@ -89,6 +102,7 @@
   function teamBonuses(run) {
     run.goldFind = 0; run.magicFind = 0;
     for (const h of run.heroes) { run.goldFind += h.stats.goldFind || 0; run.magicFind += h.stats.magicFind || 0; }
+    run.magicFind += (run.dg && run.dg.mf) || 0; // bonus de butin des donjons difficiles
   }
   // bonus temporaires de l'expédition : élixirs + bénédictions
   R.runBuffs = function (run) {
@@ -196,9 +210,10 @@
   function onGuardianKilled(run, u) {
     const st = G.state, saved = run.saved;
     saved.exitAvailable = true;
-    if (saved.floor > st.progress.maxCheckpoint) {
-      st.progress.maxCheckpoint = saved.floor;
-      if (!G.sys.town.canStartAt(saved.floor + 1)) G.ui.toast && G.ui.toast('Améliore le Portail pour repartir de l\'étage ' + (saved.floor + 1), 'gold');
+    const pr = G.sys.dungeon.prog(saved.dungeon || 'main');
+    if (saved.floor > pr.maxCheckpoint) {
+      pr.maxCheckpoint = saved.floor;
+      if (!G.sys.town.canStartAt(saved.floor + 1, saved.dungeon || 'main')) G.ui.toast && G.ui.toast('Améliore le Portail pour repartir de l\'étage ' + (saved.floor + 1), 'gold');
     }
     log(u.name + ' est vaincu ! La sortie est accessible.', 'boss');
     G.ui.banner && G.ui.banner('Victoire !', u.name + ' est vaincu', 'gold');
@@ -233,7 +248,7 @@
     st.gold += kept;
     st.stats.totalGold += kept;
     if (reason === 'death') st.stats.deaths++;
-    st.lastRun = { reason, floor: s.floor, startFloor: s.startFloor, gold: s.gold, kept, kills: s.kills, items: s.items || 0, mats: s.mats || {}, time: Math.round(run.t + (s.time || 0)), heroStats: run.stats };
+    st.lastRun = { reason, off: G.sys.dungeon.def(s.dungeon || 'main').offset, dungeon: s.dungeon || 'main', floor: s.floor, startFloor: s.startFloor, gold: s.gold, kept, kills: s.kills, items: s.items || 0, mats: s.mats || {}, time: Math.round(run.t + (s.time || 0)), heroStats: run.stats };
     st.run = null;
     R.active = null;
     if (st.settings.autoOptimize) { const o = G.sys.inventory.optimizeTeam(); st.lastRun.optimized = o.changes; }
@@ -327,7 +342,7 @@
 
   function openChest(run, c) {
     c.opened = true;
-    const gold = Math.round(B.goldPerMonster(run.saved.floor) * B.chestGold * (1 + (run.goldFind || 0)) * rng.float(0.8, 1.3));
+    const gold = Math.round(B.goldPerMonster(run.level) * B.chestGold * (1 + (run.goldFind || 0)) * run.dg.reward * rng.float(0.8, 1.3));
     run.saved.gold += gold;
     G.render.fx.coins(c.x + 0.5, c.y + 0.5, gold);
     G.render.fx.sparkle(c.x + 0.5, c.y + 0.5, '#ffd34d', 12);

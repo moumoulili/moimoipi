@@ -28,6 +28,7 @@
     canvas.style.height = (vh * scale) / dpr + 'px';
     ctx.imageSmoothingEnabled = false;
   };
+  let vignette = null;
   G.render.onFloor = function (run) {
     mapCanvas = G.render.buildMapCanvas(run.map);
     mapRef = run.map;
@@ -400,6 +401,14 @@
     drawAmbient(map, dt);
     // cycle « Cauchemar » : le donjon prend une teinte rouge
     if (map.cycle) { ctx.fillStyle = 'rgba(120,0,0,' + Math.min(0.25, 0.08 * map.cycle) + ')'; ctx.fillRect(0, 0, vw, vh); }
+    // teinte propre au donjon (Catacombes sanglantes, Citadelle du Chaos…)
+    if (map.dungeon && map.dungeon.tint) { ctx.fillStyle = map.dungeon.tint; ctx.fillRect(0, 0, vw, vh); }
+    // vignette : bords de l'écran assombris pour plus de profondeur
+    if (!vignette || vignette.w !== vw || vignette.h !== vh) {
+      vignette = { w: vw, h: vh, g: ctx.createRadialGradient(vw / 2, vh / 2, Math.min(vw, vh) * 0.35, vw / 2, vh / 2, Math.max(vw, vh) * 0.75) };
+      vignette.g.addColorStop(0, 'rgba(0,0,0,0)'); vignette.g.addColorStop(1, 'rgba(0,0,0,0.45)');
+    }
+    ctx.fillStyle = vignette.g; ctx.fillRect(0, 0, vw, vh);
     // textes flottants (par-dessus la lumière)
     for (const t of fx.texts) {
       const a = 1 - Math.max(0, (t.t - t.life * 0.6) / (t.life * 0.4));

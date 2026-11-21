@@ -634,3 +634,16 @@ h2 .ico, h3 .ico { -webkit-text-fill-color: initial; color: initial; background:
 .mcard.big .mc-name { font-size: 15px; } .mcard.big .mc-bonus { font-size: 12px; }
 @keyframes cardIn { from { transform: translateX(-50%) rotateY(90deg) scale(.4); opacity: 0; } to { transform: translateX(-50%) rotateY(0) scale(1); opacity: 1; } }
 @keyframes cardOut { to { transform: translateX(-50%) translateY(-40px) scale(.6); opacity: 0; } }
+
+/* ---------- Choix du donjon (Portail) ---------- */
+.dg-list { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 10px; }
+.dg-card { display: flex; gap: 10px; align-items: center; text-align: left; padding: 8px 10px; border-radius: 6px; cursor: pointer;
+  background: linear-gradient(180deg, rgba(60,40,20,.12), rgba(60,40,20,.22)); border: 2px solid rgba(90,60,30,.45); color: var(--text); font: inherit; }
+.dg-card.sel { border-color: var(--dga); box-shadow: 0 0 0 1px var(--dga), 0 0 12px -2px var(--dga); background: linear-gradient(180deg, rgba(255,230,160,.35), rgba(200,150,60,.25)); }
+.dg-card.locked { opacity: .55; filter: grayscale(.8); cursor: default; }
+.dg-ico { font-size: 26px; width: 34px; text-align: center; flex: none; }
+.dg-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.dg-txt b { font-family: var(--epic-font); font-size: 14px; }
+.dg-lvl { font-size: 12px; font-weight: 800; color: var(--dga); }
+.dg-info { font-size: 11px; color: var(--muted); }
+.dg-warn { font-size: 11px; font-weight: 700; color: #b8262a; }

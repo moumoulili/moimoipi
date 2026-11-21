@@ -17,7 +17,7 @@
     const m = {};
     for (const k in lr.mats || {}) m[k] = lr.mats[k] / t;
     const lvl = team.reduce((a, h) => a + h.level, 0) / Math.max(1, team.length);
-    const sample = { lvl, gold: lr.kept / t, xp: xp / Math.max(1, team.length) / t, items: (lr.items || 0) / t, kills: lr.kills / t, mats: m, floor: Math.round((lr.startFloor + lr.floor) / 2) };
+    const sample = { lvl, gold: lr.kept / t, xp: xp / Math.max(1, team.length) / t, items: (lr.items || 0) / t, kills: lr.kills / t, mats: m, floor: Math.round((lr.startFloor + lr.floor) / 2) + (lr.off || 0) };
     const r = st().rate;
     if (!r || !r.samples) { st().rate = Object.assign(sample, { samples: 1 }); return; }
     const a = 0.35, mix = (x, y) => x * (1 - a) + y * a;
