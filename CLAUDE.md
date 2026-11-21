@@ -63,6 +63,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - **Départ toujours à l'étage 1** sauf amélioration : le bâtiment **Portail des profondeurs** (niv. k)
   autorise le départ à l'étage 5k+1, à condition d'avoir vaincu le gardien de l'étage 5k. Coût 2500 × 3^niv.
 - Difficulté relevée à la demande de l'utilisateur ; les monstres « dive » (rapides) évitent le tank et visent l'arrière.
+- **Jeu volontairement très exigeant (validé par l'utilisateur)** : pas de régénération de mana de base, pas de soin
+  gratuit, potions et équipement au cœur de la survie. Ne pas « adoucir » sans demande explicite.
 - Effets visuels riches demandés : chaque attaque/sort a un départ, une traînée et un impact propres à son élément.
 - Défaite ou fuite : retour en ville avec 50 % de l'or de l'expédition (objets gardés à partir de la phase 2).
 - Gains hors ligne (phase 7) : estimés à partir du rendement réel mesuré, pas de simulation complète.
