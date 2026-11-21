@@ -5,7 +5,7 @@
 (function () {
   const U = G.core.U, ui = G.ui;
   const T = () => G.sys.town;
-  const SPECIAL = { mine: { name: 'Entrée de la mine', icon: '⛏️' } };
+  const SPECIAL = { mine: { name: 'Entrée de la mine', icon: '⛏️' }, trophy: { name: 'Salle des trophées', icon: '🃏' } };
 
   // ---------- Contenus des bâtiments ----------
   function upgradeHtml(id) {
@@ -49,6 +49,7 @@
     shop: shopHtml,
     forge: () => '<h3 class="cmp-title">⚒ Forger</h3><p class="small">Pour améliorer un objet ou relancer ses bonus : touche-le dans le <b>Sac</b> ou l\'<b>Équipe</b>, puis « ⚒ Forge ».</p><button class="pxbtn wide" id="tw-bag">🎒 Ouvrir le sac</button>',
     camp: () => { const r = G.state.rate; return '<h3 class="cmp-title">🏕️ Rendement mesuré</h3><p class="small">' + (r && r.samples ? U.fmt(r.gold * 60) + ' or/min · ' + U.fmt(r.xp * 60) + ' XP/min par héros · ~étage ' + r.floor : 'Fais une expédition d\'au moins 1 minute pour mesurer ton rendement.') + '</p>'; },
+    trophy: () => ui.cardsHtml(),
     mine: () => '<p class="small">Tape sur les rochers pour récolter des minerais, puis fabrique de l\'équipement à l\'atelier.</p><button class="pxbtn wide primary" id="tw-mine">⛏️ Descendre à la mine</button>',
   };
 
@@ -103,7 +104,7 @@
         const lvl = G.data.buildings[id] ? T().level(id) : null, can = G.data.buildings[id] && T().canBuy(id);
         h += '<button class="tbuild b-' + id + '" data-b="' + id + '" style="left:' + (x / S.W) * 100 + '%;top:' + (y / S.H) * 100 + '%;width:' + (32 / S.W) * 100 + '%">' +
           '<img alt="" src="' + G.render.buildingURL(id) + '">' +
-          '<span class="tb-name">' + bd.name.replace('des profondeurs', '').replace('Entrée de la mine', 'Mine') + (lvl != null ? ' <b>' + lvl + '</b>' : '') + '</span>' +
+          '<span class="tb-name">' + bd.name.replace('des profondeurs', '').replace('Entrée de la mine', 'Mine').replace('Salle des trophées', 'Trophées') + (id === 'trophy' ? ' <b>' + G.sys.cards.owned() + '</b>' : '') + (lvl != null ? ' <b>' + lvl + '</b>' : '') + '</span>' +
           (can ? '<span class="tb-up">▲</span>' : '') + '</button>';
       }
       h += '</div><p class="muted small" style="text-align:center">Touche un bâtiment pour y entrer. ▲ = amélioration possible.</p>';

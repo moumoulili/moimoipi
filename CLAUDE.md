@@ -37,7 +37,8 @@ js/data/    balance, elements, classes, monsters, biomes, rooms, names, building
             events (événements à choix) + blessings, rooms (poids des salles + salles spéciales),
             ores (7 minerais), music (3 thèmes originaux camp/dungeon/boss : accords + mélodie « NOTE:pas »),
             evolutions (10 spécialités + 20 ultimes : base, from, tier, rôle, bonus, palette, attaque), skills_adv (100 compétences
-            des branches C/D, descriptions auto), sets (6 sets, bonus 2/4/6 pièces)
+            des branches C/D, descriptions auto), sets (6 sets, bonus 2/4/6 pièces),
+            cards (42 cartes générées depuis monstres/biomes/boss — charger après bosses.js ; cardDrop)
 js/render/  pixelart (modèles), icons (icônes des onglets), townart (ville : décor + 9 bâtiments dessinés en code, townLayout), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
             fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
             font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
@@ -52,18 +53,18 @@ js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), syne
             fonctions plutôt que G.data.classes[h.cls] pour le nom, le rôle, l'apparence et l'attaque), forge (améliorer/relancer/fusionner),
             dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
             loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments : T.val(id) = valeurs actuelles,
-            départs, syncLibrary, deathKeep, heroBonus), offline (rendement mesuré state.rate + gains hors ligne + auto-minage), mine (toucher, auto-minage,
+            départs, syncLibrary, deathKeep, heroBonus), offline (rendement mesuré state.rate + gains hors ligne + auto-minage), cards (collection : stars, bonus() en cache, onKill, give), mine (toucher, auto-minage,
             améliorations, profondeur, atelier de fabrication), run (expédition, auto-farm)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon + barre de potions), items (case, fiche,
             comparaison, sélecteur d'emplacement), town (**carte de la ville en pixel art** : toucher un bâtiment ouvre
             ui.buildingModal(id) = fonction du bâtiment + amélioration ; Portail = expédition/auto-farm, Taverne, Boutique, Mine), team (héros : niveau/XP/stats, sous-onglets Équipement/Compétences, composition,
-            synergies, fenêtre taverne), skills (arbre, fiche compétence, priorités), bag (sac, tri auto, potions), town (+ boutique), settings
+            synergies, fenêtre taverne), skills (arbre, fiche compétence, priorités), cards (grille de collection, cardPop), bag (sac, tri auto, potions), town (+ boutique), settings
 ```
 - Simulation séparée du rendu : `G.sys.run.update(dt)` est déterministe en temps de jeu
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v10 : + mine {ores, sel, hp, power, auto, crit, depth, broken}, settings.music/musicVol/sfx) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
+- État sauvegardé `G.state` (v11 : + cards {id: étoiles} ; v10 : + mine {ores, sel, hp, power, auto, crit, depth, broken}, settings.music/musicVol/sfx) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
   tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
@@ -116,6 +117,10 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   Tireur d'élite → Œil-de-faucon / Archer arcanique ; Rôdeur → Maître des bêtes / Sentinelle sylvestre ;
   Pyromancien → Archimage / Phénix ; Nécromancien → Liche / Prince des ombres ; Clerc → Saint / Oracle ;
   Inquisiteur → Grand Inquisiteur / Exalté ; Assassin → Faucheur / Lame fantôme ; Saboteur → Maître saboteur / Alchimiste.
+
+- **Collection de cartes de monstres** (demande utilisateur) : chaque monstre/gardien/boss a une carte, drop très rare
+  (normal 0,15 %, élite 0,6 %, gardien 4 %, boss 8 %, × chance de butin), doublon = +1 ★ (max 5, ensuite or). Bonus léger
+  par carte (famille/élément, ×étoiles) appliqué à **tous les héros** via stats.js. Consultable dans la **Salle des trophées** (ville).
 
 ## Formules (balance.js)
 - Monstre de base 46 PV / 10 ATQ / 4 DEF. Puissance : `(1 + 0,12(f-1)) × 1,065^(f-1)` (relevée en phase 4 pour compenser les compétences) ; élite (16 %) ×3 PV ×1,4 ATQ ;

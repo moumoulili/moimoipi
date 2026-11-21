@@ -39,6 +39,7 @@
   L.giveItem = give;
   L.onMonsterKill = function (run, m) {
     if (m.summoned) return; // les renforts invoqués ne lâchent rien
+    G.sys.cards && G.sys.cards.onKill(run, m);
     const mf = run.magicFind || 0;
     const ilvl = m.level;
     if (m.guardian) {

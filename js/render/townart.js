@@ -87,6 +87,14 @@
       x.fillStyle = '#e0c8ff'; x.fillRect(15, 19, 2, 2);
       x.fillStyle = '#e3b341'; x.fillRect(15, 4, 2, 2);
     },
+    trophy(x) {
+      // petit pavillon à colonnes avec une carte géante sur le fronton
+      box(x, 3, 16, 26, 14, '#d8c8a8'); x.fillStyle = '#b0a080'; x.fillRect(3, 28, 26, 2);
+      for (const cx of [5, 11, 19, 25]) { box(x, cx, 17, 2, 11, '#f0e8d8'); }
+      roof(x, 4, 15, '#8a3ab0', '#5a2080');
+      box(x, 12, 5, 8, 10, '#f6e8c6'); box(x, 13, 6, 6, 8, '#c78bff'); x.fillStyle = '#ffffff'; x.fillRect(15, 8, 2, 2); x.fillStyle = '#e3b341'; x.fillRect(14, 12, 4, 1);
+      door(x, 14, 22, 4, 8, '#4a2a6a');
+    },
     mine(x) {
       for (let r = 0; r < 20; r++) { const half = Math.round(6 + r * 0.55); x.fillStyle = O; x.fillRect(16 - half - 1, 10 + r, half * 2 + 2, 1); x.fillStyle = (r * 7 % 5) ? '#7a6a5a' : '#5a4a3e'; x.fillRect(16 - half, 10 + r, half * 2, 1); }
       x.fillStyle = O; x.fillRect(10, 15, 12, 15);
@@ -140,6 +148,6 @@
   // positions des bâtiments dans le décor (coin haut-gauche, en pixels)
   G.render.townLayout = {
     portal: [56, 4], temple: [6, 34], library: [106, 34], tavern: [10, 76], shop: [102, 76],
-    forge: [10, 130], warehouse: [102, 130], mine: [8, 168], camp: [104, 168],
+    forge: [10, 130], warehouse: [102, 130], mine: [8, 168], trophy: [56, 170], camp: [104, 168],
   };
 })();

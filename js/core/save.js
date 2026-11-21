@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 10;
+  const VERSION = 11;
   const S = {};
 
   S.fresh = function () {
@@ -25,6 +25,7 @@
       shop: { items: [], refreshAt: 0 },
       tavern: { recruits: [], refreshAt: 0 },
       rate: null, // rendement mesuré (gains hors ligne)
+      cards: {}, // collection de cartes de monstres { id: étoiles }
       mine: { ores: {}, sel: 'copper', hp: 12, power: 0, auto: 0, crit: 0, depth: 1, broken: 0 },
       progress: { maxFloor: 0, maxCheckpoint: 0 },
       stats: { kills: 0, totalGold: 0, runs: 0, deaths: 0 },
@@ -54,6 +55,8 @@
     8: () => {},
     // v9 -> v10 : mine, atelier, musique (valeurs par défaut ajoutées automatiquement)
     9: () => {},
+    // v10 -> v11 : collection de cartes (valeur par défaut ajoutée automatiquement)
+    10: () => {},
   };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }
