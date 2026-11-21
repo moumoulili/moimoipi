@@ -128,7 +128,7 @@
   function updateActions() {
     const run = G.sys.run.active;
     const can = G.sys.run.canRetreat();
-    const key = (run ? run.saved.floor : 'x') + '|' + can;
+    const key = (run ? run.saved.floor : 'x') + '|' + can + '|' + G.sys.run.rushing();
     const ov = U.$('#idle-overlay');
     if (!run) {
       if (actionsKey !== 'idle') {
@@ -155,6 +155,10 @@
       exit.onclick = () => ui.confirm('Sortir du donjon ?', '<p>L\'équipe rentre en ville avec <b>100 %</b> du butin.</p>', '🚪 Sortir', () => G.sys.run.retreat(), 'gold');
       box.appendChild(exit);
     }
+    const rush = U.el('button', 'map-btn rush' + (G.sys.run.rushing() ? ' on' : ''), '⏬');
+    rush.title = 'Aller directement à l\'escalier';
+    rush.onclick = () => { const on = G.sys.run.toggleRush(); ui.toast(on ? '⏬ L\'équipe fonce vers l\'escalier' : 'Exploration normale de l\'étage'); actionsKey = ''; updateActions(); };
+    box.appendChild(rush);
     const flee = U.el('button', 'map-btn flee', '🏳️');
     flee.title = 'Fuir (garde ' + Math.round(G.sys.town.deathKeep() * 100) + ' % de l\'or)';
     flee.onclick = () => ui.confirm('Fuir le donjon ?', '<p>L\'équipe rentre en ville mais ne garde que <b>' + Math.round(G.sys.town.deathKeep() * 100) + ' %</b> de l\'or de cette expédition.</p>', 'Fuir', () => G.sys.run.active && G.sys.run.end('death'));

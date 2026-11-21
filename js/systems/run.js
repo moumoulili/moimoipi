@@ -270,8 +270,18 @@
   // ---------- Exploration ----------
   function leader(run) { return run.heroes.find((h) => !h.dead); }
 
+  // bouton « foncer à l'escalier » : valable pour l'étage en cours (saved.rush = n° d'étage)
+  R.rushing = () => { const r = R.active; return !!(r && r.saved.rush === r.saved.floor); };
+  R.toggleRush = function () {
+    const r = R.active; if (!r) return false;
+    r.saved.rush = R.rushing() ? 0 : r.saved.floor;
+    if (r.goal && r.goal.type !== 'stairs' || !R.rushing()) r.goal = null;
+    return R.rushing();
+  };
+
   function chooseGoal(run, L) {
     const map = run.map, W = map.w;
+    if (R.rushing()) { run.goal = { type: 'stairs', x: map.stairs.x, y: map.stairs.y }; run.goalT = 0; return; }
     const d = P.bfs(map, Math.floor(L.x), Math.floor(L.y));
     let best = null, bd = 1e9;
     for (const c of map.chests) {
@@ -308,7 +318,12 @@
       if (g.type === 'room' && g.ref.visited) run.goal = null;
       else if (g.type === 'chest' && d < 0.9) { openChest(run, g.ref); run.goal = null; }
       else if (g.type === 'special' && d < 1) { run.goal = null; G.sys.rooms.interact(run, g.ref); if (run.state !== 'explore') return; }
-      else if (g.type === 'stairs' && d < 0.45) { descend(run); return; }
+      else if (g.type === 'stairs' && d < 0.45) {
+        // le gardien de l'étage doit être vaincu avant de descendre
+        const gd = run.monsters.find((m) => m.guardian && !m.dead);
+        if (gd) { if (!gd.aggro) run.aggroRoom(gd); }
+        else { descend(run); return; }
+      }
       // sécurité anti-blocage : si le chef n'avance plus, il traverse les autres un moment
       run.progT = (run.progT || 0) + dt;
       if (run.progT > 2) {
