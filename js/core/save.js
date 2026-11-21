@@ -79,8 +79,10 @@
     G.state = S.fresh();
     return false;
   };
+  // verrou : empêche la sauvegarde automatique (fermeture de page) d'écraser une réinitialisation ou un import
+  let locked = false;
   S.save = function () {
-    if (!G.state) return;
+    if (!G.state || locked) return;
     try {
       G.sys.run && G.sys.run.snapshot();
       G.state.lastSeen = Date.now();
@@ -88,6 +90,7 @@
     } catch (e) { console.error('Échec de sauvegarde', e); }
   };
   S.reset = function () {
+    locked = true;
     localStorage.removeItem(KEY);
     location.reload();
   };
@@ -106,6 +109,7 @@
     if (parts.length !== 3 || parts[0] !== 'MMP1') throw new Error('Format inconnu');
     if (G.core.hashStr(parts[1]).toString(36) !== parts[2]) throw new Error('Texte incomplet ou modifié');
     const st = migrate(JSON.parse(b64dec(parts[1])));
+    locked = true;
     localStorage.setItem(KEY, JSON.stringify(st));
     location.reload();
   };

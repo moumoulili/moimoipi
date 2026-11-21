@@ -177,3 +177,4 @@ Serveur local : `python3 -m http.server 8765` puis Playwright en viewport mobile
 dès que possible) : classe choisie vers la 6e expédition (niv. 10), ét. ~14 après 10-12.
 L'or s'accumule sans débouché au-delà du Portail : la forge (phase 6) et la ville (phase 7) l'absorberont.
 Attention : recharger la page déclenche une sauvegarde (pagehide) ; neutraliser `G.core.save.save` avant d'éditer localStorage dans un test.
+Réinitialisation et import posent un verrou (`locked` dans save.js) pour que la sauvegarde de fermeture n'écrase pas le résultat.

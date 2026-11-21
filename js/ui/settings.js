@@ -26,7 +26,8 @@
         '<textarea id="op-text" placeholder="Colle ici une sauvegarde exportée puis appuie sur Importer"></textarea>' +
         '<div class="row" style="margin-top:6px"><button class="pxbtn small primary" id="op-imp">Importer</button></div></div>' +
 
-        '<div class="panel"><h3>Zone dangereuse</h3><button class="pxbtn danger wide" id="op-reset">Effacer la partie</button></div>' +
+        '<div class="panel"><h3>🔄 Réinitialiser le jeu</h3><p class="muted small">Recommence une partie entièrement neuve : héros, équipement, or, ville, mine… tout est effacé. Pense à exporter ta sauvegarde avant si tu veux pouvoir revenir en arrière.</p>' +
+        '<button class="pxbtn danger wide" id="op-reset">🔄 Réinitialiser le jeu</button></div>' +
         '<p class="muted" style="text-align:center;font-size:12px">Moimoipi · phase 7 · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'hors ligne prêt' : 'en ligne') + '</p>';
       const cp = U.$('#op-cp'); cp.value = s.checkpointMode; cp.onchange = () => { s.checkpointMode = cp.value; G.core.save.save(); };
       const ev = U.$('#op-ev'); ev.value = s.eventMode; ev.onchange = () => { s.eventMode = ev.value; G.core.save.save(); };
@@ -50,7 +51,15 @@
           try { G.core.save.importText(ta.value); } catch (e) { ui.toast('Import impossible : ' + e.message, 'danger'); }
         });
       };
-      U.$('#op-reset').onclick = () => ui.confirm('Tout effacer ?', '<p>Toute ta progression sera perdue définitivement.</p>', 'Effacer', () => G.core.save.reset());
+      U.$('#op-reset').onclick = () => ui.modal({
+        title: '⚠️ Réinitialiser le jeu ?',
+        html: '<p>Toute ta progression sera <b>perdue définitivement</b> : héros, objets, or, bâtiments, mine.</p><p class="small muted">Tu peux d\'abord copier ta sauvegarde pour la garder de côté.</p>',
+        buttons: [
+          { label: '📋 Copier ma sauvegarde d\'abord', onClick: async () => { const t = G.core.save.exportText(); try { await navigator.clipboard.writeText(t); ui.toast('Sauvegarde copiée'); } catch (e) { U.$('#op-text').value = t; ui.toast('Sauvegarde affichée dans le champ Sauvegarde'); } } },
+          { label: '🔄 Oui, tout effacer et recommencer', cls: 'danger', onClick: () => ui.confirm('Dernière confirmation', '<p>Vraiment tout effacer ?</p>', 'Tout effacer', () => G.core.save.reset()) },
+          { label: 'Annuler' },
+        ],
+      });
     },
   };
 })();
