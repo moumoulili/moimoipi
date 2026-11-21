@@ -101,7 +101,7 @@
   K.moveUp = function (h, id) { const o = K.activeList(h), k = o.indexOf(id); if (k > 0) [o[k - 1], o[k]] = [o[k], o[k - 1]]; };
 
   // ---------- Combat ----------
-  K.manaCost = (u, s) => Math.max(0, Math.round(s.mp * (1 + (u.stats.manaCost || 0))));
+  K.manaCost = (u, s) => Math.max(0, Math.round(s.mp * (1 + B.manaCostPerLvl * ((u.level || 1) - 1)) * (1 + (u.stats.manaCost || 0))));
   const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
   function ruleOk(run, u, s, rule, enemies) {

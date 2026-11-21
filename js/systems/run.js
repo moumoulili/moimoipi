@@ -63,6 +63,8 @@
       const [ox, oy] = spots[i % spots.length];
       u.x = e.cx + ox + 0.5; u.y = e.cy + oy + 0.5;
       if (hp === 0) { u.dead = true; u.hp = 0; }
+      const mp = (saved.mp || {})[h.id];
+      if (mp != null) u.mp = Math.min(mp, u.stats.maxMp); // la mana est conservée d'un étage à l'autre
       return u;
     });
     run.monsters = map.spawns.map((sp) => C.monsterUnit(sp, floor));
@@ -233,7 +235,8 @@
   R.snapshot = function () {
     const run = R.active;
     if (!run) return;
-    for (const h of run.heroes) run.saved.hp[h.id] = h.dead ? 0 : Math.round(h.hp);
+    run.saved.mp = run.saved.mp || {};
+    for (const h of run.heroes) { run.saved.hp[h.id] = h.dead ? 0 : Math.round(h.hp); run.saved.mp[h.id] = Math.round(h.mp); }
     run.saved.time = (run.saved.time || 0) + run.t; run.t = 0;
   };
 

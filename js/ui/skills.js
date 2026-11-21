@@ -44,7 +44,7 @@
       else if (['allyHp', 'teamHp', 'selfHp', 'targetHp'].indexOf(rule.mode) >= 0) val = '<select data-rv="' + id + '">' + [0.3, 0.4, 0.5, 0.6, 0.7, 0.8].map((v) => '<option value="' + v + '"' + (Math.abs((rule.value || 0) - v) < 0.001 ? ' selected' : '') + '>' + v * 100 + ' %</option>').join('') + '</select>';
       html += '<div class="prio"><div class="row"><span class="pn2">' + (i + 1) + '.</span><span class="si">' + s.icon + '</span><b style="flex:1">' + s.name + '</b>' +
         (i ? '<button class="pxbtn small" data-pu="' + id + '">▲</button>' : '') + '</div>' +
-        '<div class="muted small">' + (s.cd ? 'Recharge ' + s.cd + ' s · ' : '') + K.manaCost({ stats: G.sys.stats.hero(h) }, s) + ' mana</div>' +
+        '<div class="muted small">' + (s.cd ? 'Recharge ' + s.cd + ' s · ' : '') + K.manaCost({ stats: G.sys.stats.hero(h), level: h.level }, s) + ' mana</div>' +
         '<div class="row" style="gap:6px"><select data-rm="' + id + '" style="flex:2">' + modes.map((m) => '<option value="' + m + '"' + (rule.mode === m ? ' selected' : '') + '>' + K.MODES[m] + '</option>').join('') + '</select>' +
         (val ? '<span style="flex:1">' + val + '</span>' : '') + '</div></div>';
     });
@@ -79,7 +79,7 @@
     const typ = s.ult ? 'Ultime' : s.type === 'active' ? 'Compétence active' : 'Passif';
     let html = '<div class="item-head"><span class="sbig">' + s.icon + '</span><div><div class="iname sk">' + s.name + '</div><div class="muted small">' + typ + ' · ' +
       G.data.skillBranches[s.cls][s.branch].name + ' · rang ' + r + '/' + s.maxRank + '</div></div></div>';
-    if (s.type === 'active') html += '<p class="small">⏱ Recharge ' + s.cd + ' s · 💧 ' + s.mp + ' mana' + (s.element && s.element !== 'physical' ? ' · ' + G.data.elements[s.element].icon + ' ' + G.data.elements[s.element].name : '') + '</p>';
+    if (s.type === 'active') html += '<p class="small">⏱ Recharge ' + s.cd + ' s · 💧 ' + K.manaCost({ stats: G.sys.stats.hero(h), level: h.level }, s) + ' mana' + (s.element && s.element !== 'physical' ? ' · ' + G.data.elements[s.element].icon + ' ' + G.data.elements[s.element].name : '') + '</p>';
     if (r) html += '<p><b>Actuel :</b> ' + s.desc(r) + '</p>';
     if (r < s.maxRank) html += '<p><b>' + (r ? 'Rang suivant' : 'Rang 1') + ' :</b> ' + s.desc(r + 1) + '</p>';
     if (lock && r < s.maxRank) html += '<p class="neg small">🔒 ' + lock + '</p>';

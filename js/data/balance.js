@@ -86,7 +86,8 @@ G.data.balance = {
   benchXp: 0.25,           // les héros en réserve reçoivent 25 % de l'XP
 
   // --- Compétences et mana (phase 4) ---
-  manaRegen: (maxMp) => 1 + maxMp * 0.02,     // mana par seconde
+  manaRegen: (maxMp) => 0.2 + maxMp * 0.003,  // mana par seconde (lent : la mana est une ressource à gérer)
+  manaCostPerLvl: 0.05,                        // coût des compétences +5 % par niveau du héros
   mpPerInt: 2,                                 // 1 point d'intelligence = +2 mana max
   skillLock: 0.35,                             // délai après une compétence (animation)
   respecPrice: (lvl) => Math.round(80 * Math.pow(lvl, 1.5)),
