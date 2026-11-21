@@ -17,7 +17,7 @@
 
   ui.cardsHtml = function () {
     const tb = C().bonus();
-    let h = '<p class="small" style="text-align:center"><b>' + C().owned() + ' / ' + C().total() + '</b> cartes · très rares sur les monstres (0,15 %), élites (0,6 %), gardiens (4 %) et boss (8 %).<br>Un doublon ajoute une étoile (max ' + G.data.cardDrop.maxStars + ' ★).</p>' +
+    let h = '<p class="small" style="text-align:center"><b>' + C().owned() + ' / ' + C().total() + '</b> cartes · très rares sur les monstres (0,15 %), encore plus sur les élites (0,1 %), gardiens (0,06 %) et boss (0,03 %).<br>Un doublon ajoute une étoile (max ' + G.data.cardDrop.maxStars + ' ★).</p>' +
       '<div class="setbox"><b>Bonus de la collection (tous les héros)</b><div class="small">' + (Object.keys(tb).length ? C().bonusText(tb) : 'Aucune carte pour l\'instant.') + '</div></div>';
     for (const b of G.data.biomes) {
       const cards = G.data.cards.filter((c) => c.biome === b.id);

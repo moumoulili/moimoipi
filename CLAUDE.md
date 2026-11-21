@@ -119,7 +119,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   Inquisiteur → Grand Inquisiteur / Exalté ; Assassin → Faucheur / Lame fantôme ; Saboteur → Maître saboteur / Alchimiste.
 
 - **Collection de cartes de monstres** (demande utilisateur) : chaque monstre/gardien/boss a une carte, drop très rare
-  (normal 0,15 %, élite 0,6 %, gardien 4 %, boss 8 %, × chance de butin), doublon = +1 ★ (max 5, ensuite or). Bonus léger
+  (normal 0,15 %, élite 0,1 %, gardien 0,06 %, boss 0,03 % — plus puissant = plus rare, demande utilisateur, × chance de butin), doublon = +1 ★ (max 5, ensuite or). Bonus léger
   par carte (famille/élément, ×étoiles) appliqué à **tous les héros** via stats.js. Consultable dans la **Salle des trophées** (ville).
 
 ## Formules (balance.js)

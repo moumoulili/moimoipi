@@ -25,5 +25,5 @@
   G.data.cards = list;
   G.data.cardById = {};
   list.forEach((c) => (G.data.cardById[c.id] = c));
-  G.data.cardDrop = { normal: 0.0015, elite: 0.006, mini: 0.04, boss: 0.08, maxStars: 5 };
+  G.data.cardDrop = { normal: 0.0015, elite: 0.001, mini: 0.0006, boss: 0.0003, maxStars: 5 };
 })();
