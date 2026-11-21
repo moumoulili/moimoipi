@@ -87,8 +87,6 @@ G.data.balance = {
       mats: Object.assign({ scrap: 2 * (up + 1) }, up >= 3 ? { dust: up - 2 } : {}, up >= 6 ? { ether: up - 5 } : {}) }),
     upChance: (up) => (up < 5 ? 1 : Math.max(0.3, 1 - (up - 4) * 0.12)), // +6 : 88 %, +10 : 40 %… ; un échec ne perd que le coût
     rerollCost: (item) => ({ gold: Math.round(G.sys.items.value(item) * 0.8), mats: { dust: 1 + G.sys.items.rIdx(item.rarity) } }),
-    fuseCost: (rIdx) => ({ gold: Math.round(200 * Math.pow(3, rIdx) * Math.pow(Math.max(1, G.state.progress.maxFloor), 0.8)),
-      mats: rIdx >= 3 ? { ether: rIdx - 2 } : { dust: rIdx + 1 } }),
   },
 
   // --- Mine et atelier ---

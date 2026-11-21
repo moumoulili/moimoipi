@@ -1,5 +1,5 @@
 // =====================================================================
-//  ÉVOLUTIONS (fenêtre de choix) et FORGE (améliorer, relancer, fusionner)
+//  ÉVOLUTIONS (fenêtre de choix) et FORGE (améliorer, relancer)
 // =====================================================================
 (function () {
   const U = G.core.U, ui = G.ui, IT = G.sys.items, H = G.sys.heroes, F = G.sys.forge;
@@ -95,23 +95,4 @@
     bind();
   };
 
-  // ---------- Fusion (panneau de la Ville) ----------
-  ui.fusionHtml = function () {
-    let h = '<div class="panel" id="tw-forge"><h3>⚒ Forge</h3><p class="muted small">Pour améliorer ou relancer un objet : touche-le dans le Sac ou l\'Équipe, puis « Forge ».<br>' +
-      '<b>Fusion</b> : 3 objets d\'une rareté (les moins précieux, hors verrouillés, améliorés et ▲) → 1 objet de la rareté suivante.</p>';
-    G.data.rarities.slice(0, 5).forEach((r, i) => {
-      const n = F.fuseCandidates(i).length, nx = G.data.rarities[i + 1], c = F.fuseCost(i);
-      h += '<div class="row fuse"><span style="flex:1" class="small"><b style="color:' + r.color + '">3 × ' + r.name + '</b> → <b style="color:' + nx.color + '">' + nx.name + '</b><br><span class="muted">' + n + ' disponible(s) · ' + F.costText(c) + '</span></span>' +
-        '<button class="pxbtn small gold" data-fuse="' + i + '"' + (n >= 3 && H.canAfford(c) ? '' : ' disabled') + '>Fusionner</button></div>';
-    });
-    return h + '</div>';
-  };
-  ui.bindFusion = function (root, after) {
-    root.querySelectorAll('[data-fuse]').forEach((b) => (b.onclick = () => {
-      const r = F.fuse(+b.dataset.fuse);
-      if (r && r.uid) { ui.toast('✨ Fusion : ' + '<span style="color:' + IT.rarity(r.rarity).color + '">' + U.esc(r.name) + '</span>', 'gold'); ui.itemDetail(r, { from: 'bag', onDone: after }); }
-      else ui.toast('Fusion impossible', 'danger');
-      after && after();
-    }));
-  };
 })();

@@ -120,7 +120,7 @@
         ui.invalidateHud(); rer();
       }));
       el.querySelectorAll('[data-up]').forEach((b) => (b.onclick = () => { TV.moveUp(b.dataset.up); ui.invalidateHud(); rer(); }));
-      U.$('#tm-tavern').onclick = () => ui.tavernModal(rer);
+      U.$('#tm-tavern').onclick = () => { const c = ui.buildingModal('tavern'); void c; };
       const ev = U.$('#tm-evolve'); if (ev) ev.onclick = () => ui.evolveModal(hero, rer);
       const dm = U.$('#tm-dismiss');
       if (dm) dm.onclick = () => ui.confirm('Renvoyer ' + U.esc(hero.name) + ' ?', '<p>Le héros quitte définitivement ta compagnie. Son équipement retourne dans le sac.</p>', 'Renvoyer', () => { TV.dismiss(hero.id); selId = null; rer(); });

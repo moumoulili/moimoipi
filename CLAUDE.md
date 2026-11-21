@@ -38,7 +38,7 @@ js/data/    balance, elements, classes, monsters, biomes, rooms, names, building
             ores (7 minerais), music (3 thèmes originaux camp/dungeon/boss : accords + mélodie « NOTE:pas »),
             evolutions (10 spécialités + 20 ultimes : base, from, tier, rôle, bonus, palette, attaque), skills_adv (100 compétences
             des branches C/D, descriptions auto), sets (6 sets, bonus 2/4/6 pièces)
-js/render/  pixelart (modèles), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
+js/render/  pixelart (modèles), townart (ville : décor + 9 bâtiments dessinés en code, townLayout), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
             fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
             font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
 js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), synergy (synergies actives + bonusesFor(hero) =
@@ -55,7 +55,8 @@ js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), syne
             départs, syncLibrary, deathKeep, heroBonus), offline (rendement mesuré state.rate + gains hors ligne + auto-minage), mine (toucher, auto-minage,
             améliorations, profondeur, atelier de fabrication), run (expédition, auto-farm)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon + barre de potions), items (case, fiche,
-            comparaison, sélecteur d'emplacement), team (héros : niveau/XP/stats, sous-onglets Équipement/Compétences, composition,
+            comparaison, sélecteur d'emplacement), town (**carte de la ville en pixel art** : toucher un bâtiment ouvre
+            ui.buildingModal(id) = fonction du bâtiment + amélioration ; Portail = expédition/auto-farm, Taverne, Boutique, Mine), team (héros : niveau/XP/stats, sous-onglets Équipement/Compétences, composition,
             synergies, fenêtre taverne), skills (arbre, fiche compétence, priorités), bag (sac, tri auto, potions), town (+ boutique), settings
 ```
 - Simulation séparée du rendu : `G.sys.run.update(dt)` est déterministe en temps de jeu
@@ -98,6 +99,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   **Atelier** : objet au choix + minerai → objet niv. `5 + 10 × (palier-1)`, rareté ≥ peu commun (≥ rare dès le palier 5).
 - **Musique 8-bit originale** « style JRPG rétro » (ne jamais reproduire de mélodie existante, ex. Final Fantasy, droits d'auteur) :
   le thème suit la situation (camp / donjon / boss). Options : musique, volume, effets sonores.
+- **Ville = carte cliquable** (demande utilisateur) : plus de liste ; chaque bâtiment ouvre sa fenêtre. ▲ = amélioration possible.
 - Titres : `ui.fixTitles` isole l'émoji de tête (sinon le dégradé doré le recouvre).
 - **Progression de classe (spécification de l'utilisateur)** :
   Aventurier (niv. 1-10, branche V, « Premiers soins » offert ; équipe de départ et recrues) → **niv. 10** : choix d'une classe
@@ -133,7 +135,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - Sets : objet ≥ rare → 12 % pièce de set (base forcée, nom « Base · Set »). Bonus comptés par pièces portées (anneaux ×2).
 - Forge : +1 = +10 % stats plates/dégâts, +5 % stats en % ; max +10 ; réussite 100 % jusqu'à +5 puis −12 %/niveau (min 30 %),
   échec = coût perdu. Coût or `valeur × 1,5 × (up+1)^1,6` + ferraille (+ poussière dès +3, éther dès +6). Relance d'un bonus
-  (pas les spéciaux). Fusion 3 → 1 de la rareté suivante (hors verrouillés/améliorés/uniques/▲).
+  (pas les spéciaux). **Pas de fusion** (retirée à la demande de l'utilisateur).
 - Recrues : qualité Ordinaire 70 % / Doué 25 % (+12 % de gains par niveau) / Héroïque 5 % (+25 %) ; niveau = moyenne équipe − 0..3 ;
   prix `150 × (1+niv)^1,6 × (1 / 2,2 / 5)`. Équipe 4, compagnie 8 (la taverne améliorée en phase 7 augmentera).
 - 10 synergies (data/synergies.js), ex. tank+soigneur +15 % déf., 2 mages +12 % dégâts des mages, 4 rôles distincts +5 % PV/dégâts.

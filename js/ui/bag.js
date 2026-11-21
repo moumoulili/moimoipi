@@ -51,7 +51,7 @@
         else rule = '<select data-rule="' + id + '">' + [['never', 'Jamais (manuel)'], ['boss', 'Contre les gardiens'], ['combat', 'À chaque combat']].map(([v, n]) => '<option value="' + v + '"' + (R.buffs[id] === v ? ' selected' : '') + '>' + n + '</option>').join('') + '</select>';
         h += '<div class="potion-row"><img alt="" src="' + G.render.potionIconURL(id, 3) + '"><div class="info"><b>' + p.name + '</b> <span class="muted">×' + (st.potions[id] || 0) + ' / ' + G.sys.shop.maxPotions() + '</span><div class="muted small">' + p.desc + '</div>' + rule + '</div></div>';
       }
-      h += '<button class="pxbtn wide" id="bg-shop">Acheter des potions (Ville › Boutique)</button></div>';
+      h += '<button class="pxbtn wide" id="bg-shop">🛒 Acheter des potions (Boutique)</button></div>';
       el.innerHTML = h; ui.fixTitles(el);
 
       const rer = () => this.render();
@@ -76,7 +76,7 @@
         if (k === 'heal') R.heal = +sel.value; else if (k === 'mana') R.mana = +sel.value; else if (k === 'revive') R.revive = sel.value === '1'; else R.buffs[k] = sel.value;
         G.core.save.save();
       }));
-      U.$('#bg-shop').onclick = () => { ui.show('town'); setTimeout(() => { const s2 = U.$('#tw-shop'); s2 && s2.scrollIntoView({ behavior: 'smooth' }); }, 50); };
+      U.$('#bg-shop').onclick = () => { ui.show('town'); ui.buildingModal('shop'); };
     },
   };
 })();

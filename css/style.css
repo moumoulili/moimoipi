@@ -541,3 +541,19 @@ h2 .ico, h3 .ico { -webkit-text-fill-color: initial; color: initial; background:
 .bar.mine-hp > i { background: linear-gradient(180deg, #ffd890, #c08a30 60%, #7a5010); transition: width .1s; }
 .mine-up { padding: 6px 0; border-bottom: 1px solid rgba(120, 80, 30, .3); gap: 8px; }
 #tabs button { font-size: 10px; }
+
+/* ===== Ville en pixel art ===== */
+.town-head { margin-bottom: 8px; }
+.town-scene { position: relative; width: 100%; max-width: 460px; margin: 0 auto; aspect-ratio: 144 / 212; background-size: 100% 100%; image-rendering: pixelated;
+  border: 3px solid #b8862a; box-shadow: 0 0 0 2px #000, 0 6px 18px rgba(0, 0, 0, .6); }
+.tbuild { position: absolute; padding: 0; border: 0; background: none; display: flex; flex-direction: column; align-items: center; touch-action: manipulation; }
+.tbuild img { width: 100%; image-rendering: pixelated; display: block; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .35)); transition: transform .1s; }
+.tbuild:active img { transform: scale(.92); }
+.tb-name { margin-top: -2px; white-space: nowrap; font: 700 10px/1.2 var(--epic-font); color: #fff3c0; background: rgba(26, 16, 32, .78); padding: 1px 5px; border: 1px solid #8a6a2a; }
+.tb-name b { color: #ffe08a; font-family: Georgia, serif; }
+.tb-up { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; border-radius: 50%; background: #2b7a1f; color: #fff; font-size: 11px; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #000, 0 0 8px #6dff8a; animation: pulse 1.2s infinite; }
+.b-portal img { animation: portalGlow 2.4s ease-in-out infinite; }
+@keyframes portalGlow { 50% { filter: drop-shadow(0 0 6px #b45cff) drop-shadow(0 3px 0 rgba(0, 0, 0, .35)); } }
+.b-forge::after { content: ''; position: absolute; left: 70%; top: -6%; width: 6px; height: 6px; background: rgba(200, 200, 210, .7); border-radius: 50%; animation: smoke 2.2s linear infinite; }
+@keyframes smoke { from { transform: translate(0, 0) scale(.6); opacity: .9; } to { transform: translate(8px, -26px) scale(2); opacity: 0; } }
+.bupg { margin-top: 10px; padding-top: 8px; border-top: 2px solid rgba(120, 80, 30, .35); }

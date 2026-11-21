@@ -1,6 +1,5 @@
 // =====================================================================
-//  FORGE : améliorer un objet (+1, +2…), relancer un bonus aléatoire,
-//  fusionner 3 objets d'une rareté en 1 objet de la rareté suivante.
+//  FORGE : améliorer un objet (+1, +2…) et relancer un bonus aléatoire.
 //  Coûts en or et en matériaux (balance.forge).
 // =====================================================================
 (function () {
@@ -50,27 +49,6 @@
     rename(item);
     G.sys.run.refreshStats && G.sys.run.refreshStats();
     return 'ok';
-  };
-  // ---------- Fusion ----------
-  F.fuseCost = (rIdx) => disc(B.forge.fuseCost(rIdx));
-  F.fuseCandidates = function (rIdx) {
-    return G.state.inventory.filter((i) => IT.rIdx(i.rarity) === rIdx && !i.locked && !i.up && !i.unique && !G.sys.inventory.upgradeFor(i))
-      .sort((a, b) => IT.value(a) - IT.value(b));
-  };
-  F.canFuse = (rIdx) => rIdx < G.data.rarities.length - 1 && F.fuseCandidates(rIdx).length >= 3;
-  F.fuse = function (rIdx) {
-    if (!F.canFuse(rIdx)) return null;
-    const c = F.fuseCost(rIdx);
-    if (!H.canAfford(c)) return 'cost';
-    H.pay(c);
-    const used = F.fuseCandidates(rIdx).slice(0, 3);
-    const ilvl = Math.max.apply(null, used.map((i) => i.ilvl));
-    for (const it of used) G.state.inventory.splice(G.state.inventory.indexOf(it), 1);
-    const res = IT.create(rng, { rarity: G.data.rarities[rIdx + 1].id, ilvl });
-    res.isNew = true;
-    G.state.inventory.push(res);
-    G.core.bus.emit('forge:fuse', { item: res });
-    return res;
   };
   G.sys.forge = F;
 })();
