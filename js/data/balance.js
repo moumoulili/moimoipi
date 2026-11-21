@@ -74,12 +74,12 @@ G.data.balance = {
   shop: { items: 4, refreshMinutes: 15, priceMult: 5, minRarity: 'uncommon' },
 
   // --- Expérience et niveaux (phase 3) ---
-  xpToNext: (L) => Math.round(60 * Math.pow(L, 2)),
-  monsterXp: (lvl) => 5 * Math.pow(lvl, 1.3),
-  xpMult: { elite: 3, mini: 8, boss: 20 },
-  // écart de niveau héros - monstre : au-dessus de +2 l'XP baisse de 15 %/niveau (min 5 %),
+  xpToNext: (L) => Math.round(100 * Math.pow(L, 2.3)),
+  monsterXp: (lvl) => 4 * Math.pow(lvl, 1.3),
+  xpMult: { elite: 2.5, mini: 6, boss: 12 },
+  // écart de niveau héros - monstre : au-dessus du niveau du monstre l'XP baisse de 12 %/niveau (min 5 %),
   // en dessous l'XP augmente de 6 %/niveau (max +60 %) pour que les recrues rattrapent
-  xpLevelGap: { free: 2, penalty: 0.15, minMult: 0.05, catchup: 0.06, maxCatchup: 0.6 },
+  xpLevelGap: { free: 0, penalty: 0.12, minMult: 0.05, catchup: 0.05, maxCatchup: 0.5 },
   levelCap: 100,
   levelUpHeal: 0.25,       // % de PV rendus en montant de niveau pendant une expédition
   skillPointsPerLevel: 1,  // utilisés en phase 4 (arbres de compétences)

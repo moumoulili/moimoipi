@@ -68,7 +68,11 @@
         if (left <= 0) { close(); opts.countdown.onEnd(); } else upd();
       }, 1000);
     }
-    back.appendChild(box);
+    const wrap = U.el('div', 'scroll-wrap');
+    wrap.appendChild(U.el('div', 'roll'));
+    wrap.appendChild(box);
+    wrap.appendChild(U.el('div', 'roll'));
+    back.appendChild(wrap);
     root.appendChild(back);
     back.onclick = (e) => { if (e.target === back && opts.dismissable) close(); };
     close.box = box;

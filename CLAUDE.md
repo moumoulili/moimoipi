@@ -17,6 +17,10 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 - **Style visuel « fantasy/épique »** (demande utilisateur) : boutons `.pxbtn` sculptés (coins taillés via clip-path,
   bordure = ::before, remplissage = ::after ; variantes primary/gold/danger/sel/epic), panneaux à coins dorés,
   titres en police **Cinzel** (assets/fonts, OFL) — Cinzel exclut les chiffres (unicode-range) car son « 1 » ressemble à « I ».
+- **Thème parchemin** (demande utilisateur, fin de style.css) : panneaux/fenêtres/notifications/fiches héros en papier
+  (grain SVG intégré, bords déchirés via clip-path `--torn`), fenêtres entre deux rouleaux (`.scroll-wrap` + `.roll`),
+  cadre en bois, boutons cuir. Sur papier les variables de couleur (--text, --muted, --gold…) sont redéfinies en tons
+  sombres ; les noms colorés (raretés) reçoivent un contour sombre pour rester lisibles.
 - L'utilisateur n'est pas développeur : expliquer brièvement chaque étape, en français.
 
 ## Architecture
@@ -70,8 +74,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - Élément : faiblesse ×1,5, résistance ×0,5. Critique 5 % + AGI×0,1 % (×1,5). Esquive AGI×0,05 % (max 30 %).
 - Attaque = 2 × stat principale + 5. Intervalle d'attaque = 1,2 s × 100 / vitesse.
 - Or par monstre `2 × niv^1,2`.
-- XP : niveau suivant `60 × N²`, monstre `5 × niv^1,3` (élite ×3, mini-boss ×8, boss ×20), à chaque héros vivant.
-  Écart héros−monstre > +2 : −15 %/niveau (min 5 %) ; héros en dessous : +6 %/niveau (max +60 %). Réserve : 25 % de l'XP.
+- XP (ralentie à la demande de l'utilisateur) : niveau suivant `100 × N^2,3`, monstre `4 × niv^1,3` (élite ×2,5, mini-boss ×6, boss ×12),
+  à chaque héros vivant. Héros au-dessus du monstre : −12 %/niveau (min 5 %) ; en dessous : +5 %/niveau (max +50 %). Réserve : 25 % de l'XP.
   Montée de niveau en expédition : +25 % PV. 1 point de compétence / niveau (stocké pour la phase 4). Niveau max 100.
 - Recrues : qualité Ordinaire 70 % / Doué 25 % (+12 % de gains par niveau) / Héroïque 5 % (+25 %) ; niveau = moyenne équipe − 0..3 ;
   prix `150 × (1+niv)^1,6 × (1 / 2,2 / 5)`. Équipe 4, compagnie 8 (la taverne améliorée en phase 7 augmentera).
@@ -107,7 +111,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 
 ## Tests
 Serveur local : `python3 -m http.server 8765` puis Playwright en viewport mobile. Simulation accélérée possible :
-`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 3 (joueur simulé : optimise, vend, achète potions + Portail) : niveau des héros ≈ étage ; ét. 9 au 1er essai, ~22 après 4,
-~27-28 après 15 (mur avant le boss de l'étage 30).
+`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 3 (joueur simulé : optimise, vend, achète potions + Portail) : niveau des héros ≈ 0,6-0,8 × étage ; ét. 7 au 1er essai,
+~19 après 4, ~25 après 15 (niveaux 21).
 L'or s'accumule sans débouché au-delà du Portail : la forge (phase 6) et la ville (phase 7) l'absorberont.
 Attention : recharger la page déclenche une sauvegarde (pagehide) ; neutraliser `G.core.save.save` avant d'éditer localStorage dans un test.
