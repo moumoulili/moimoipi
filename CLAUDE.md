@@ -163,7 +163,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
       simples, or, coffres, pièges, défaite/retour, sortie après gardien, sauvegarde + export/import,
       vitesse x1/x2/x4, PWA. Ajouts : Portail (départ payant), difficulté relevée, effets visuels.
 - [x] **Phase 2** : équipement (11 emplacements, restrictions par classe), 6 raretés, bonus aléatoires, 10 uniques,
-      mythiques, inventaire 40, comparaison, vente/recyclage/verrouillage, vente groupée, tri auto, auto-équipement,
+      mythiques, inventaire 40, comparaison, vente/recyclage/verrouillage, vente groupée (jusqu’aux mythiques, confirmation dès légendaire), tri auto, auto-équipement,
       boutique (potions + stock d'objets), 5 potions avec règles auto, matériaux, colonne de lumière au drop.
       **Optimiser l'équipe** (`inventory.optimizeTeam`) : sac + objets portés mis en commun, attribution gloutonne
       au meilleur gain relatif (les objets peuvent changer de héros), annulée si pas meilleure ; boutons Équipe/Sac/Ville/fin

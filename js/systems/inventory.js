@@ -78,8 +78,9 @@
     return Object.keys(mats).map((k) => '+' + mats[k] + ' ' + G.data.materials[k].name).join(', ');
   };
   // vend ou recycle tous les objets <= rareté (hors verrouillés et améliorations)
+  I.bulkList = (maxRarityIdx) => st().inventory.filter((i) => !i.locked && IT.rIdx(i.rarity) <= maxRarityIdx && !I.upgradeFor(i));
   I.bulk = function (maxRarityIdx, action) {
-    const list = st().inventory.filter((i) => !i.locked && IT.rIdx(i.rarity) <= maxRarityIdx && !I.upgradeFor(i));
+    const list = I.bulkList(maxRarityIdx);
     let gold = 0; const mats = {};
     for (const it of list) {
       if (action === 'salvage') { const m = I.salvage(it); for (const k in m) mats[k] = (mats[k] || 0) + m[k]; }

@@ -29,7 +29,7 @@
         '<p class="muted small">▲ = meilleur que l\'équipement actuel d\'un héros. Touche un objet pour le comparer.</p></div>';
 
       h += '<div class="panel"><h3>Vente groupée</h3><p class="muted small">Ne touche pas aux objets verrouillés ni aux améliorations ▲.</p>' +
-        '<select id="bg-bulkr">' + G.data.rarities.slice(0, 5).map((r, i) => '<option value="' + i + '"' + (i === 1 ? ' selected' : '') + '>' + (i ? 'Jusqu\'à ' + r.name.toLowerCase() : 'Communs') + '</option>').join('') + '</select>' +
+        '<select id="bg-bulkr">' + G.data.rarities.slice(0, 6).map((r, i) => '<option value="' + i + '"' + (i === 1 ? ' selected' : '') + '>' + (i ? 'Jusqu\'à ' + r.name.toLowerCase() : 'Communs') + '</option>').join('') + '</select>' +
         '<div class="row" style="margin-top:6px"><button class="pxbtn gold" style="flex:1" id="bg-sell">Vendre</button><button class="pxbtn" style="flex:1" id="bg-salv">Recycler</button></div></div>';
 
       h += '<div class="panel"><h3>Tri automatique du butin</h3>' +
@@ -60,7 +60,19 @@
       U.$('#bg-sort').onclick = () => { const k = Object.keys(SORTS); sort = k[(k.indexOf(sort) + 1) % k.length]; rer(); };
       el.querySelectorAll('.igrid .icell').forEach((b) => (b.onclick = () => ui.itemDetail(INV.find(b.dataset.uid), { from: 'bag', onDone: rer })));
       const bulk = (action) => {
-        const r = INV.bulk(+U.$('#bg-bulkr').value, action);
+        const ri = +U.$('#bg-bulkr').value;
+        // objets précieux (légendaires / mythiques) : demander confirmation
+        if (ri >= 4) {
+          const n = INV.bulkList(ri).length;
+          if (!n) { ui.toast('Rien à traiter'); return; }
+          return ui.confirm((action === 'salvage' ? 'Recycler' : 'Vendre') + ' ' + n + ' objet(s) ?',
+            '<p>Cela inclut les objets <b>' + G.data.rarities[ri].name.toLowerCase() + 's</b> (hors verrouillés et améliorations ▲). Action définitive.</p>',
+            action === 'salvage' ? 'Recycler' : 'Vendre', () => doBulk(ri, action), 'danger');
+        }
+        doBulk(ri, action);
+      };
+      const doBulk = (ri, action) => {
+        const r = INV.bulk(ri, action);
         ui.toast(r.n ? r.n + ' objet(s) ' + (action === 'salvage' ? 'recyclé(s) : ' + INV.matsText(r.mats) : 'vendu(s) : +' + U.fmt(r.gold) + ' or') : 'Rien à traiter');
         rer();
       };
