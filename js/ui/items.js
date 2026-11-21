@@ -62,6 +62,8 @@
     if (ctx.from === 'equipped') {
       btns.push({ label: 'Changer d\'objet', cls: 'primary', onClick: () => ui.slotPicker(ctx.hero, ctx.slot, ctx.onDone) });
       btns.push({ label: 'Retirer', onClick: () => { if (!INV.unequip(ctx.hero, ctx.slot)) ui.toast('Sac plein', 'danger'); done(); } });
+    } else if (ctx.from === 'view') {
+      // consultation seule (marchand)
     } else if (ctx.from === 'shop') {
       const p = G.sys.shop.itemPrice(item);
       btns.push({ label: 'Acheter · ' + U.fmt(p) + ' or', cls: 'gold', onClick: () => { if (!G.sys.shop.buyItem(item.uid)) ui.toast(G.sys.inventory.full() ? 'Sac plein' : 'Pas assez d\'or', 'danger'); else ui.toast('Acheté : ' + U.esc(item.name)); done(); } });

@@ -101,7 +101,7 @@
       h += '</div><div class="row" style="margin-top:10px"><button class="pxbtn primary" style="flex:1" id="tm-auto">⚡ Équiper le meilleur</button></div></div>';
       }
       h += compositionHtml() + synergiesHtml();
-      el.innerHTML = h;
+      el.innerHTML = h; ui.fixTitles(el);
 
       const rer = () => this.render();
       el.querySelectorAll('[data-h]').forEach((b) => (b.onclick = () => { selId = b.dataset.h; rer(); }));

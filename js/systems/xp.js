@@ -35,12 +35,12 @@
 
   X.onKill = function (run, m) {
     const mult = m.guardian ? B.xpMult[m.guardian] : m.elite ? B.xpMult.elite : 1;
-    const base = B.monsterXp(m.level) * mult * (1 + X.bonus());
+    const base = B.monsterXp(m.level) * mult * (m.summoned ? 0.3 : 1) * (1 + X.bonus());
     const leveled = [];
     for (const u of run.heroes) {
       if (u.dead) continue;
       const h = G.sys.heroes.get(u.id);
-      const gain = base * X.gapMult(h.level, m.level);
+      const gain = base * X.gapMult(h.level, m.level) * (1 + (u.stats.xpPct || 0));
       run.track(h.id, 'xp', gain);
       const ups = X.add(h, gain);
       if (ups) { leveled.push(h); if (G.state.settings.autoSkills) G.sys.skills.autoSpend(h); onLevelUp(run, u, h, ups); }

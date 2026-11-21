@@ -35,7 +35,9 @@
     run.saved.mats[id] = (run.saved.mats[id] || 0) + n;
   }
 
+  L.giveItem = give;
   L.onMonsterKill = function (run, m) {
+    if (m.summoned) return; // les renforts invoqués ne lâchent rien
     const mf = run.magicFind || 0;
     const ilvl = m.level;
     if (m.guardian) {

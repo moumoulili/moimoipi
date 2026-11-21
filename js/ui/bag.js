@@ -52,7 +52,7 @@
         h += '<div class="potion-row"><img alt="" src="' + G.render.potionIconURL(id, 3) + '"><div class="info"><b>' + p.name + '</b> <span class="muted">×' + (st.potions[id] || 0) + ' / ' + G.sys.shop.maxPotions() + '</span><div class="muted small">' + p.desc + '</div>' + rule + '</div></div>';
       }
       h += '<button class="pxbtn wide" id="bg-shop">Acheter des potions (Ville › Boutique)</button></div>';
-      el.innerHTML = h;
+      el.innerHTML = h; ui.fixTitles(el);
 
       const rer = () => this.render();
       ui.bindOptimize('bg-opt', rer);

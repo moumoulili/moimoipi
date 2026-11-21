@@ -52,6 +52,63 @@
     });
   }
 
+  // ---------- Barre de vie du boss + bénédictions ----------
+  let blessKey = '';
+  function updateBoss() {
+    const run = G.sys.run.active, bar = U.$('#boss-bar');
+    const b = run && run.monsters.find((m) => m.guardian && m.aggro && !m.dead);
+    if (!b) { bar.hidden = true; } else {
+      bar.hidden = false;
+      bar.classList.toggle('enraged', !!b.enraged);
+      bar.querySelector('.bb-name').textContent = (b.guardian === 'boss' ? '☠ ' : '⚔ ') + b.name;
+      bar.querySelector('i').style.width = Math.max(0, (b.hp / b.stats.maxHp) * 100) + '%';
+      const sh = (b.effects || []).filter((e) => e.id === 'shield').reduce((a, e) => a + e.value, 0);
+      bar.querySelector('b').style.width = Math.min(100, (sh / b.stats.maxHp) * 100) + '%';
+    }
+    const bl = (run && run.saved.blessings) || [];
+    const key = bl.join();
+    if (key !== blessKey) {
+      blessKey = key;
+      U.$('#bless-bar').innerHTML = bl.map((id) => '<span title="' + U.esc(G.data.blessings[id].name) + '">' + G.data.blessings[id].icon + '</span>').join('');
+    }
+  }
+
+  // ---------- Marchand ambulant ----------
+  ui.merchantPrompt = function (run, sp) {
+    const render = () => {
+      let h = '<p class="small" style="text-align:center">« Jetez un œil, aventuriers, prix d\'ami ! » <span class="muted">(or de la ville : ' + U.fmt(G.state.gold) + ')</span></p><div class="merchant">';
+      sp.offers.forEach((o, i) => {
+        if (o.kind === 'potion') h += '<div class="m-off"><img alt="" src="' + G.render.potionIconURL(o.id, 3) + '"><div class="info"><b>' + o.n + ' × ' + G.data.potions[o.id].name + '</b></div>';
+        else { const r = G.sys.items.rarity(o.item.rarity); h += '<div class="m-off">' + ui.itemCell(o.item, { up: !!G.sys.inventory.upgradeFor(o.item) }) + '<div class="info"><b style="color:' + r.color + '">' + U.esc(o.item.name) + '</b><div class="muted small">' + r.name + ' · niv. ' + o.item.ilvl + '</div></div>'; }
+        h += '<button class="pxbtn small gold" data-mo="' + i + '"' + (o.sold || G.state.gold < o.price ? ' disabled' : '') + '>' + (o.sold ? 'Vendu' : U.fmt(o.price)) + '</button></div>';
+      });
+      return h + '</div>';
+    };
+    const close = ui.modal({ title: '🧳 Marchand ambulant', html: '<div id="m-box">' + render() + '</div>', buttons: [{ label: 'Continuer l\'exploration', cls: 'primary', onClick: () => G.sys.rooms.leave() }],
+      countdown: { seconds: 20, label: 'Le marchand repart dans {s} s…', onEnd: () => G.sys.rooms.leave() } });
+    const box = close.box.querySelector('#m-box');
+    const bind = () => {
+      box.querySelectorAll('[data-mo]').forEach((b) => (b.onclick = () => {
+        const o = sp.offers[+b.dataset.mo];
+        if (G.sys.rooms.buy(o)) ui.toast('Acheté !'); else ui.toast(G.sys.inventory.full() ? 'Sac plein' : 'Pas assez d\'or', 'danger');
+        box.innerHTML = render(); bind();
+      }));
+      box.querySelectorAll('.icell').forEach((c) => (c.onclick = () => { const o = sp.offers.find((x) => x.item && x.item.uid === c.dataset.uid); if (o) ui.itemDetail(o.item, { from: 'view' }); }));
+    };
+    bind();
+  };
+
+  // ---------- Événement à choix ----------
+  ui.eventPrompt = function (run, ev) {
+    const safe = ev.choices.findIndex((c) => c.safe);
+    const btns = ev.choices.map((c, i) => ({
+      label: c.label + (c.needPotion && !G.sys.rooms.choiceAvailable(c) ? ' (aucune potion)' : ''), cls: c.safe ? '' : 'gold',
+      onClick: () => G.sys.rooms.resolveEvent(run, ev, i),
+    }));
+    ui.modal({ title: ev.icon + ' ' + ev.title, html: '<p>' + ev.text + '</p>', buttons: btns,
+      countdown: { seconds: 15, label: 'Sans réponse dans {s} s : « ' + ev.choices[safe].label + ' »', onEnd: () => G.sys.rooms.resolveEvent(run, ev, safe) } });
+  };
+
   // ---------- Potions (utilisation manuelle) ----------
   let potKey = '';
   function updatePotions() {
@@ -103,7 +160,7 @@
     flee.onclick = () => ui.confirm('Fuir le donjon ?', '<p>L\'équipe rentre en ville mais ne garde que <b>' + Math.round(B.deathKeep * 100) + ' %</b> de l\'or de cette expédition.</p>', 'Fuir', () => G.sys.run.active && G.sys.run.end('death'));
     box.appendChild(flee);
   }
-  ui.invalidateHud = function () { partyKey = ''; actionsKey = ''; potKey = ''; };
+  ui.invalidateHud = function () { partyKey = ''; actionsKey = ''; potKey = ''; blessKey = 'x'; };
 
   // Appelé à chaque image ; met l'interface à jour 5 fois par seconde
   ui.tick = function (dt) {
@@ -113,7 +170,7 @@
     updateTop();
     const tb = document.querySelector('#tabs [data-tab=team]');
     if (tb) tb.classList.toggle('notif', G.state.heroes.some((h) => h.sp > 0) && !G.state.settings.autoSkills);
-    if (ui.current === 'dungeon') { updateParty(); updatePotions(); updateActions(); ui.renderLog(); }
+    if (ui.current === 'dungeon') { updateParty(); updatePotions(); updateActions(); updateBoss(); ui.renderLog(); }
   };
 
   // ---------- Démarrer une expédition ----------

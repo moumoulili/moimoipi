@@ -48,7 +48,7 @@
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath(); ctx.ellipse(Math.round(u.x * T - cam.x), Math.round(u.y * T + 4 - cam.y), 4 * sc, 1.6 * sc, 0, 0, Math.PI * 2); ctx.fill();
     const flip = u.facing < 0;
-    const img = u.anim.hit > 0 ? (flip ? s.whiteFlip : s.white) : flip ? s.flip : s.img;
+    const img = u.anim.hit > 0 || (u.enraged && Math.sin(time * 14) > 0.85) ? (flip ? s.whiteFlip : s.white) : flip ? s.flip : s.img;
     if (u.dead) ctx.globalAlpha = Math.max(0, u.deadT / 0.6);
     if (!u.dead && u.anim.atk > 0 && u.attack && u.attack.type === 'ranged' && u.attack.projectile !== 'arrow') {
       ctx.globalCompositeOperation = 'lighter';
@@ -205,6 +205,75 @@
     }
   }
 
+  // objets des salles spéciales (fontaine, autel, marchand, pierre mystère)
+  const SPECIAL_SPR = {
+    fountain: { tpl: 'fountain', pal: { m: '#8a8494', w: '#bfefff', b: '#4a9fff' }, glow: '127,216,255' },
+    altar: { tpl: 'altar', pal: { c: '#e3b341', w: '#fff3a8', a: '#6a6474', b: '#4a4554' }, glow: '255,211,77' },
+    merchant: { tpl: 'merchant', pal: { b: '#6a3a8a', s: '#f1c59a', e: '#1a1020', a: '#8a5a2b', c: '#e3b341' }, glow: '255,200,120' },
+    event: { tpl: 'mystery', pal: { a: '#5a5070', w: '#c78bff', b: '#3a3448' }, glow: '199,139,255' },
+  };
+  function drawSpecials(map) {
+    for (const sp of map.specials) {
+      if (!map.seen[sp.y * map.w + sp.x]) continue;
+      if (sp.used && sp.kind === 'merchant') continue;
+      const d = SPECIAL_SPR[sp.kind];
+      const cx = sp.x * T + 8 - cam.x, cy = sp.y * T + 8 - cam.y;
+      if (!sp.used) {
+        ctx.globalCompositeOperation = 'lighter';
+        glow(cx, cy, 18 + Math.sin(time * 3) * 3, 'rgba(' + d.glow + ',0.35)');
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      const s = G.render.getSprite(d.pal ? { tpl: d.tpl, pal: d.pal } : d);
+      ctx.globalAlpha = sp.used ? 0.5 : 1;
+      ctx.drawImage(s.img, Math.round(cx - 6), Math.round(cy - 8 + (sp.used ? 0 : Math.sin(time * 2.5) * 0.8)));
+      ctx.globalAlpha = 1;
+    }
+  }
+  // zones de danger des boss : cercle qui se remplit jusqu'à l'impact
+  function drawTelegraphs(run) {
+    for (const t of run.telegraphs) {
+      const cx = t.x * T - cam.x, cy = t.y * T - cam.y, r = t.r * T, k = 1 - t.t / t.warn;
+      ctx.fillStyle = 'rgba(255,40,40,' + (0.12 + 0.1 * Math.sin(time * 18)) + ')';
+      ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.7, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = hexA(t.color && t.color[0] === '#' ? t.color : '#ff4040', 0.35);
+      ctx.beginPath(); ctx.ellipse(cx, cy, r * k, r * 0.7 * k, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,60,60,0.9)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.7, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+  // particules d'ambiance du biome (en coordonnées d'écran)
+  const amb = [];
+  function drawAmbient(map, dt) {
+    const a = map.biome.ambient;
+    if (!a) return;
+    const rate = { dust: 6, firefly: 3, drip: 2, ember: 10, snow: 14, wisp: 2, mote: 5 }[a.kind] || 4;
+    if (amb.length < 80 && Math.random() < dt * rate) {
+      const p = { x: Math.random() * vw, y: Math.random() * vh, t: 0, life: 3 + Math.random() * 3, ph: Math.random() * 6, kind: a.kind };
+      if (a.kind === 'snow' || a.kind === 'drip') p.y = -4;
+      if (a.kind === 'ember' || a.kind === 'mote') p.y = vh + 4;
+      amb.push(p);
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of amb) {
+      p.t += dt;
+      if (p.kind === 'snow') { p.y += dt * 14; p.x += Math.sin(p.t * 2 + p.ph) * dt * 8; }
+      else if (p.kind === 'drip') { p.y += dt * 60; }
+      else if (p.kind === 'ember') { p.y -= dt * 18; p.x += Math.sin(p.t * 3 + p.ph) * dt * 10; }
+      else if (p.kind === 'mote') { p.y -= dt * 8; p.x += Math.sin(p.t + p.ph) * dt * 4; }
+      else { p.x += Math.sin(p.t * 0.7 + p.ph) * dt * 6; p.y += Math.cos(p.t * 0.5 + p.ph) * dt * 4; }
+      let al = Math.min(1, p.t, (p.life - p.t)) * (p.kind === 'dust' ? 0.35 : 0.8);
+      if (p.kind === 'firefly') al *= 0.5 + 0.5 * Math.sin(p.t * 5 + p.ph);
+      ctx.globalAlpha = Math.max(0, al);
+      ctx.fillStyle = a.color;
+      if (p.kind === 'drip') ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 3);
+      else if (p.kind === 'wisp') { glow(p.x, p.y, 5, 'rgba(192,106,255,0.5)'); }
+      else ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = amb.length - 1; i >= 0; i--) if (amb[i].t >= amb[i].life || amb[i].y > vh + 6 || amb[i].y < -8) amb.splice(i, 1);
+  }
+
   function drawTorches(map, x0, y0, x1, y1) {
     ctx.globalCompositeOperation = 'lighter';
     for (const t of map.torches) {
@@ -261,6 +330,8 @@
       ctx.drawImage(s.img, c.x * T + 2 - cam.x, c.y * T + 2 - cam.y);
     }
     drawTorches(map, x0, y0, x1, y1);
+    drawSpecials(map);
+    drawTelegraphs(run);
 
     // unités triées par profondeur
     const vis = (u) => {
@@ -311,6 +382,9 @@
     for (const rg of fx.rings) drawRing(rg);
     for (const bm of fx.beams) drawBeam(bm);
     ctx.globalCompositeOperation = 'source-over';
+    drawAmbient(map, dt);
+    // cycle « Cauchemar » : le donjon prend une teinte rouge
+    if (map.cycle) { ctx.fillStyle = 'rgba(120,0,0,' + Math.min(0.25, 0.08 * map.cycle) + ')'; ctx.fillRect(0, 0, vw, vh); }
     // textes flottants (par-dessus la lumière)
     for (const t of fx.texts) {
       const a = 1 - Math.max(0, (t.t - t.life * 0.6) / (t.life * 0.4));

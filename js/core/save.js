@@ -27,7 +27,7 @@
       progress: { maxFloor: 0, maxCheckpoint: 0 },
       stats: { kills: 0, totalGold: 0, runs: 0, deaths: 0 },
       settings: { checkpointMode: 'ask', autoRestart: true, speed: 1, vibrate: true, flashes: true, startFloor: 1,
-        autoSell: { maxRarity: -1, action: 'sell', keepUpgrades: true }, autoEquip: false, autoOptimize: false, autoSkills: false },
+        autoSell: { maxRarity: -1, action: 'sell', keepUpgrades: true }, autoEquip: false, autoOptimize: false, autoSkills: false, eventMode: 'ask', merchantMode: 'ask' },
       // réservé aux phases suivantes : inventory, equipment, town, quests, bestiary, prestige...
     };
   };

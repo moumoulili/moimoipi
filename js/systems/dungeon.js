@@ -82,10 +82,25 @@
     };
     const nMon = () => Math.min(C.monstersCap, rng.int(C.monstersMin, C.monstersMax) + Math.floor(floor * C.monstersPerFloor));
     const gk = D.guardianKind(floor);
+    const specials = [];
+    let nSpecial = 0, merchant = false;
     for (const r of rooms) {
       const used = new Set();
       if (r === entrance) continue;
       let content = r === exit ? 'monsters' : rng.weighted(G.data.roomContents).id;
+      // salles spéciales : 2 max par étage, 1 seul marchand
+      const SR = G.data.specialRooms;
+      if (SR[content] && (nSpecial >= 2 || (content === 'merchant' && merchant))) content = 'monsters';
+      if (SR[content]) {
+        nSpecial++; if (content === 'merchant') merchant = true;
+        if (content === 'treasure') {
+          for (let k = 0; k < SR.treasure.chests; k++) { const p = freeSpot(r, used); chests.push({ x: p.x, y: p.y, room: r.id, opened: false, treasure: true }); }
+          for (let k = 0; k < SR.treasure.elites; k++) { const p = freeSpot(r, used); spawns.push({ id: rng.pick(biome.monsters), x: p.x, y: p.y, room: r.id, elite: true }); }
+        } else {
+          used.add(r.cx + ',' + r.cy);
+          specials.push({ kind: content, x: r.cx, y: r.cy, room: r.id, used: false, event: content === 'event' ? rng.pick(G.data.events).id : null });
+        }
+      }
       if (content.startsWith('monsters')) {
         const n = r === exit && gk ? Math.max(1, nMon() - 2) : nMon();
         for (let k = 0; k < n; k++) {
@@ -94,8 +109,8 @@
         }
       }
       if (r === exit && gk) {
-        const g = biome.guardians[gk];
-        spawns.push({ id: g.monster, x: stairs.x + 1 < r.x + r.w - 1 ? stairs.x + 1 : stairs.x - 1, y: stairs.y, room: r.id, guardian: gk, name: g.name });
+        const bossId = biome.id + '_' + gk, bd = G.data.bosses[bossId];
+        spawns.push({ id: bd.monster, x: stairs.x + 1 < r.x + r.w - 1 ? stairs.x + 1 : stairs.x - 1, y: stairs.y, room: r.id, guardian: gk, bossId, name: bd.name });
       }
       if (content === 'chest' || content === 'monsters_chest') { const p = freeSpot(r, used); chests.push({ x: p.x, y: p.y, room: r.id, opened: false }); }
       r.content = content;
@@ -126,7 +141,7 @@
 
     return {
       floor, seed, biome, cycle, w: W, h: H, tiles, variant, rooms, roomAt, entrance, exit, stairs,
-      spawns, chests, traps, decor, torches, seen: new Uint8Array(W * H), guardianKind: gk,
+      spawns, chests, traps, decor, torches, specials, seen: new Uint8Array(W * H), guardianKind: gk,
     };
   };
   G.sys.dungeon = D;

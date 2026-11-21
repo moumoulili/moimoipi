@@ -33,7 +33,7 @@
   function build(saved) {
     const run = {
       saved, heroes: [], monsters: [], units: [], projectiles: [], trail: [],
-      goal: null, goalT: 0, state: 'explore', stats: saved.heroStats || {}, t: 0, revealT: 0, inCombat: false, buffs: {}, pending: [],
+      goal: null, goalT: 0, state: 'explore', stats: saved.heroStats || {}, t: 0, revealT: 0, inCombat: false, buffs: {}, pending: [], telegraphs: [],
     };
     saved.heroStats = run.stats;
     run.track = function (id, k, v) {
@@ -59,7 +59,7 @@
     const spots = [[0, 0], [-1, 0], [0, 1], [-1, 1], [1, 0], [1, 1]];
     run.heroes = G.sys.heroes.team().map((h, i) => {
       const hp = saved.hp[h.id];
-      const u = C.heroUnit(h, hp == null ? null : hp, G.sys.potions.buffStats(run));
+      const u = C.heroUnit(h, hp == null ? null : hp, R.runBuffs(run));
       const [ox, oy] = spots[i % spots.length];
       u.x = e.cx + ox + 0.5; u.y = e.cy + oy + 0.5;
       if (hp === 0) { u.dead = true; u.hp = 0; }
@@ -68,9 +68,11 @@
       return u;
     });
     run.monsters = map.spawns.map((sp) => C.monsterUnit(sp, floor));
+    for (const m of run.monsters) if (m.bossId) G.sys.bosses.init(m);
     run.units = run.heroes.concat(run.monsters);
     teamBonuses(run);
-    run.projectiles = []; run.trail = []; run.goal = null; run.state = 'explore'; run.pending = [];
+    run.projectiles = []; run.trail = []; run.goal = null; run.state = 'explore'; run.pending = []; run.telegraphs = [];
+    if (floor % 10 === 1 && floor > 1) G.ui.log('🌍 Nouveau biome : ' + map.biome.name + (map.cycle ? ' (Cauchemar ' + map.cycle + ')' : ''), 'boss');
     revealRoom(map, e);
     reveal(run);
     G.render.onFloor && G.render.onFloor(run);
@@ -86,11 +88,17 @@
     run.goldFind = 0; run.magicFind = 0;
     for (const h of run.heroes) { run.goldFind += h.stats.goldFind || 0; run.magicFind += h.stats.magicFind || 0; }
   }
+  // bonus temporaires de l'expédition : élixirs + bénédictions
+  R.runBuffs = function (run) {
+    const a = G.sys.potions.buffStats(run), b = G.sys.rooms.blessingStats(run);
+    for (const k in b) a[k] = (a[k] || 0) + b[k];
+    return a;
+  };
   // recalcule les stats des héros (équipement changé, élixir...) en gardant le % de PV
   R.refreshStats = function () {
     const run = R.active;
     if (!run) return;
-    const buffs = G.sys.potions.buffStats(run);
+    const buffs = R.runBuffs(run);
     for (const u of run.heroes) {
       const h = G.sys.heroes.get(u.id);
       if (!h) continue;
@@ -252,6 +260,11 @@
       const dd = d[c.y * W + c.x];
       if (dd >= 0 && dd < bd) { bd = dd; best = { type: 'chest', x: c.x, y: c.y, ref: c }; }
     }
+    for (const sp of map.specials) {
+      if (sp.used || !map.seen[sp.y * W + sp.x]) continue;
+      const dd = d[sp.y * W + sp.x];
+      if (dd >= 0 && dd < bd) { bd = dd; best = { type: 'special', x: sp.x, y: sp.y, ref: sp }; }
+    }
     for (const r of map.rooms) {
       if (r.visited) continue;
       let dd = d[r.cy * W + r.cx];
@@ -275,6 +288,7 @@
       const d = Math.hypot(L.x - g.x - 0.5, L.y - g.y - 0.5);
       if (g.type === 'room' && g.ref.visited) run.goal = null;
       else if (g.type === 'chest' && d < 0.9) { openChest(run, g.ref); run.goal = null; }
+      else if (g.type === 'special' && d < 1) { run.goal = null; G.sys.rooms.interact(run, g.ref); if (run.state !== 'explore') return; }
       else if (g.type === 'stairs' && d < 0.45) { descend(run); return; }
       // sécurité anti-blocage : si le chef n'avance plus, il traverse les autres un moment
       run.progT = (run.progT || 0) + dt;
@@ -367,7 +381,7 @@
   R.update = function (dt) {
     const run = R.active;
     if (!run) return;
-    if (run.state === 'checkpoint') return; // en pause pendant le choix
+    if (run.state === 'checkpoint' || run.state === 'merchant' || run.state === 'event') return; // en pause pendant un choix
     if (run.state === 'transition') {
       run.transT -= dt;
       if (run.transT <= 0) nextFloor(run);
@@ -403,7 +417,8 @@
     }
     if (!run.inCombat) explore(run, dt, busy);
     if (run.state !== 'explore') return;
-    for (const m of run.monsters) if (!m.dead) C.monsterAI(run, m, dt);
+    for (const m of run.monsters) if (!m.dead) { if (m.mech) G.sys.bosses.update(run, m, dt); if (!m.dash) C.monsterAI(run, m, dt); }
+    G.sys.bosses.updateTelegraphs(run, dt);
     C.updateProjectiles(run, dt);
     G.sys.effects.update(run, dt);
     // événements programmés (vagues, météore...)

@@ -30,6 +30,8 @@
     // bonus hors équipement : synergies (et plus tard passifs, ville, rebirth)
     if (G.sys.synergy) { const gb = G.sys.synergy.bonusesFor(hero); for (const k in gb) add[k] = (add[k] || 0) + gb[k]; }
     if (G.sys.skills && hero.skills) { const pb = G.sys.skills.passiveBonuses(hero); for (const k in pb) add[k] = (add[k] || 0) + pb[k]; }
+    // bonus temporaires (élixirs, bénédictions…) : ajoutés comme des stats d'équipement
+    for (const k in buffs) add[k] = (add[k] || 0) + buffs[k];
     const A = (k) => add[k] || 0;
     const st = {
       str: g('str') + A('str'), agi: g('agi') + A('agi'), int: g('int') + A('int'),
@@ -37,16 +39,16 @@
     };
     st.maxHp = Math.round((g('hp') + A('hp')) * (1 + A('hpPct')));
     st.maxMp = Math.round(g('mp') + st.int * B.mpPerInt + A('mp'));
-    st.def = (g('def') + A('def')) * (1 + A('defPct') + (buffs.defPct || 0));
+    st.def = (g('def') + A('def')) * (1 + A('defPct'));
     st.atk = B.statToAtk * st[c.attack.stat] + B.unarmedDmg + (wtype === 'phys' ? wdmg : 0) + A('atk');
     st.matk = (B.statToAtk * st.int + B.unarmedDmg + (wtype === 'magic' ? wdmg : 0) + A('matk')) * (1 + A('matkPct'));
     st.crit = Math.min(B.critCap, g('crit') + st.agi * B.critPerAgi + A('crit'));
     st.critDmg = B.critDmg + A('critDmg');
     st.dodge = Math.min(B.dodgeCap, st.agi * B.dodgePerAgi + A('dodge'));
-    st.dmgMult = 1 + A('dmgPct') + (buffs.dmgPct || 0);
+    st.dmgMult = 1 + A('dmgPct');
     st.healMult = 1 + A('healPower');
     st.wspd = wspd;
-    st.atkSpd = A('atkSpd') + (buffs.atkSpd || 0);
+    st.atkSpd = A('atkSpd');
     st.res = {}; st.elemDmg = {};
     let mainEl = null, mainV = 0;
     for (const el of ELS) {
@@ -60,7 +62,7 @@
     st.burnPct = A('burnPct'); st.manaCost = Math.max(-0.6, A('manaCost'));
     st.lifesteal = A('lifesteal'); st.thorns = A('thorns'); st.echo = Math.min(0.75, A('echo'));
     st.bossDmg = A('bossDmg'); st.onKillHeal = A('onKillHeal');
-    st.goldFind = A('goldFind'); st.magicFind = A('magicFind');
+    st.goldFind = A('goldFind'); st.magicFind = A('magicFind'); st.xpPct = A('xpPct');
     return st;
   };
 

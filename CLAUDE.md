@@ -30,7 +30,8 @@ js/data/    balance, elements, classes, monsters, biomes, rooms, names, building
             rarities, items (emplacements, bases, classGear), affixes (+ pouvoirs mythiques), uniques, potions, materials,
             synergies (conditions classes/rôles + bonus + cible), recruits (qualités des recrues),
             skills (40 compétences : 2 branches × 4 rangées par classe, actives/passives/ultimes, règles par défaut),
-            effects (statuts + effets d'impact des éléments)
+            effects (statuts + effets d'impact des éléments), bosses (mini-boss + boss par biome et mécaniques),
+            events (événements à choix) + blessings, rooms (poids des salles + salles spéciales)
 js/render/  pixelart (modèles), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
             fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
             font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
@@ -38,7 +39,9 @@ js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), syne
             point d'entrée des bonus hors équipement : y brancher passifs/ville/rebirth), stats (classe+niveau×qualité+équipement+bonus+élixirs),
             xp (gain par victime, écart de niveau, montée de niveau), tavern (recrues, embauche, renvoi, composition),
             effects (statuts : DoT, contrôles, buffs, boucliers, provocation ; mods()), skills (arbre, passifs, règles,
-            tryCast/cast ; run.pending = événements programmés pour vagues/délais),
+            tryCast/cast ; run.pending = événements programmés pour vagues/délais), bosses (mécaniques : summon, aoe, slam,
+            charge, barrage, shield, phaseSummon, enrage, regen ; zones annoncées run.telegraphs, que les héros esquivent),
+            rooms (fontaine, autel/bénédictions run.saved.blessings, marchand, événements ; pauses run.state merchant/event),
             heroes, dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
             loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments, départs), run (expédition)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon + barre de potions), items (case, fiche,
@@ -68,7 +71,11 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - Effets visuels riches demandés : chaque attaque/sort a un départ, une traînée et un impact propres à son élément.
 - Défaite ou fuite : retour en ville avec 50 % de l'or de l'expédition (objets gardés à partir de la phase 2).
 - Gains hors ligne (phase 7) : estimés à partir du rendement réel mesuré, pas de simulation complète.
-- Biomes tous les 10 étages (7 biomes, puis cycle « Cauchemar »).
+- Biomes tous les 10 étages (7 biomes, puis cycle « Cauchemar » = teinte rouge), chacun avec particules d'ambiance.
+- Salles spéciales : 2 max par étage (1 marchand max). Marchand payé avec l'or de la ville. Options : événements
+  « demander » (15 s, sinon choix prudent) ou « auto » ; marchand « s'arrêter » (20 s) ou « ignorer ».
+- Bénédictions (autel/événements) : bonus jusqu'à la fin de l'expédition, passés aux stats via `run.runBuffs` (avec les élixirs).
+- Titres : `ui.fixTitles` isole l'émoji de tête (sinon le dégradé doré le recouvre).
 - Classes : guerrier, archer, mage, prêtre, voleur → 2 évolutions chacune (niv. 20) → ultimes (niv. 50) :
   Paladin/Berserker → Templier sacré/Seigneur de guerre ; Tireur d'élite/Rôdeur → Œil-de-faucon/Maître des bêtes ;
   Pyromancien/Nécromancien → Archimage/Liche ; Clerc/Inquisiteur → Saint/Grand Inquisiteur ;
@@ -118,7 +125,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
       de 8 avec réserve, composition et ordre de l'équipe, 10 synergies, voleur recrutable.
 - [x] **Phase 4** : 40 compétences (actives, passives, 5 ultimes), arbres à 2 branches avec prérequis, points de compétence,
       réinitialisation, répartition auto, priorités réglables, mana + potion de mana, 10 effets de statut, effets des éléments.
-- [ ] Phase 5 : mécaniques de boss, salles spéciales, biomes visibles
+- [x] **Phase 5** : 14 boss/mini-boss uniques (apparence, mécaniques, barre de vie, bannière, rage, boucliers, renforts),
+      zones de danger annoncées et esquivées, 5 salles spéciales, 6 événements à choix, 7 bénédictions, ambiance des biomes.
 - [ ] Phase 6 : évolutions de classe, sets, forge
 - [ ] Phase 7 : ville améliorable, hors ligne, auto-farm
 - [ ] Phase 8 : rebirth

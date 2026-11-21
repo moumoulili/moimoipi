@@ -12,6 +12,8 @@
         '<option value="ask">Me demander (10 s pour choisir)</option>' +
         '<option value="continue">Toujours continuer</option>' +
         '<option value="retreat">Toujours rentrer en ville</option></select>' +
+        '<p><b>Événements à choix (salles ❔)</b></p><select id="op-ev"><option value="ask">Me demander (15 s pour choisir)</option><option value="auto">Choisir automatiquement l\'option prudente</option></select>' +
+        '<p><b>Marchand ambulant</b></p><select id="op-mer"><option value="ask">S\'arrêter (20 s pour acheter)</option><option value="skip">L\'ignorer</option></select>' +
         '<label class="toggle"><span>Relancer une expédition après une défaite</span><input type="checkbox" id="op-auto"></label>' +
         '<label class="toggle"><span>Vibrations</span><input type="checkbox" id="op-vib"></label>' +
         '<label class="toggle"><span>Flashs à l\'écran (critiques, boss)</span><input type="checkbox" id="op-flash"></label></div>' +
@@ -22,8 +24,10 @@
         '<div class="row" style="margin-top:6px"><button class="pxbtn small primary" id="op-imp">Importer</button></div></div>' +
 
         '<div class="panel"><h3>Zone dangereuse</h3><button class="pxbtn danger wide" id="op-reset">Effacer la partie</button></div>' +
-        '<p class="muted" style="text-align:center;font-size:12px">Moimoipi · phase 4 · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'hors ligne prêt' : 'en ligne') + '</p>';
+        '<p class="muted" style="text-align:center;font-size:12px">Moimoipi · phase 5 · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'hors ligne prêt' : 'en ligne') + '</p>';
       const cp = U.$('#op-cp'); cp.value = s.checkpointMode; cp.onchange = () => { s.checkpointMode = cp.value; G.core.save.save(); };
+      const ev = U.$('#op-ev'); ev.value = s.eventMode; ev.onchange = () => { s.eventMode = ev.value; G.core.save.save(); };
+      const me = U.$('#op-mer'); me.value = s.merchantMode; me.onchange = () => { s.merchantMode = me.value; G.core.save.save(); };
       const au = U.$('#op-auto'); au.checked = s.autoRestart; au.onchange = () => { s.autoRestart = au.checked; G.core.save.save(); };
       const vb = U.$('#op-vib'); vb.checked = s.vibrate; vb.onchange = () => { s.vibrate = vb.checked; G.core.save.save(); };
       const fl = U.$('#op-flash'); fl.checked = s.flashes; fl.onchange = () => { s.flashes = fl.checked; G.core.save.save(); };

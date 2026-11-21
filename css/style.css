@@ -491,3 +491,19 @@ textarea { background-image: none; background: #f6e8c6; }
 .prio .si { font-size: 18px; }
 .pn2 { font: 900 13px Georgia, serif; color: var(--muted); width: 18px; }
 .prio select { min-height: 38px; padding: 6px 28px 6px 6px; font-size: 13px; }
+
+/* ===== Phase 5 : boss, salles spéciales ===== */
+#boss-bar { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: min(70%, 320px); z-index: 3; text-align: center; pointer-events: none; }
+#boss-bar[hidden] { display: none; }
+.bb-name { font-family: var(--epic-font); font-weight: 900; color: #ffd0a0; text-shadow: 0 2px 0 #000, 0 0 8px #ff3b3b; font-size: 14px; letter-spacing: 1px; }
+.bb-bar { position: relative; height: 10px; margin-top: 2px; background: #2a0606; border: 2px solid #b8862a; box-shadow: 0 0 0 1px #000, 0 2px 6px rgba(0, 0, 0, .7); }
+.bb-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(180deg, #ff8a5a, #d0281a 60%, #7a1008); transition: width .2s; }
+.bb-bar b { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255, 243, 168, .75); }
+#boss-bar.enraged .bb-bar { animation: exitGlow .5s infinite; border-color: #ff3b3b; }
+#bless-bar { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 3px; z-index: 3; font-size: 16px; filter: drop-shadow(0 2px 0 #000); pointer-events: none; }
+.merchant { display: flex; flex-direction: column; gap: 6px; }
+.m-off { display: flex; gap: 8px; align-items: center; padding: 6px; border: 1px solid rgba(120, 80, 30, .4); }
+.m-off img { width: 36px; height: 36px; image-rendering: pixelated; }
+.m-off .icell { width: 48px; flex: 0 0 auto; }
+.m-off .info { flex: 1; min-width: 0; }
+h2 .ico, h3 .ico { -webkit-text-fill-color: initial; color: initial; background: none; filter: none; text-shadow: none; margin-right: 6px; }

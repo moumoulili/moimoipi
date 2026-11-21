@@ -33,9 +33,13 @@
   C.monsterUnit = function (sp, floor) {
     const md = G.data.monsters[sp.id];
     let mods = {}, scale = 1, outline = null, goldMult = 1, name = md.name;
+    let bossDef = null;
     if (sp.guardian) {
       const g = B.guardian[sp.guardian];
-      mods = g; scale = g.scale; outline = sp.guardian === 'boss' ? '#ff3b3b' : '#ff9a3b'; goldMult = g.gold; name = sp.name;
+      bossDef = sp.bossId ? G.data.bosses[sp.bossId] : null;
+      mods = Object.assign({}, g);
+      if (bossDef && bossDef.mods) for (const k in bossDef.mods) mods[k] = (mods[k] || 1) * bossDef.mods[k];
+      scale = (bossDef && bossDef.scale) || g.scale; outline = sp.guardian === 'boss' ? '#ff3b3b' : '#ff9a3b'; goldMult = g.gold; name = sp.name;
     } else if (sp.elite) {
       mods = B.elite; outline = '#ffd34d'; goldMult = B.elite.gold; name = md.name + ' élite';
     }
@@ -46,9 +50,10 @@
       attack: { type: md.behavior, range: md.range, dmgType: MAGIC_PROJ[md.projectile] ? 'magic' : 'phys', element: md.element, projectile: md.projectile },
       weak: md.weak, resist: md.resist, threat: 1, dive: !!md.dive,
       cd: rng.float(0.3, 1), facing: -1, scale, outline,
-      sprite: Object.assign({ id: md.id }, md.sprite),
+      sprite: bossDef && bossDef.sprite ? Object.assign({ id: sp.bossId }, bossDef.sprite) : Object.assign({ id: md.id }, md.sprite),
       anim: { hit: 0, atk: 0, bob: rng.next() * 6, lx: 0, ly: 0 },
       path: null, pathKey: '', repath: 0, dead: false, target: null, retarget: 0,
+      bossId: sp.bossId || null, summoned: !!sp.summoned,
       aggro: false, room: sp.room, elite: !!sp.elite, guardian: sp.guardian || null, goldMult, deadT: 0, effects: [],
     };
   };
@@ -247,6 +252,15 @@
   // ---------- IA des héros ----------
   C.heroAI = function (run, u, dt, enemies) {
     if (G.sys.effects.stunned(u)) { u.moving = false; return true; }
+    // esquive des zones de danger annoncées
+    const danger = G.sys.bosses.dangerAt(run, u);
+    if (danger) {
+      let dx = u.x - danger.x, dy = u.y - danger.y, l = Math.hypot(dx, dy);
+      if (l < 0.05) { const a = u.uid * 2.39; dx = Math.cos(a); dy = Math.sin(a); l = 1; } // centrée sur le héros : direction de repli
+      const ex = danger.x + (dx / l) * (danger.r + 0.8), ey = danger.y + (dy / l) * (danger.r + 0.8);
+      C.moveTo(run, u, ex, ey, dt, C.moveSpeed(u) * 1.2);
+      return true;
+    }
     if (u.skillLock > 0) return true;
     // compétences (selon les priorités réglées par le joueur)
     if (G.sys.skills.tryCast(run, u, enemies)) return true;

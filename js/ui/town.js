@@ -65,7 +65,7 @@
           '</div></div>';
       }
       h += '<p class="muted" style="margin:8px 0 0">Forge, taverne, temple, bibliothèque, boutique, entrepôt : phase 7.</p></div>';
-      el.innerHTML = h;
+      el.innerHTML = h; ui.fixTitles(el);
       el.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => { st.settings.startFloor = +b.dataset.f; this.render(); }));
       el.querySelectorAll('[data-buy]').forEach((b) => (b.onclick = () => {
         if (G.sys.town.buy(b.dataset.buy)) { ui.toast(G.data.buildings[b.dataset.buy].name + ' amélioré !', 'gold'); ui.invalidateHud(); this.render(); }

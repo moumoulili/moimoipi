@@ -37,9 +37,23 @@
     const scr = U.$('#screen-' + id);
     scr.classList.add('active');
     if (ui.screens[id] && ui.screens[id].render) ui.screens[id].render();
+    ui.fixTitles(scr);
     if (id === 'dungeon') requestAnimationFrame(G.render.resize);
   };
-  ui.refresh = function () { if (ui.screens[ui.current] && ui.screens[ui.current].render) ui.screens[ui.current].render(); };
+  // les émojis au début des titres gardent leurs couleurs (sinon le dégradé doré les recouvre)
+  const EMO = /^(\s*)((?:\p{Extended_Pictographic}|[\u2600-\u27BF])(?:\uFE0F|\u200D|\p{Extended_Pictographic})*)/u;
+  ui.fixTitles = function (root) {
+    (root || document).querySelectorAll('h2, h3').forEach((h) => {
+      const n = h.firstChild;
+      if (!n || n.nodeType !== 3 || h.querySelector('.ico')) return;
+      const m = n.textContent.match(EMO);
+      if (!m) return;
+      n.textContent = n.textContent.slice(m[0].length);
+      const sp = document.createElement('span'); sp.className = 'ico'; sp.textContent = m[2];
+      h.insertBefore(sp, n);
+    });
+  };
+  ui.refresh = function () { if (ui.screens[ui.current] && ui.screens[ui.current].render) { ui.screens[ui.current].render(); ui.fixTitles(U.$('#screen-' + ui.current)); } };
 
   // ---------- Fenêtre modale ----------
   // opts : { title, html, buttons: [{label, cls, onClick}], countdown: {seconds, label, onEnd} }
@@ -76,6 +90,7 @@
     root.appendChild(back);
     back.onclick = (e) => { if (e.target === back && opts.dismissable) close(); };
     close.box = box;
+    ui.fixTitles(box);
     return close;
   };
   // bouton commun "Optimiser l'équipe"
