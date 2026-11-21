@@ -18,11 +18,13 @@
   // ---------- Démarrage / reprise ----------
   R.start = function (startFloor) {
     const st = G.state;
-    if (!G.sys.town.canStartAt(startFloor)) startFloor = 1;
+    const farm = st.settings.farm && st.settings.farm.on;
+    if (farm) startFloor = Math.max(1, Math.min(st.settings.farm.floor, st.progress.maxFloor || 1));
+    else if (!G.sys.town.canStartAt(startFloor)) startFloor = 1;
     st.stats.runs++;
     st.run = {
       floor: startFloor, startFloor, gold: 0, kills: 0, hp: {}, exitAvailable: false,
-      seedBase: st.seed + ':' + st.stats.runs, time: 0,
+      seedBase: st.seed + ':' + st.stats.runs, time: 0, farm: farm ? startFloor : 0, loop: 0,
     };
     build(st.run);
     log('L\'équipe entre dans le donjon.', 'info');
@@ -51,7 +53,7 @@
     const st = G.state, saved = run.saved;
     saved.floor = floor;
     saved.exitAvailable = false;
-    const map = G.sys.dungeon.generate(floor, G.core.hashStr(saved.seedBase + ':' + floor));
+    const map = G.sys.dungeon.generate(floor, G.core.hashStr(saved.seedBase + ':' + floor + (saved.loop ? ':' + saved.loop : '')));
     map.trapAt = new Map(map.traps.map((t) => [t.x + ',' + t.y, t]));
     run.map = map;
     // héros
@@ -206,7 +208,7 @@
     G.render.fx.flash('#ffffff', 0.25);
     U.vibrate([60, 40, 120]);
     bus.emit('boss:kill', { id: u.id, kind: u.guardian, floor: saved.floor });
-    const mode = st.settings.checkpointMode;
+    const mode = saved.farm ? 'continue' : st.settings.checkpointMode;
     if (mode === 'retreat') { run.state = 'leaving'; run.endT = 1.5; run.endReason = 'retreat'; return; }
     if (mode === 'continue') return;
     run.state = 'checkpoint';
@@ -227,7 +229,7 @@
     const st = G.state, run = R.active;
     if (!run || !st.run) return;
     const s = st.run;
-    const kept = reason === 'death' ? Math.floor(s.gold * B.deathKeep) : s.gold;
+    const kept = reason === 'death' ? Math.floor(s.gold * G.sys.town.deathKeep()) : s.gold;
     st.gold += kept;
     st.stats.totalGold += kept;
     if (reason === 'death') st.stats.deaths++;
@@ -236,6 +238,7 @@
     R.active = null;
     if (st.settings.autoOptimize) { const o = G.sys.inventory.optimizeTeam(); st.lastRun.optimized = o.changes; }
     G.core.save.save();
+    G.sys.offline.record(st.lastRun);
     bus.emit('run:end', st.lastRun);
     G.ui.onRunEnd && G.ui.onRunEnd(st.lastRun);
   };
@@ -342,7 +345,9 @@
   function nextFloor(run) {
     for (const h of run.heroes) if (!h.dead) h.hp = Math.min(h.stats.maxHp, h.hp + h.stats.maxHp * B.floorRegen);
     R.snapshot();
-    enterFloor(run, run.saved.floor + 1);
+    // auto-farm : on rejoue le même étage (nouvelle carte) au lieu de descendre
+    if (run.saved.farm) { run.saved.loop = (run.saved.loop || 0) + 1; enterFloor(run, run.saved.farm); }
+    else enterFloor(run, run.saved.floor + 1);
     G.core.save.save();
   }
 

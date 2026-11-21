@@ -6,9 +6,10 @@
   const B = G.data.balance, IT = G.sys.items;
   const S = {};
   const floorRef = () => Math.max(1, G.state.progress.maxFloor);
-  S.priceMult = () => Math.pow(floorRef(), 1.2);
-  S.potionPrice = (id) => Math.round(G.data.potions[id].price * S.priceMult());
-  S.maxPotions = () => B.potionStack; // l'entrepôt l'augmentera (phase 7)
+  const sv = () => G.sys.town.val('shop');
+  S.priceMult = () => Math.pow(floorRef(), 1.2) * (1 - sv().discount);
+  S.potionPrice = (id) => Math.round(G.data.potions[id].price * S.priceMult() * (id === 'revive' ? 1 - G.sys.town.val('temple').revive : 1));
+  S.maxPotions = () => G.sys.town.val('warehouse').potions;
   S.buyPotion = function (id, n) {
     n = Math.min(n || 1, S.maxPotions() - (G.state.potions[id] || 0));
     const price = S.potionPrice(id);
@@ -18,12 +19,12 @@
     G.state.potions[id] = (G.state.potions[id] || 0) + n;
     return n;
   };
-  S.itemPrice = (item) => IT.value(item) * B.shop.priceMult;
+  S.itemPrice = (item) => Math.round(IT.value(item) * B.shop.priceMult * (1 - sv().discount));
   S.refreshCost = () => Math.round(40 * S.priceMult());
   S.restock = function () {
     const rng = G.core.rng, sh = G.state.shop;
     sh.items = [];
-    for (let i = 0; i < B.shop.items; i++) sh.items.push(IT.create(rng, { rarity: IT.rollRarity(rng, floorRef(), 0.2, B.shop.minRarity), ilvl: floorRef() }));
+    for (let i = 0; i < sv().items; i++) sh.items.push(IT.create(rng, { rarity: IT.rollRarity(rng, floorRef(), 0.2 + sv().mf, B.shop.minRarity), ilvl: floorRef() }));
     sh.refreshAt = Date.now() + B.shop.refreshMinutes * 60000;
   };
   S.stock = function () {

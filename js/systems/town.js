@@ -8,11 +8,16 @@
   T.level = (id) => (G.state.town.buildings[id] || 0);
   T.cost = (id) => G.data.buildings[id].cost(T.level(id));
   T.isMax = (id) => T.level(id) >= G.data.buildings[id].maxLevel;
-  T.canBuy = (id) => !T.isMax(id) && G.state.gold >= T.cost(id);
+  T.canBuy = (id) => !T.isMax(id) && G.sys.heroes.canAfford(T.cost(id));
+  // valeurs actuelles d'un bâtiment (ex. T.val('warehouse').inv)
+  T.val = (id) => G.data.buildings[id].val(T.level(id));
   T.buy = function (id) {
     if (!T.canBuy(id)) return false;
-    G.state.gold -= T.cost(id);
+    G.sys.heroes.pay(T.cost(id));
     G.state.town.buildings[id] = T.level(id) + 1;
+    if (id === 'library') T.syncLibrary();
+    G.sys.synergy && G.sys.synergy.invalidate();
+    G.sys.run.refreshStats && G.sys.run.refreshStats();
     G.core.bus.emit('building:upgrade', { id, level: T.level(id) });
     if (id === 'portal') { const s = T.startFloors(); G.state.settings.startFloor = s[s.length - 1]; }
     G.core.save.save();
@@ -29,5 +34,13 @@
     return out;
   };
   T.canStartAt = (f) => T.startFloors().indexOf(f) >= 0;
+  // bibliothèque : chaque niveau offre 1 point de compétence à chaque héros (y compris les futures recrues)
+  T.syncLibrary = function () {
+    const l = T.level('library');
+    for (const h of G.state.heroes) { const d = l - (h.libSp || 0); if (d > 0) { h.sp = (h.sp || 0) + d; h.libSp = l; } }
+  };
+  // bonus de la ville appliqués aux stats des héros
+  T.deathKeep = () => Math.min(1, B.deathKeep + T.val('temple').deathKeep);
+  T.heroBonus = () => ({ healPower: T.val('temple').healPower });
   G.sys.town = T;
 })();

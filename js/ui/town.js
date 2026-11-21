@@ -1,6 +1,6 @@
 // =====================================================================
 //  ÉCRAN VILLE : or, record, départ d'expédition, équipe.
-//  (Bâtiments améliorables en phase 7.)
+//  + auto-farm, bâtiments améliorables, taverne, forge, boutique
 // =====================================================================
 (function () {
   const U = G.core.U, ui = G.ui, B = G.data.balance;
@@ -21,12 +21,31 @@
       if (run) {
         h += '<p>Ton équipe explore l\'<b>étage ' + run.saved.floor + '</b>.</p><button class="pxbtn wide primary" id="tw-view">Voir le donjon</button>';
       } else {
-        h += '<p class="muted">Point de départ (Portail niveau ' + G.sys.town.level('portal') + ') :</p><div class="choices">' +
-          starts.map((f) => '<button class="pxbtn small ' + (f === cur ? 'sel' : '') + '" data-f="' + f + '">Ét. ' + f + '</button>').join('') +
-          '</div><button class="pxbtn wide primary" id="tw-go">⚔️ Partir à l\'étage ' + cur + '</button>';
+        const fm = st.settings.farm;
+        if (!fm.on) h += '<p class="muted">Point de départ (Portail niveau ' + G.sys.town.level('portal') + ') :</p><div class="choices">' +
+          starts.map((f) => '<button class="pxbtn small ' + (f === cur ? 'sel' : '') + '" data-f="' + f + '">Ét. ' + f + '</button>').join('') + '</div>';
+        h += '<label class="toggle"><span>🔁 <b>Auto-farm</b> : rejouer un étage déjà atteint en boucle</span><input type="checkbox" id="tw-farm"' + (fm.on ? ' checked' : '') + '></label>';
+        if (fm.on) {
+          const mx = Math.max(1, st.progress.maxFloor);
+          h += '<div class="row"><button class="pxbtn small" id="tw-fmm">−</button><b style="flex:1;text-align:center">Étage ' + Math.min(fm.floor, mx) + ' / ' + mx + '</b><button class="pxbtn small" id="tw-fmp">+</button></div>' +
+            '<p class="muted small">L\'équipe rejoue cet étage (nouvelle carte à chaque fois) jusqu\'à la défaite ou ta sortie. Avec « relancer après une défaite », elle farme sans fin.</p>';
+        }
+        h += '<button class="pxbtn wide primary" id="tw-go">' + (fm.on ? '🔁 Farmer l\'étage ' + cur : '⚔️ Partir à l\'étage ' + cur) + '</button>';
+        const r = st.rate;
+        if (r && r.samples) h += '<p class="muted small" style="margin-top:6px">Rendement mesuré (gains hors ligne) : ' + U.fmt(r.gold * 60) + ' or/min, ' + U.fmt(r.xp * 60) + ' XP/min par héros, ~étage ' + r.floor + '.</p>';
       }
       h += '</div>';
 
+      h += '<div class="panel" id="tw-build"><h3>🏗️ Bâtiments</h3><p class="muted small">Matériaux : ' + Object.keys(G.data.materials).map((k) => G.data.materials[k].name + ' ' + U.fmt(st.materials[k] || 0)).join(' · ') + '</p>';
+      for (const id of G.data.buildingOrder) {
+        const bd = G.data.buildings[id], T = G.sys.town, lvl = T.level(id), max = T.isMax(id);
+        h += '<div class="hero-line"><div class="bicon">' + bd.icon + '</div><div class="info"><b>' + bd.name + '</b> <span class="muted">niv. ' + lvl + ' / ' + bd.maxLevel + '</span>' +
+          '<div class="muted" style="font-size:13px">' + bd.desc + '</div>' +
+          '<div style="font-size:13px;margin:4px 0">Actuel : <b>' + bd.effect(lvl) + '</b>' + (max ? '' : '<br>Suivant : <b>' + bd.effect(lvl + 1) + '</b>') + '</div>' +
+          (max ? '<span class="tag">Niveau max</span>' : '<button class="pxbtn small ' + (T.canBuy(id) ? 'gold' : '') + '" data-buy="' + id + '"' + (T.canBuy(id) ? '' : ' disabled') + '>Améliorer · ' + G.sys.forge.costText(T.cost(id)) + '</button>') +
+          '</div></div>';
+      }
+      h += '</div>';
       // ---- Taverne ----
       h += '<div class="panel" id="tw-tavern"><h3>🍺 Taverne</h3>' + ui.tavernHtml() + '</div>';
 
@@ -56,16 +75,6 @@
       }
       h += '</div>';
 
-      h += '<div class="panel"><h3>Bâtiments</h3>';
-      for (const id in G.data.buildings) {
-        const bd = G.data.buildings[id], T = G.sys.town, lvl = T.level(id), max = T.isMax(id);
-        h += '<div class="hero-line"><div class="bicon">' + bd.icon + '</div><div class="info"><b>' + bd.name + '</b> <span class="muted">niv. ' + lvl + '</span>' +
-          '<div class="muted" style="font-size:13px">' + bd.desc + '</div>' +
-          '<div style="font-size:13px;margin:4px 0">Actuel : <b>' + bd.effect(lvl) + '</b>' + (max ? '' : '<br>Suivant : <b>' + bd.effect(lvl + 1) + '</b>') + '</div>' +
-          (max ? '<span class="tag">Niveau max</span>' : '<button class="pxbtn small ' + (T.canBuy(id) ? 'gold' : '') + '" data-buy="' + id + '"' + (T.canBuy(id) ? '' : ' disabled') + '>Améliorer · ' + U.fmt(T.cost(id)) + ' or</button>') +
-          '</div></div>';
-      }
-      h += '<p class="muted" style="margin:8px 0 0">Forge, taverne, temple, bibliothèque, boutique, entrepôt : phase 7.</p></div>';
       el.innerHTML = h; ui.fixTitles(el);
       el.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => { st.settings.startFloor = +b.dataset.f; this.render(); }));
       el.querySelectorAll('[data-buy]').forEach((b) => (b.onclick = () => {
@@ -81,6 +90,10 @@
       }));
       el.querySelectorAll('#tw-shop .icell').forEach((b) => (b.onclick = () => ui.itemDetail(stock.find((i) => i.uid === b.dataset.uid), { from: 'shop', onDone: rer })));
       U.$('#tw-restock').onclick = () => { if (SH.paidRefresh()) ui.toast('Nouveau stock !'); rer(); };
+      const fmc = U.$('#tw-farm');
+      if (fmc) fmc.onchange = () => { st.settings.farm.on = fmc.checked; if (fmc.checked) st.settings.farm.floor = Math.max(1, Math.min(st.settings.farm.floor, st.progress.maxFloor || 1)); G.core.save.save(); ui.invalidateHud(); this.render(); };
+      const fd = (d) => () => { st.settings.farm.floor = Math.max(1, Math.min((st.progress.maxFloor || 1), st.settings.farm.floor + d)); this.render(); };
+      if (U.$('#tw-fmm')) { U.$('#tw-fmm').onclick = fd(-1); U.$('#tw-fmp').onclick = fd(1); }
       const go = U.$('#tw-go'); if (go) go.onclick = () => ui.startRun();
       const view = U.$('#tw-view'); if (view) view.onclick = () => ui.show('dungeon');
     },

@@ -10,7 +10,7 @@
   // ---------- Barre du haut ----------
   function updateTop() {
     const st = G.state, run = G.sys.run.active;
-    U.$('#tb-floor').textContent = run ? 'Étage ' + run.saved.floor + ' · ' + run.map.biome.name : 'Au camp';
+    U.$('#tb-floor').textContent = run ? (run.saved.farm ? '🔁 ' : '') + 'Étage ' + run.saved.floor + ' · ' + run.map.biome.name : 'Au camp';
     U.$('#tb-gold').innerHTML = U.fmt(st.gold) + (st.run ? ' <span class="run-gold">+' + U.fmt(st.run.gold) + '</span>' : '');
     U.$('#tb-speed').textContent = 'x' + G.core.loop.speed;
   }
@@ -155,8 +155,8 @@
       box.appendChild(exit);
     }
     const flee = U.el('button', 'map-btn flee', '🏳️');
-    flee.title = 'Fuir (garde ' + Math.round(B.deathKeep * 100) + ' % de l\'or)';
-    flee.onclick = () => ui.confirm('Fuir le donjon ?', '<p>L\'équipe rentre en ville mais ne garde que <b>' + Math.round(B.deathKeep * 100) + ' %</b> de l\'or de cette expédition.</p>', 'Fuir', () => G.sys.run.active && G.sys.run.end('death'));
+    flee.title = 'Fuir (garde ' + Math.round(G.sys.town.deathKeep() * 100) + ' % de l\'or)';
+    flee.onclick = () => ui.confirm('Fuir le donjon ?', '<p>L\'équipe rentre en ville mais ne garde que <b>' + Math.round(G.sys.town.deathKeep() * 100) + ' %</b> de l\'or de cette expédition.</p>', 'Fuir', () => G.sys.run.active && G.sys.run.end('death'));
     box.appendChild(flee);
   }
   ui.invalidateHud = function () { partyKey = ''; actionsKey = ''; potKey = ''; blessKey = 'x'; };
@@ -174,6 +174,8 @@
 
   // ---------- Démarrer une expédition ----------
   ui.startFloor = function () {
+    const fm = G.state.settings.farm;
+    if (fm && fm.on) return Math.max(1, Math.min(fm.floor, G.state.progress.maxFloor || 1));
     const f = G.state.settings.startFloor || 1;
     return G.sys.town.canStartAt(f) ? f : 1;
   };
@@ -219,7 +221,7 @@
       (Object.keys(lr.mats || {}).length ? '<div>Matériaux</div><div class="small">' + G.sys.inventory.matsText(lr.mats) + '</div>' : '') +
       '<div>Durée</div><div>' + m + ' min ' + sec + ' s</div>' +
       '<div>Or ramassé</div><div class="gold">' + U.fmt(lr.gold) + '</div>' +
-      '<div>Or conservé' + (death ? ' (' + Math.round(B.deathKeep * 100) + ' %)' : '') + '</div><div class="gold"><b>' + U.fmt(lr.kept) + '</b></div>' +
+      '<div>Or conservé' + (death ? ' (' + Math.round(G.sys.town.deathKeep() * 100) + ' %)' : '') + '</div><div class="gold"><b>' + U.fmt(lr.kept) + '</b></div>' +
       (death ? '<div class="muted small" style="grid-column:1/3">Les objets trouvés sont tous conservés.</div>' : '') +
       (lr.optimized ? '<div class="small" style="grid-column:1/3;color:var(--gold)">✨ Équipement optimisé : ' + lr.optimized + ' changement(s)</div>' : '') +
       '</div><h3 style="margin:12px 0 4px;font-size:13px">Équipe</h3><div class="sum-grid">' + rows + '</div>';
@@ -232,6 +234,23 @@
     }
     ui.modal(opts);
     if (death) U.vibrate(200);
+  };
+
+  // ---------- Résumé des gains hors ligne ----------
+  ui.offlineSummary = function (g) {
+    const O = G.sys.offline, camp = G.sys.town.val('camp');
+    let lv = '';
+    for (const h of G.sys.heroes.team()) if (g.levels[h.id]) lv += '<div>' + U.esc(h.name) + '</div><div class="pos">+' + g.levels[h.id] + ' niv. (' + h.level + ')</div>';
+    const best = g.best ? '<div>Meilleur objet</div><div style="color:' + G.sys.items.rarity(g.best.rarity).color + '">' + U.esc(g.best.name) + '</div>' : '';
+    const html = '<p class="small" style="text-align:center">Absent <b>' + O.durText(g.elapsed) + '</b>' + (g.capped ? ' — gains limités à <b>' + camp.hours + ' h</b> (améliore le Camp de base)' : '') +
+      '<br>Efficacité : <b>' + Math.round(g.eff * 100) + ' %</b> du rendement mesuré (étage ~' + g.floor + ')</p>' +
+      '<div class="sum-grid"><div>Or</div><div class="gold"><b>+' + U.fmt(g.gold + g.soldGold) + '</b></div>' +
+      '<div>XP par héros</div><div><b>+' + U.fmt(g.xpReal != null ? g.xpReal : g.xp) + '</b></div>' + lv +
+      '<div>Monstres vaincus</div><div>' + U.fmt(g.kills) + '</div>' +
+      '<div>Objets</div><div>' + g.kept + ' gardés' + (g.sold ? ', ' + g.sold + ' vendus/recyclés' : '') + '</div>' + best +
+      (Object.keys(g.mats).length ? '<div>Matériaux</div><div class="small">' + G.sys.inventory.matsText(g.mats) + '</div>' : '') + '</div>';
+    ui.modal({ title: '🏕️ Pendant ton absence', html, buttons: [{ label: 'Super !', cls: 'primary' }] });
+    G.core.U.vibrate(60);
   };
 
   // ---------- Initialisation ----------

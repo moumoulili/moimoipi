@@ -6,7 +6,7 @@
   const B = G.data.balance, IT = G.sys.items, U = G.core.U, bus = G.core.bus;
   const I = {};
   const st = () => G.state;
-  I.capacity = () => B.inventorySize; // l'entrepôt l'augmentera (phase 7)
+  I.capacity = () => G.sys.town.val('warehouse').inv;
   I.full = () => st().inventory.length >= I.capacity();
   I.find = (uid) => st().inventory.find((i) => i.uid === uid);
 

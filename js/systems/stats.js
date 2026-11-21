@@ -35,6 +35,7 @@
     // évolution de classe
     if (hero.adv) { const eb = G.sys.heroes.evoBonus(hero); for (const k in eb) add[k] = (add[k] || 0) + eb[k]; }
     // bonus hors équipement : synergies (et plus tard passifs, ville, rebirth)
+    if (G.sys.town && G.state) { const tb = G.sys.town.heroBonus(); for (const k in tb) add[k] = (add[k] || 0) + tb[k]; }
     if (G.sys.synergy) { const gb = G.sys.synergy.bonusesFor(hero); for (const k in gb) add[k] = (add[k] || 0) + gb[k]; }
     if (G.sys.skills && hero.skills) { const pb = G.sys.skills.passiveBonuses(hero); for (const k in pb) add[k] = (add[k] || 0) + pb[k]; }
     // bonus temporaires (élixirs, bénédictions…) : ajoutés comme des stats d'équipement

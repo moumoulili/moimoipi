@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 8;
+  const VERSION = 9;
   const S = {};
 
   S.fresh = function () {
@@ -24,10 +24,11 @@
       potionRules: { heal: 0.3, mana: 0.15, revive: true, buffs: { might: 'boss', stone: 'boss', haste: 'never' } },
       shop: { items: [], refreshAt: 0 },
       tavern: { recruits: [], refreshAt: 0 },
+      rate: null, // rendement mesuré (gains hors ligne)
       progress: { maxFloor: 0, maxCheckpoint: 0 },
       stats: { kills: 0, totalGold: 0, runs: 0, deaths: 0 },
       settings: { checkpointMode: 'ask', autoRestart: true, speed: 1, vibrate: true, flashes: true, startFloor: 1,
-        autoSell: { maxRarity: -1, action: 'sell', keepUpgrades: true }, autoEquip: false, autoOptimize: false, autoSkills: false, eventMode: 'ask', merchantMode: 'ask' },
+        autoSell: { maxRarity: -1, action: 'sell', keepUpgrades: true }, autoEquip: false, autoOptimize: false, autoSkills: false, eventMode: 'ask', merchantMode: 'ask', farm: { on: false, floor: 1 } },
       // réservé aux phases suivantes : inventory, equipment, town, quests, bestiary, prestige...
     };
   };
@@ -48,6 +49,8 @@
     6: (st) => { for (const h of st.heroes) if (h.cls !== 'adventurer') h.legacy = (h.legacy || 0) + 1 + (h.adv ? 1 : 0) + (h.ult ? 1 : 0); },
     // v7 -> v8 : seule la renaissance (niv. 100) compte désormais ; l'ancien « héritage » est retiré
     7: (st) => { for (const h of st.heroes) h.legacy = h.ult ? 1 : 0; },
+    // v8 -> v9 : bâtiments de la ville, gains hors ligne, auto-farm (valeurs par défaut ajoutées automatiquement)
+    8: () => {},
   };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }

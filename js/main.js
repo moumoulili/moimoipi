@@ -16,11 +16,14 @@
   } else {
     G.ui.log('Bienvenue ! Lance une expédition pour commencer.', 'info');
   }
+  G.sys.town.syncLibrary();
   G.ui.show('dungeon');
+  // gains hors ligne (au chargement et à chaque retour sur l'appli)
+  setTimeout(() => G.sys.offline.check(), 400);
   G.render.loadSpriteFiles().then(() => G.core.loop.start());
 
   // sauvegarde quand on quitte / met l'appli en arrière-plan
-  document.addEventListener('visibilitychange', () => { if (document.hidden) G.core.save.save(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) G.core.save.save(); else G.sys.offline.check(); });
   window.addEventListener('pagehide', () => G.core.save.save());
 
   // mode hors ligne (uniquement en https / localhost)

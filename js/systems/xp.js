@@ -16,7 +16,7 @@
     if (d < 0) return 1 + Math.min(g.maxCatchup, -d * g.catchup);
     return 1;
   };
-  X.bonus = () => 0; // bonus d'XP global (bibliothèque phase 7, rebirth phase 8)
+  X.bonus = () => G.sys.town.val('library').xp; // bibliothèque (+ rebirth en phase 8)
 
   // ajoute de l'XP ; renvoie le nombre de niveaux gagnés
   X.add = function (hero, amount) {

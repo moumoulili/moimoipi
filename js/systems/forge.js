@@ -7,13 +7,16 @@
   const B = G.data.balance, IT = G.sys.items, H = G.sys.heroes;
   const F = {};
   const rng = G.core.rng;
-  F.maxUp = () => B.forge.maxUp; // la forge de la ville l'augmentera (phase 7)
-  F.upCost = (item) => B.forge.upCost(item, item.up || 0);
-  F.upChance = (item) => B.forge.upChance(item.up || 0);
+  const fv = () => G.sys.town.val('forge');
+  // réduction de la forge de la ville sur l'or (les matériaux restent les mêmes)
+  const disc = (c) => Object.assign({}, c, { gold: Math.round((c.gold || 0) * (1 - fv().discount)) });
+  F.maxUp = () => fv().maxUp;
+  F.upCost = (item) => disc(B.forge.upCost(item, item.up || 0));
+  F.upChance = (item) => Math.min(1, B.forge.upChance(item.up || 0) + fv().chance);
   F.costText = function (c) {
     const parts = [];
     if (c.gold) parts.push(G.core.U.fmt(c.gold) + ' or');
-    for (const k in c.mats || {}) parts.push(c.mats[k] + ' ' + G.data.materials[k].name);
+    for (const k in c.mats || {}) parts.push(c.mats[k] + ' ' + G.data.materials[k].icon);
     return parts.join(' · ');
   };
   function rename(item) {
@@ -33,7 +36,7 @@
     return 'ok';
   };
   // relancer le bonus n°idx (les bonus spéciaux des uniques/mythiques ne se relancent pas)
-  F.rerollCost = (item) => B.forge.rerollCost(item);
+  F.rerollCost = (item) => disc(B.forge.rerollCost(item));
   F.reroll = function (item, idx) {
     const a = item.affixes[idx];
     if (!a || a.special) return 'locked';
@@ -49,7 +52,7 @@
     return 'ok';
   };
   // ---------- Fusion ----------
-  F.fuseCost = (rIdx) => B.forge.fuseCost(rIdx);
+  F.fuseCost = (rIdx) => disc(B.forge.fuseCost(rIdx));
   F.fuseCandidates = function (rIdx) {
     return G.state.inventory.filter((i) => IT.rIdx(i.rarity) === rIdx && !i.locked && !i.up && !i.unique && !G.sys.inventory.upgradeFor(i))
       .sort((a, b) => IT.value(a) - IT.value(b));

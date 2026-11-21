@@ -5,13 +5,14 @@
   const B = G.data.balance;
   const T = {};
   const st = () => G.state;
-  T.teamSize = () => B.teamSize;      // amélioration de la taverne en phase 7
-  T.rosterMax = () => B.rosterMax;
+  T.teamSize = () => G.sys.town.val('tavern').team;
+  T.rosterMax = () => G.sys.town.val('tavern').roster;
   T.quality = (id) => G.data.recruitQualities.find((q) => q.id === id) || G.data.recruitQualities[0];
   T.avgLevel = () => { const t = G.sys.heroes.team(); return t.length ? Math.round(t.reduce((a, h) => a + h.level, 0) / t.length) : 1; };
 
   function makeRecruit(rng) {
-    const q = rng.weighted(G.data.recruitQualities.map((x) => ({ id: x.id, w: x.w }))).id;
+    const qb = G.sys.town.val('tavern').quality; // la taverne améliorée attire de meilleures recrues
+    const q = rng.weighted(G.data.recruitQualities.map((x, i) => ({ id: x.id, w: x.w * (i ? 1 + qb * i : 1) }))).id;
     const cls = 'adventurer'; // toutes les recrues commencent aventurier
     const [a, b] = B.tavern.levelBelowAvg;
     const level = Math.max(1, T.avgLevel() - rng.int(a, b));
@@ -23,7 +24,7 @@
   T.restock = function () {
     const rng = G.core.rng, tv = st().tavern;
     tv.recruits = [];
-    for (let i = 0; i < B.tavern.recruits; i++) tv.recruits.push(makeRecruit(rng));
+    for (let i = 0; i < G.sys.town.val('tavern').recruits; i++) tv.recruits.push(makeRecruit(rng));
     tv.refreshAt = Date.now() + B.tavern.refreshMinutes * 60000;
   };
   T.recruits = function () {
@@ -46,6 +47,7 @@
     h.name = r.name; h.level = r.level; h.quality = r.quality; h.sp = (r.level - 1) * B.skillPointsPerLevel;
     // place libre dans l'équipe ? il la rejoint directement (hors expédition)
     if (!G.sys.run.active && st().team.length < T.teamSize()) st().team.push(h.id);
+    h.libSp = 0; G.sys.town.syncLibrary();
     G.sys.synergy.invalidate();
     G.core.bus.emit('hero:hire', { hero: h.id });
     return 'ok';
