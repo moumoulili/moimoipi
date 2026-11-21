@@ -379,7 +379,7 @@
       if (u.side === 'hero' && !u.dead) {
         if (u.skillLock > 0) u.skillLock -= dt;
         for (const k in u.skillCd) if (u.skillCd[k] > 0) u.skillCd[k] -= dt;
-        u.mp = Math.min(u.stats.maxMp, u.mp + B.manaRegen(u.stats.maxMp) * dt);
+        if (u.stats.mpRegen) u.mp = Math.min(u.stats.maxMp, u.mp + u.stats.mpRegen * dt);
       }
       u.anim.hit -= dt; u.anim.atk -= dt;
       u.anim.bob += dt * (u.moving ? 12 : 3);

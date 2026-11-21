@@ -20,7 +20,7 @@
   const CMP = [
     ['maxHp', 'PV'], ['atk', 'Attaque'], ['matk', 'Puissance mag.'], ['def', 'Défense'], ['spd', 'Vitesse'],
     ['crit', 'Critique', 1], ['critDmg', 'Dégâts crit.', 1], ['dodge', 'Esquive', 1], ['atkSpd', 'Vit. d\'attaque', 1], ['dmgMult', 'Dégâts', 1],
-    ['healMult', 'Soins', 1], ['lifesteal', 'Vol de vie', 1], ['thorns', 'Épines', 1], ['echo', 'Double frappe', 1], ['goldFind', 'Or trouvé', 1], ['magicFind', 'Chance de butin', 1],
+    ['mpRegen', 'Mana/s'], ['healMult', 'Soins', 1], ['lifesteal', 'Vol de vie', 1], ['thorns', 'Épines', 1], ['echo', 'Double frappe', 1], ['goldFind', 'Or trouvé', 1], ['magicFind', 'Chance de butin', 1],
   ];
   ui.compareHtml = function (hero, newEquip) {
     const a = G.sys.stats.hero(hero), b = G.sys.stats.hero(hero, { equip: newEquip });
@@ -31,7 +31,7 @@
       if (k === 'matk' && cls.attack.dmgType !== 'magic' && cls.role !== 'healer') continue;
       const d = (b[k] || 0) - (a[k] || 0);
       if (Math.abs(d) < (pct ? 0.0005 : 0.05)) continue;
-      const txt = pct ? (d > 0 ? '+' : '') + Math.round(d * 1000) / 10 + ' %' : (d > 0 ? '+' : '') + (Math.abs(d) >= 10 ? Math.round(d) : Math.round(d * 10) / 10);
+      const txt = pct ? (d > 0 ? '+' : '') + Math.round(d * 1000) / 10 + ' %' : (d > 0 ? '+' : '') + (Math.abs(d) >= 10 ? Math.round(d) : String(Math.round(d * 10) / 10).replace('.', ','));
       rows.push('<div>' + name + '</div><div class="' + (d > 0 ? 'pos' : 'neg') + '">' + txt + '</div>');
     }
     let el = 0, el2 = 0;

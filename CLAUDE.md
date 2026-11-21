@@ -82,7 +82,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - XP (ralentie à la demande de l'utilisateur) : niveau suivant `100 × N^2,3`, monstre `4 × niv^1,3` (élite ×2,5, mini-boss ×6, boss ×12),
   à chaque héros vivant. Héros au-dessus du monstre : −12 %/niveau (min 5 %) ; en dessous : +5 %/niveau (max +50 %). Réserve : 25 % de l'XP.
   Montée de niveau en expédition : +25 % PV. 1 point de compétence / niveau (stocké pour la phase 4). Niveau max 100.
-- Compétences : rangée r = r×3 points dans la branche + nœud précédent. Mana max = base + 2×INT ; régén. lente `0,2 + 0,3 %·max`/s (demande utilisateur) ;
+- Compétences : rangée r = r×3 points dans la branche + nœud précédent. Mana max = base + 2×INT ; **aucune régénération de base** (demande utilisateur) : seulement le bonus d'équipement
+  « mpRegen » (min +0,1/s, ×(1+0,03·ilvl), armes/mains sec./bijoux/têtes, compté dans le score d'optimisation) et les potions ;
   coût des compétences +5 %/niveau du héros ; mana conservée d'un étage à l'autre (saved.mp), comme les PV.
   Règles : always/never/boss (élites+gardiens)/enemies N/allyHp/teamHp/selfHp/targetHp X %/allyDead. Réinitialisation `80 × niv^1,5` or.
   Option « répartir automatiquement » (settings.autoSkills). Contrôles 2× plus courts sur les gardiens.
@@ -123,7 +124,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 
 ## Tests
 Serveur local : `python3 -m http.server 8765` puis Playwright en viewport mobile. Simulation accélérée possible :
-`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 4 (joueur simulé : optimise, vend, potions de soin, Portail, compétences auto ; mana lente) : ét. 8 au 1er essai,
-~16 après 4, ~22 après 10. Mage en combat : mana moyenne ~45 %, descend vers 0.
+`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 4 (joueur simulé : optimise, vend, potions de soin, Portail, compétences auto ; mana sans régén. de base) :
+ét. 6 au 1er essai, ~15 après 4, ~20 après 8.
 L'or s'accumule sans débouché au-delà du Portail : la forge (phase 6) et la ville (phase 7) l'absorberont.
 Attention : recharger la page déclenche une sauvegarde (pagehide) ; neutraliser `G.core.save.save` avant d'éditer localStorage dans un test.

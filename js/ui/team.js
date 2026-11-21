@@ -56,6 +56,7 @@
       const magic = c.attack.dmgType === 'magic';
       let extra = '';
       const add = (n, v) => (extra += '<div>' + n + ' <b>' + v + '</b></div>');
+      add('Régén. mana', s.mpRegen ? '+' + String(Math.round(s.mpRegen * 10) / 10).replace('.', ',') + '/s' : 'aucune');
       if (s.healMult > 1) add('Soins', '+' + pct(s.healMult - 1));
       if (s.lifesteal) add('Vol de vie', pct(s.lifesteal));
       if (s.thorns) add('Épines', pct(s.thorns));

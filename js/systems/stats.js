@@ -56,6 +56,7 @@
     st.mainEl = mainEl;
     st.elAmp = {};
     for (const el of ELS) if (A('elAmp_' + el)) st.elAmp[el] = A('elAmp_' + el);
+    st.mpRegen = A('mpRegen');
     st.burnPct = A('burnPct'); st.manaCost = Math.max(-0.6, A('manaCost'));
     st.lifesteal = A('lifesteal'); st.thorns = A('thorns'); st.echo = Math.min(0.75, A('echo'));
     st.bossDmg = A('bossDmg'); st.onKillHeal = A('onKillHeal');

@@ -21,7 +21,7 @@
     const off = (atk * s.dmgMult + elem) * (1 + s.crit * (s.critDmg - 1)) * rate * (1 + s.echo) * (1 + s.bossDmg * 0.3);
     const red = s.def / (s.def + B.defK + B.defPerLvl * f);
     const ehp = (s.maxHp / (1 - red) / (1 - s.dodge)) * (1 + s.thorns * 0.3 + s.lifesteal * 2 + s.onKillHeal);
-    const util = (1 + s.goldFind * 0.15) * (1 + s.magicFind * 0.15);
+    const util = (1 + s.goldFind * 0.15) * (1 + s.magicFind * 0.15) * (1 + Math.min(1, s.mpRegen * 0.6)); // la régén. de mana permet de lancer plus de compétences
     let sc;
     if (c.role === 'tank') sc = Math.pow(off, 0.35) * Math.pow(ehp, 0.65);
     else if (c.role === 'healer') sc = Math.pow(s.matk * s.healMult, 0.6) * Math.pow(ehp, 0.4);

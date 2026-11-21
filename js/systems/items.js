@@ -17,6 +17,7 @@
     let v;
     if (D().pctStats[stat]) v = base * rmult * (1 + 0.004 * ilvl);
     else if (stat === 'spd') v = base * rmult * (1 + 0.01 * ilvl);
+    else if (stat === 'mpRegen') return Math.max(B.mpRegenMin, Math.round(base * rmult * (1 + 0.03 * ilvl) * 10) / 10); // min +0,1/s
     else v = base * B.itemPower(ilvl) * rmult;
     return D().pctStats[stat] ? Math.round(v * 1000) / 1000 : v >= 10 ? Math.round(v) : Math.round(v * 10) / 10;
   };
@@ -107,12 +108,12 @@
   IT.fmtStat = function (stat, v) {
     const name = D().statNames[stat] || stat;
     if (D().pctStats[stat]) return '+' + Math.round(v * 1000) / 10 + ' % ' + name;
-    return '+' + (v >= 100 ? G.core.U.fmt(v) : Math.round(v * 10) / 10) + ' ' + name;
+    return '+' + (v >= 100 ? G.core.U.fmt(v) : String(Math.round(v * 10) / 10).replace('.', ',')) + ' ' + name;
   };
   IT.lines = function (item) {
     const out = [];
     const b = IT.base(item);
-    if (item.dmg) out.push({ t: (b.dmgType === 'magic' ? 'Puissance magique ' : 'Dégâts ') + Math.round(item.dmg * 10) / 10 + (b.spd !== 1 ? ' · vitesse ' + (b.spd > 1 ? '+' : '') + Math.round((b.spd - 1) * 100) + ' %' : ''), cls: 'main' });
+    if (item.dmg) out.push({ t: (b.dmgType === 'magic' ? 'Puissance magique ' : 'Dégâts ') + String(Math.round(item.dmg * 10) / 10).replace('.', ',') + (b.spd !== 1 ? ' · vitesse ' + (b.spd > 1 ? '+' : '') + Math.round((b.spd - 1) * 100) + ' %' : ''), cls: 'main' });
     for (const k in item.implicit) out.push({ t: IT.fmtStat(k, item.implicit[k]), cls: 'implicit' });
     for (const a of item.affixes) out.push({ t: IT.fmtStat(a.stat, a.v), cls: a.special ? 'special' : '' });
     if (item.unique) out.push({ t: D().uniques.find((u) => u.id === item.unique).desc, cls: 'desc' });

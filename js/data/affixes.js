@@ -9,7 +9,7 @@ G.data.statNames = {
   hp: 'PV', str: 'Force', agi: 'Agilité', int: 'Intelligence', def: 'Défense', spd: 'Vitesse',
   atk: 'Attaque', matk: 'Puissance magique', crit: 'Critique', critDmg: 'Dégâts critiques', dodge: 'Esquive',
   dmgPct: 'Dégâts', hpPct: 'PV', defPct: 'Défense', atkSpd: 'Vitesse d\'attaque', goldFind: 'Or trouvé',
-  magicFind: 'Chance de butin', lifesteal: 'Vol de vie', thorns: 'Épines', healPower: 'Soins',
+  magicFind: 'Chance de butin', lifesteal: 'Vol de vie', thorns: 'Épines', healPower: 'Soins', mpRegen: 'mana par seconde', mp: 'Mana max',
   bossDmg: 'Dégâts contre élites et gardiens', onKillHeal: 'Soin à chaque victime', echo: 'Chance de frapper deux fois',
   res_fire: 'Résistance au feu', res_ice: 'Résistance à la glace', res_lightning: 'Résistance à la foudre',
   res_earth: 'Résistance à la terre', res_shadow: 'Résistance à l\'ombre', res_light: 'Résistance à la lumière',
@@ -42,6 +42,7 @@ G.data.pctStats = { crit: 1, critDmg: 1, dodge: 1, dmgPct: 1, hpPct: 1, defPct: 
     { stat: 'lifesteal', base: 0.02, scale: 'pct', w: 2, suffix: 'du vampire', slots: W.concat(['ring', 'amulet']) },
     { stat: 'thorns', base: 0.08, scale: 'pct', w: 2, suffix: 'des ronces', slots: ['chest', 'offhand', 'belt'] },
     { stat: 'healPower', base: 0.07, scale: 'pct', w: 3, suffix: 'de la grâce', slots: W.concat(OFF, JEWEL) },
+    { stat: 'mpRegen', base: 0.15, scale: 'flat', w: 6, suffix: 'de la source', slots: W.concat(OFF, JEWEL, ['head']) },
   ];
   for (const el of ['fire', 'ice', 'lightning', 'earth', 'shadow', 'light']) {
     const nm = { fire: 'des flammes', ice: 'du givre', lightning: 'de l\'orage', earth: 'de la roche', shadow: 'des ténèbres', light: 'de l\'aube' }[el];
