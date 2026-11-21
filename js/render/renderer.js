@@ -38,12 +38,12 @@
   function drawUnit(u, run) {
     const s = G.render.getSprite(u.sprite, u.outline);
     const sc = u.scale || 1;
-    const w = 12 * sc, h = 12 * sc;
+    const w = s.img.width * sc, h = s.img.height * sc;
     let ox = 0, oy = 0;
     if (u.anim.atk > 0) { const k = u.anim.atk / 0.18; ox = u.anim.lx * 3 * k; oy = u.anim.ly * 3 * k; }
     const bob = u.moving ? -Math.abs(Math.sin(u.anim.bob)) * 1.5 : Math.sin(u.anim.bob) * 0.4;
     const px = Math.round(u.x * T - w / 2 + ox - cam.x);
-    const py = Math.round(u.y * T - h + 4 + bob + oy - cam.y);
+    const py = Math.round(u.y * T - h + 4 + (s.img.height > 12 ? 1 : 0) + bob + oy - cam.y);
     // ombre
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath(); ctx.ellipse(Math.round(u.x * T - cam.x), Math.round(u.y * T + 4 - cam.y), 4 * sc, 1.6 * sc, 0, 0, Math.PI * 2); ctx.fill();
@@ -426,9 +426,9 @@
     const team = G.state ? G.sys.heroes.team() : [];
     team.forEach((h, i) => {
       const s = G.render.getSprite(G.sys.heroes.sprite(h));
-      const px = Math.round(cx + (i - (team.length - 1) / 2) * 18) - 6;
-      const py = Math.round(cy + (i % 2 ? 10 : -16) + Math.sin(time * 2 + i) * 0.5) - 6;
-      ctx.drawImage(px + 6 < cx ? s.img : s.flip, px, py);
+      const px = Math.round(cx + (i - (team.length - 1) / 2) * 20) - (s.img.width >> 1);
+      const py = Math.round(cy + (i % 2 ? 10 : -16) + Math.sin(time * 2 + i) * 0.5) - (s.img.height >> 1);
+      ctx.drawImage(px + (s.img.width >> 1) < cx ? s.img : s.flip, px, py);
     });
     for (let i = 0; i < 4; i++) {
       const t2 = (time * 0.7 + i * 0.25) % 1;

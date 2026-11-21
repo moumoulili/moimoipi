@@ -12,7 +12,9 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 - Sauvegarde localStorage (`moimoipi-save`), versionnée (`save.js` : `VERSION` + `migrations`).
   Export/import texte `MMP1:<base64>:<checksum>`.
 - Toutes les données dans `js/data/`. Toutes les constantes d'équilibrage dans `js/data/balance.js`.
-- Pixel art généré en code (`js/render/pixelart.js`, modèles 12x12 en caractères + palette).
+- Pixel art généré en code : héros et monstres en **16x16** (`js/render/sprites16.js`, demande utilisateur : plus détaillés),
+  objets/décors en 12x12 ou 8x8 (`pixelart.js`, `itemart.js`). Minuscule = couleur de palette, MAJUSCULE = ombre (×0,68),
+  ombrage automatique des sprites ≥16 px (haut éclairci, bas assombri), couleurs par défaut `DEF` dans sprites.js.
   Remplaçable par des PNG via `G.render.spriteFiles = { id: 'assets/sprites/id.png' }`.
 - **Style visuel « fantasy/épique »** (demande utilisateur) : boutons `.pxbtn` sculptés (coins taillés via clip-path,
   bordure = ::before, remplissage = ::after ; variantes primary/gold/danger/sel/epic), panneaux à coins dorés,

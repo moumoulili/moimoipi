@@ -10,18 +10,42 @@
   const files = {}; // id -> Image chargée
   G.render.spriteFiles = G.render.spriteFiles || {};
 
+  // couleurs par défaut si la palette ne les précise pas
+  const DEF = { s: '#f1c59a', e: '#1a1020', w: '#e8e0c8', m: '#c9d1dc', l: '#8a5a2b', c: '#e3b341', b: '#5a4a6a', h: '#6a4a2a', a: '#8a8a9a' };
+  function hexToRgb(hx) {
+    if (!hx || hx[0] !== '#') return null;
+    if (hx.length === 4) hx = '#' + hx[1] + hx[1] + hx[2] + hx[2] + hx[3] + hx[3];
+    const n = parseInt(hx.slice(1, 7), 16);
+    return [n >> 16, (n >> 8) & 255, n & 255];
+  }
+  const rgb = (c) => 'rgb(' + c.map((v) => Math.max(0, Math.min(255, Math.round(v)))).join(',') + ')';
+  const mul = (c, f) => [c[0] * f, c[1] * f, c[2] * f];
+  const lighten = (c, f) => [c[0] + (255 - c[0]) * f, c[1] + (255 - c[1]) * f, c[2] + (255 - c[2]) * f];
+  // minuscule = couleur de base, MAJUSCULE = ombre ; ombrage automatique pour les sprites 16 px
   function build(rows, pal, outline) {
-    const h = rows.length, w = rows[0].length;
+    const h = rows.length, w = Math.max.apply(null, rows.map((r) => r.length));
     const c = document.createElement('canvas');
     c.width = w; c.height = h;
     const x = c.getContext('2d');
+    const at = (i, j) => (j >= 0 && j < h && rows[j][i]) || '.';
+    const shadeOn = w >= 16;
     for (let j = 0; j < h; j++) {
       const row = rows[j];
       for (let i = 0; i < w; i++) {
         const ch = row[i];
         if (!ch || ch === '.') continue;
-        const col = ch === 'o' ? (pal.o || outline || OUTLINE) : pal[ch] || '#ff00ff';
-        x.fillStyle = col;
+        if (ch === 'o') { x.fillStyle = pal.o || outline || OUTLINE; x.fillRect(i, j, 1, 1); continue; }
+        const low = ch.toLowerCase(), dark = ch !== low;
+        const base = pal[low] || DEF[low] || '#ff00ff';
+        let col = hexToRgb(base);
+        if (!col) { x.fillStyle = base; x.fillRect(i, j, 1, 1); continue; }
+        if (dark) col = mul(col, 0.68);
+        if (shadeOn) {
+          const up = at(i, j - 1), dn = at(i, j + 1);
+          if (up === '.' || up === 'o') col = lighten(col, 0.18);
+          else if (dn === '.' || dn === 'o') col = mul(col, 0.85);
+        }
+        x.fillStyle = rgb(col);
         x.fillRect(i, j, 1, 1);
       }
     }
