@@ -10,7 +10,7 @@
   // ---------- Barre du haut ----------
   function updateTop() {
     const st = G.state, run = G.sys.run.active;
-    U.$('#tb-floor').textContent = run ? (run.saved.farm ? '🔁 ' : '') + 'Étage ' + run.saved.floor + ' · ' + run.map.biome.name : 'Au camp';
+    U.$('#tb-floor').innerHTML = run ? '<span class="tbf-n">' + (run.saved.farm ? '🔁 ' : '') + 'Étage ' + run.saved.floor + '</span><span class="tbf-b">' + run.map.biome.name + '</span>' : '<span class="tbf-n">Au camp</span><span class="tbf-b">Repos des héros</span>';
     U.$('#tb-gold').innerHTML = U.fmt(st.gold) + (st.run ? ' <span class="run-gold">+' + U.fmt(st.run.gold) + '</span>' : '');
     U.$('#tb-speed').textContent = 'x' + G.core.loop.speed;
   }
@@ -119,7 +119,7 @@
     potKey = key;
     bar.innerHTML = G.data.potionOrder.map((id) => {
       const n = G.state.potions[id] || 0, active = run.buffs[id] > 0;
-      return '<button class="pot ' + (active ? 'active' : '') + '" data-p="' + id + '"' + (n ? '' : ' disabled') + '><img alt="" src="' + G.render.potionIconURL(id, 2) + '"><b>' + n + '</b></button>';
+      return '<button class="pot ' + (active ? 'active' : '') + '" data-p="' + id + '"' + (n ? '' : ' disabled') + ' title="' + G.data.potions[id].name + '"><img alt="" src="' + G.render.potionIconURL(id, 3) + '"><b>' + n + '</b></button>';
     }).join('');
     bar.querySelectorAll('[data-p]').forEach((b) => (b.onclick = () => { if (!G.sys.potions.manual(b.dataset.p)) ui.toast('Pas utile maintenant'); potKey = ''; }));
   }

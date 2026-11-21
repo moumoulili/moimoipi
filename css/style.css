@@ -561,3 +561,54 @@ h2 .ico, h3 .ico { -webkit-text-fill-color: initial; color: initial; background:
 .hcard.lvlup { animation: cardLvl .5s ease-in-out infinite alternate; }
 @keyframes cardLvl { from { box-shadow: inset 0 0 12px rgba(110, 60, 10, .6), 0 0 0 rgba(255, 211, 77, 0); filter: brightness(1); }
   to { box-shadow: inset 0 0 18px rgba(255, 220, 120, .9), 0 0 14px rgba(255, 211, 77, .9); filter: brightness(1.25); } }
+
+/* =====================================================================
+   HABILLAGE DES BARRES : bois sculpté, moulures dorées, rivets
+   ===================================================================== */
+:root {
+  --woodgrain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='60'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.35' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .05 0 0 0 0 .02 0 0 0 1.1 -.35'/%3E%3C/filter%3E%3Crect width='240' height='60' filter='url(%23g)'/%3E%3C/svg%3E");
+  --wood: var(--woodgrain), linear-gradient(180deg, #6e4628 0%, #573620 45%, #3e2614 100%);
+  --rivet: radial-gradient(circle at 35% 35%, #fff3c0 0 1px, #c9a050 2px, #6a4a1a 3px, transparent 4px);
+}
+/* ---- barre du haut ---- */
+#topbar { position: relative; gap: 10px; padding: calc(7px + var(--safe-t)) 12px 8px; background: var(--wood);
+  border-bottom: 0; box-shadow: inset 0 1px 0 rgba(255, 220, 160, .25), 0 3px 0 #2a1608, 0 4px 0 #b8862a, 0 6px 0 #1a0e06, 0 8px 12px rgba(0, 0, 0, .6); z-index: 2; }
+#topbar::before, #topbar::after { content: ''; position: absolute; bottom: -8px; width: 12px; height: 12px; transform: rotate(45deg);
+  background: linear-gradient(135deg, #fff3c0, #e3b341 50%, #8a5a1a); box-shadow: 0 0 0 2px #1a0e06; z-index: 3; }
+#topbar::before { left: 14px; } #topbar::after { right: 14px; }
+#tb-floor { display: flex; flex-direction: column; line-height: 1.05; padding: 4px 10px; min-width: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .25)); border: 1px solid #b8862a; box-shadow: inset 0 2px 4px rgba(0, 0, 0, .7), 0 1px 0 rgba(255, 220, 160, .2);
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%); }
+.tbf-n { font-family: var(--epic-font); font-weight: 900; font-size: 15px; color: #fff3c0; text-shadow: 0 2px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbf-b { font-family: var(--epic-font); font-weight: 700; font-size: 10px; color: #d8b878; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#tb-gold { padding: 5px 10px 5px 8px; border-radius: 14px; background: linear-gradient(180deg, rgba(0, 0, 0, .5), rgba(0, 0, 0, .3)); border: 1px solid #b8862a;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .7); font-family: Georgia, serif; font-weight: 900; text-shadow: 0 1px 0 #000; }
+#tb-gold::before { width: 12px; height: 12px; transform: none; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fffbe0, #ffd34d 45%, #b8861a 75%); box-shadow: 0 0 0 1px #5a3a08, 0 0 6px rgba(255, 211, 77, .7); }
+/* ---- étagère à potions ---- */
+#potion-bar { position: relative; gap: 5px; padding: 7px 8px 9px; background: var(--wood);
+  box-shadow: inset 0 2px 0 rgba(255, 220, 160, .18), inset 0 -4px 0 #2a1608, inset 0 -5px 0 #8a6a3a; }
+.pot { position: relative; min-height: 46px; border: 2px solid #8a6a3a; clip-path: none; border-radius: 8px 8px 3px 3px;
+  background: radial-gradient(ellipse at 50% 70%, rgba(255, 200, 120, .22), transparent 70%), linear-gradient(180deg, #1e120a, #2e1c10);
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, .8), 0 1px 0 rgba(255, 220, 160, .2); }
+.pot img { width: 32px; height: 32px; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .6)); }
+.pot b { position: absolute; right: 2px; bottom: 2px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; font: 900 11px/18px Georgia, serif; color: #2a1608;
+  background: radial-gradient(circle at 35% 30%, #fffbe0, #ffd34d 55%, #c08a20); box-shadow: 0 0 0 1px #3a2208; }
+.pot:disabled { opacity: .45; filter: grayscale(.6); }
+.pot.active { border-color: #ffe08a; box-shadow: inset 0 3px 6px rgba(0, 0, 0, .8), 0 0 10px rgba(255, 211, 77, .8); }
+/* ---- barre d'onglets ---- */
+#tabs { position: relative; background: var(--wood); border-top: 0; padding: 6px 4px calc(4px + var(--safe-b)); gap: 2px;
+  box-shadow: 0 -3px 0 #1a0e06, 0 -4px 0 #b8862a, 0 -6px 0 #2a1608, inset 0 1px 0 rgba(255, 220, 160, .2), 0 -8px 12px rgba(0, 0, 0, .5); }
+#tabs::before, #tabs::after { content: ''; position: absolute; top: 3px; width: 8px; height: 8px; background: var(--rivet); }
+#tabs::before { left: 4px; } #tabs::after { right: 4px; }
+#tabs button { min-height: 60px; padding: 4px 1px; border-radius: 6px; color: #d8b878; gap: 3px; transition: transform .1s; }
+#tabs button + button { box-shadow: -1px 0 0 rgba(0, 0, 0, .35), -2px 0 0 rgba(255, 220, 160, .08); }
+.ti-wrap { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 0, 0, .35), transparent 70%); }
+.ti-img { width: 30px; height: 30px; image-rendering: pixelated; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .7)); transition: transform .15s; }
+.tl { font-family: var(--epic-font); font-weight: 700; font-size: 10px; letter-spacing: .2px; text-shadow: 0 1px 0 #000; }
+#tabs button.active { color: #3b2513; background: var(--paper); box-shadow: inset 0 0 10px rgba(110, 60, 10, .6), 0 0 0 2px #b8862a, 0 0 12px rgba(255, 200, 80, .55); transform: translateY(-4px); }
+#tabs button.active .tl { text-shadow: 0 1px 0 rgba(255, 240, 200, .8); }
+#tabs button.active .ti-wrap { background: radial-gradient(circle, rgba(255, 230, 150, .7), transparent 70%); }
+#tabs button.active .ti-img { transform: scale(1.18); }
+#tabs button.active::before { display: none; }
+#tabs button.notif::after { top: 4px; right: 16%; }

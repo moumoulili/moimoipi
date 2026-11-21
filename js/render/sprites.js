@@ -28,7 +28,7 @@
     c.width = w; c.height = h;
     const x = c.getContext('2d');
     const at = (i, j) => (j >= 0 && j < h && rows[j][i]) || '.';
-    const shadeOn = w >= 16;
+    const shadeOn = w >= 16 || pal.shade; // ombrage auto (sprites 16 px ou palette avec shade: true)
     for (let j = 0; j < h; j++) {
       const row = rows[j];
       for (let i = 0; i < w; i++) {

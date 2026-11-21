@@ -18,7 +18,8 @@
     const nav = U.$('#tabs');
     nav.innerHTML = '';
     for (const t of ui.tabs) {
-      const b = U.el('button', t.locked ? 'locked' : '', '<span class="ti">' + t.icon + '</span>' + t.label);
+      const ico = G.render.tabIcons && G.render.tabIcons[t.id] ? '<img class="ti-img" alt="" src="' + G.render.tabIconURL(t.id) + '">' : '<span class="ti">' + t.icon + '</span>';
+      const b = U.el('button', t.locked ? 'locked' : '', '<span class="ti-wrap">' + ico + '</span><span class="tl">' + t.label + '</span>');
       b.dataset.tab = t.id;
       b.onclick = () => ui.show(t.id);
       nav.appendChild(b);

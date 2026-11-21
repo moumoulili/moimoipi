@@ -38,7 +38,7 @@ js/data/    balance, elements, classes, monsters, biomes, rooms, names, building
             ores (7 minerais), music (3 thèmes originaux camp/dungeon/boss : accords + mélodie « NOTE:pas »),
             evolutions (10 spécialités + 20 ultimes : base, from, tier, rôle, bonus, palette, attaque), skills_adv (100 compétences
             des branches C/D, descriptions auto), sets (6 sets, bonus 2/4/6 pièces)
-js/render/  pixelart (modèles), townart (ville : décor + 9 bâtiments dessinés en code, townLayout), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
+js/render/  pixelart (modèles), icons (icônes des onglets), townart (ville : décor + 9 bâtiments dessinés en code, townLayout), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
             fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
             font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
 js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), synergy (synergies actives + bonusesFor(hero) =
@@ -102,6 +102,9 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - **Ville = carte cliquable** (demande utilisateur) : plus de liste ; chaque bâtiment ouvre sa fenêtre. ▲ = amélioration possible.
 - Montée de niveau : fanfare 8-bit originale (`audio.fanfare`, la musique baisse ~1,5 s) + effet sur le héros (`u.lvlFx` 2 s :
   aura et colonne dorées, rebond, clignotement, « LVL UP! » en police pixel) + fiche du héros qui brille (`.hcard.lvlup`).
+- Barres (demande utilisateur) : barre du haut, étagère à potions et onglets en bois sculpté (`--wood` = grain SVG +
+  dégradé), moulures dorées, rivets ; onglets avec icônes pixel art (`render/icons.js`, `G.render.tabIcons`), onglet actif
+  en parchemin surélevé. Icône de l'appli générée par `tools/make-icons.js` (bouclier + épées).
 - Titres : `ui.fixTitles` isole l'émoji de tête (sinon le dégradé doré le recouvre).
 - **Progression de classe (spécification de l'utilisateur)** :
   Aventurier (niv. 1-10, branche V, « Premiers soins » offert ; équipe de départ et recrues) → **niv. 10** : choix d'une classe
