@@ -11,9 +11,11 @@
 
   // ---------- Arbre ----------
   K.forClass = (cls) => Object.values(SK()).filter((s) => s.cls === cls);
-  K.rank = (h, id) => (h.skills && h.skills[id]) || 0;
+  // rang 1 offert pour les compétences de départ (innate)
+  K.freeRank = (id) => (SK()[id] && SK()[id].innate ? 1 : 0);
+  K.rank = (h, id) => Math.max((h.skills && h.skills[id]) || 0, K.freeRank(id));
   K.pointsIn = (h, branch) => K.forClass(h.cls).filter((s) => s.branch === branch).reduce((a, s) => a + K.rank(h, s.id), 0);
-  K.spent = (h) => K.forClass(h.cls).reduce((a, s) => a + K.rank(h, s.id), 0);
+  K.spent = (h) => K.forClass(h.cls).reduce((a, s) => a + K.rank(h, s.id) - K.freeRank(s.id), 0);
   // raison du blocage, ou '' si on peut apprendre
   K.lockReason = function (h, id) {
     const s = SK()[id];

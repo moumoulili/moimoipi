@@ -19,7 +19,7 @@
     const u0 = {
       uid: uidSeq++, id: h.id, side: 'hero', name: h.name, cls: h.cls, level: h.level,
       x: 0, y: 0, r: 0.3, hp: hp != null ? Math.min(hp, st.maxHp) : st.maxHp, stats: st,
-      attack: c.attack, heal: c.heal, threat: c.threat || 1,
+      attack: c.attack, threat: c.threat || 1,
       cd: rng.float(0, 0.6), healCd: 0, potCd: 0, facing: 1, scale: 1,
       sprite: Object.assign({ id: h.cls }, c.sprite),
       anim: { hit: 0, atk: 0, bob: rng.next() * 6, lx: 0, ly: 0 },
@@ -250,22 +250,6 @@
     if (u.skillLock > 0) return true;
     // compétences (selon les priorités réglées par le joueur)
     if (G.sys.skills.tryCast(run, u, enemies)) return true;
-    // soin prioritaire
-    if (u.heal && u.healCd <= 0) {
-      let best = null, br = u.heal.threshold;
-      for (const a of run.heroes) if (!a.dead && a.hp / a.stats.maxHp < br) { br = a.hp / a.stats.maxHp; best = a; }
-      if (best) {
-        const d = Math.hypot(best.x - u.x, best.y - u.y);
-        if (d <= u.heal.range) {
-          C.heal(run, u, best, u.stats.matk * u.heal.mult);
-          u.healCd = u.heal.cooldown * 100 / u.stats.spd;
-          u.anim.atk = 0.2; u.anim.lx = 0; u.anim.ly = -1;
-          return true;
-        }
-        C.moveTo(run, u, best.x, best.y, dt, C.moveSpeed(u));
-        return true;
-      }
-    }
     if (!enemies.length) return false;
     u.retarget -= dt;
     if (!u.target || u.target.dead || u.retarget <= 0) {

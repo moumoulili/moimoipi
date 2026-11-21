@@ -2,7 +2,7 @@
 // Stratégie "réseau d'abord" : en ligne on a toujours la dernière version,
 // hors ligne on utilise la copie en cache.
 // Penser à changer VERSION à chaque mise à jour du jeu.
-const VERSION = 'moimoipi-p4-3';
+const VERSION = 'moimoipi-p4-4';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'assets/icons/icon-192.png', 'assets/fonts/cinzel.woff2', 'assets/icons/icon-512.png',

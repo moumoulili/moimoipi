@@ -13,6 +13,7 @@
 //    chain : nombre de rebonds ; waves : nombre de vagues ; delay : temps avant impact
 //    status : effet appliqué (voir data/effects.js)
 //    rule : règle par défaut { mode, value } (modifiable par le joueur)
+//    innate : compétence de départ, rang 1 offert (ne coûte pas de point)
 // =====================================================================
 (function () {
   const P = (v) => Math.round(v * 100) + ' %';
@@ -87,8 +88,8 @@
     passive: (r) => ({ manaCost: -0.1 * r, atkSpd: 0.05 * r }), desc: (r) => 'Compétences ' + P(0.1 * r) + ' moins chères, +' + P(0.05 * r) + ' de vitesse d\'attaque' });
 
   // ---------------------------- PRÊTRE ----------------------------
-  sk('p_heal', { cls: 'priest', branch: 'A', row: 0, maxRank: 5, type: 'active', name: 'Soin majeur', icon: '💚',
-    kind: 'heal', cd: 6, mp: 15, target: 'allyLow', range: 6, mult: (r) => 2 + 0.25 * r, rule: { mode: 'allyHp', value: 0.5 },
+  sk('p_heal', { cls: 'priest', branch: 'A', row: 0, maxRank: 5, type: 'active', name: 'Soin majeur', icon: '💚', innate: true,
+    kind: 'heal', cd: 6, mp: 10, target: 'allyLow', range: 6, mult: (r) => 2 + 0.25 * r, rule: { mode: 'allyHp', value: 0.5 },
     desc: (r) => 'Soigne l\'allié le plus blessé de ' + P(2 + 0.25 * r) + ' de la puissance magique' });
   sk('p_grace', { cls: 'priest', branch: 'A', row: 1, maxRank: 5, type: 'passive', name: 'Grâce', icon: '🙏',
     passive: (r) => ({ healPower: 0.06 * r }), desc: (r) => '+' + P(0.06 * r) + ' de soins' });

@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 5;
+  const VERSION = 6;
   const S = {};
 
   S.fresh = function () {
@@ -42,6 +42,8 @@
     3: (st) => { for (const h of st.heroes) { h.quality = h.quality || 'common'; h.sp = (h.sp || 0) + (h.level - 1); } },
     // v4 -> v5 : compétences (les points déjà gagnés sont conservés)
     4: (st) => { for (const h of st.heroes) { h.skills = h.skills || {}; h.skillOrder = h.skillOrder || []; h.skillRules = h.skillRules || {}; } },
+    // v5 -> v6 : « Soin majeur » devient une compétence de départ (rang 1 offert) : on rend le point déjà payé
+    5: (st) => { for (const h of st.heroes) if (h.cls === 'priest' && h.skills && h.skills.p_heal >= 1) h.sp = (h.sp || 0) + 1; },
   };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }

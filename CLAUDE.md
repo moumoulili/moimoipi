@@ -49,7 +49,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v5) : gold, heroes[{id,name,cls,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
+- État sauvegardé `G.state` (v6) : gold, heroes[{id,name,cls,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
   tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
@@ -86,7 +86,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   « mpRegen » (min +0,1/s, ×(1+0,03·ilvl), armes/mains sec./bijoux/têtes, compté dans le score d'optimisation) et les potions ;
   coût des compétences +5 %/niveau du héros ; mana conservée d'un étage à l'autre (saved.mp), comme les PV.
   Règles : always/never/boss (élites+gardiens)/enemies N/allyHp/teamHp/selfHp/targetHp X %/allyDead. Réinitialisation `80 × niv^1,5` or.
-  Option « répartir automatiquement » (settings.autoSkills). Contrôles 2× plus courts sur les gardiens.
+  Option « répartir automatiquement » (settings.autoSkills). Le prêtre n'a **pas de soin de base** (demande utilisateur) :
+  « Soin majeur » est une compétence de départ (`innate`, rang 1 offert, `K.freeRank`), 10 mana. Contrôles 2× plus courts sur les gardiens.
 - Éléments à l'impact : feu brûlure 20 %, glace ralenti 25 % (gel 8 %), foudre étourdit 10 %, terre armure brisée 15 %,
   ombre affaiblit 20 %, lumière +30 % contre morts-vivants/démons ; chance × (1 − résistance).
 - Recrues : qualité Ordinaire 70 % / Doué 25 % (+12 % de gains par niveau) / Héroïque 5 % (+25 %) ; niveau = moyenne équipe − 0..3 ;
@@ -124,7 +125,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 
 ## Tests
 Serveur local : `python3 -m http.server 8765` puis Playwright en viewport mobile. Simulation accélérée possible :
-`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 4 (joueur simulé : optimise, vend, potions de soin, Portail, compétences auto ; mana sans régén. de base) :
-ét. 6 au 1er essai, ~15 après 4, ~20 après 8.
+`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 4 (joueur simulé : optimise, vend, potions soin+mana, Portail, compétences auto ; sans régén. de mana ni soin
+de base) : ét. 4 au 1er essai, ~7 après 4, ~10 après 8 — nettement plus dur.
 L'or s'accumule sans débouché au-delà du Portail : la forge (phase 6) et la ville (phase 7) l'absorberont.
 Attention : recharger la page déclenche une sauvegarde (pagehide) ; neutraliser `G.core.save.save` avant d'éditer localStorage dans un test.

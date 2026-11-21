@@ -80,6 +80,7 @@
     let html = '<div class="item-head"><span class="sbig">' + s.icon + '</span><div><div class="iname sk">' + s.name + '</div><div class="muted small">' + typ + ' · ' +
       G.data.skillBranches[s.cls][s.branch].name + ' · rang ' + r + '/' + s.maxRank + '</div></div></div>';
     if (s.type === 'active') html += '<p class="small">⏱ Recharge ' + s.cd + ' s · 💧 ' + K.manaCost({ stats: G.sys.stats.hero(h), level: h.level }, s) + ' mana' + (s.element && s.element !== 'physical' ? ' · ' + G.data.elements[s.element].icon + ' ' + G.data.elements[s.element].name : '') + '</p>';
+    if (s.innate) html += '<p class="small" style="color:var(--green)">🎁 Compétence de départ : le rang 1 est offert.</p>';
     if (r) html += '<p><b>Actuel :</b> ' + s.desc(r) + '</p>';
     if (r < s.maxRank) html += '<p><b>' + (r ? 'Rang suivant' : 'Rang 1') + ' :</b> ' + s.desc(r + 1) + '</p>';
     if (lock && r < s.maxRank) html += '<p class="neg small">🔒 ' + lock + '</p>';

@@ -34,11 +34,10 @@ G.data.classes = {
   },
   priest: {
     name: 'Prêtre', role: 'healer', tier: 0, threat: 1,
-    desc: 'Soigne l\'équipe et frappe avec la lumière.',
+    desc: 'Soigne l\'équipe (compétence Soin majeur, offerte) et frappe avec la lumière.',
     base:   { hp: 85, mp: 70, str: 3, agi: 4, int: 10, def: 6, spd: 98, crit: 0.05 },
     growth: { hp: 8, mp: 7, str: 0.3, agi: 0.5, int: 2.1, def: 0.9, spd: 0.3, crit: 0 },
     attack: { type: 'ranged', stat: 'int', range: 4, dmgType: 'magic', element: 'light', projectile: 'holy', mult: 0.6 },
-    heal: { mult: 1.7, cooldown: 2.6, threshold: 0.8, range: 5.5 },
     sprite: { tpl: 'priest', pal: { h: '#e8d9a8', s: '#f1c59a', e: '#1a1020', a: '#f2f2f2', c: '#e3b341', m: '#a0743c' } },
   },
   rogue: {
