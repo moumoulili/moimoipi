@@ -54,7 +54,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - Combat en temps réel sur la carte (pas de scène séparée).
 - Gardien tous les 5 étages (mini-boss), boss tous les 10. Après sa mort : **choix sortir (100 % du butin)
   ou continuer** (option : demander 10 s / toujours continuer / toujours rentrer). Sortie possible jusqu'à
-  la fin de l'étage.
+  la fin de l'étage. Sortir / Fuir = petites icônes rondes dans le coin de la carte (#map-actions), 🚪 visible seulement quand la sortie est possible.
 - **Départ toujours à l'étage 1** sauf amélioration : le bâtiment **Portail des profondeurs** (niv. k)
   autorise le départ à l'étage 5k+1, à condition d'avoir vaincu le gardien de l'étage 5k. Coût 2500 × 3^niv.
 - Difficulté relevée à la demande de l'utilisateur ; les monstres « dive » (rapides) évitent le tank et visent l'arrière.

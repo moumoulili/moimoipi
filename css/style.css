@@ -451,3 +451,10 @@ textarea { background-image: none; background: #f6e8c6; }
 .hcard .hp-txt { color: #6a4a2a; }
 /* étiquettes colorées (qualité) sur papier : couleur assombrie plutôt que contour */
 .panel .tag[style*="color"], .modal .tag[style*="color"] { text-shadow: none; filter: brightness(.6) saturate(1.4); background: rgba(255, 255, 255, .25); }
+/* petites icônes Sortir / Fuir dans le coin de la carte */
+#map-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 3; }
+.map-btn { width: 38px; height: 38px; padding: 0; font-size: 18px; line-height: 1; border: 2px solid #b8862a; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6a4628, #2a180c); box-shadow: 0 2px 4px rgba(0, 0, 0, .7); opacity: .8; }
+.map-btn:active { transform: scale(.92); }
+.map-btn.exit { border-color: #ffe08a; opacity: 1; animation: exitGlow 1.2s ease-in-out infinite; }
+@keyframes exitGlow { 50% { box-shadow: 0 0 12px 3px rgba(255, 211, 77, .8); } }

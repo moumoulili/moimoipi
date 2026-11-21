@@ -6,7 +6,6 @@
   const U = G.core.U, ui = G.ui, B = G.data.balance;
   let partyKey = '', actionsKey = '', hudT = 0;
 
-  function nextCheckpoint(f) { return Math.ceil(f / B.checkpointEvery) * B.checkpointEvery; }
 
   // ---------- Barre du haut ----------
   function updateTop() {
@@ -76,7 +75,7 @@
     if (!run) {
       if (actionsKey !== 'idle') {
         actionsKey = 'idle';
-        U.$('#dungeon-actions').innerHTML = '';
+        U.$('#map-actions').innerHTML = '';
         const f = G.ui.startFloor();
         ov.innerHTML = '<p>L\'équipe se repose au camp.</p>';
         const b = U.el('button', 'pxbtn primary wide', '⚔️ Partir en expédition (étage ' + f + ')');
@@ -89,15 +88,18 @@
     ov.hidden = true;
     if (key === actionsKey) return;
     actionsKey = key;
-    const box = U.$('#dungeon-actions');
+    // petites icônes dans le coin de la carte
+    const box = U.$('#map-actions');
     box.innerHTML = '';
-    const exit = U.el('button', 'pxbtn ' + (can ? 'gold pulse' : ''), can ? '🚪 Sortir (100 % du butin)' : '🔒 Sortie après le gardien (ét. ' + nextCheckpoint(run.saved.floor) + ')');
-    exit.disabled = !can;
-    exit.onclick = () => G.sys.run.retreat();
-    const flee = U.el('button', 'pxbtn small danger', 'Fuir');
-    flee.style.flex = '0 0 auto';
+    if (can) {
+      const exit = U.el('button', 'map-btn exit', '🚪');
+      exit.title = 'Sortir du donjon (100 % du butin)';
+      exit.onclick = () => ui.confirm('Sortir du donjon ?', '<p>L\'équipe rentre en ville avec <b>100 %</b> du butin.</p>', '🚪 Sortir', () => G.sys.run.retreat(), 'gold');
+      box.appendChild(exit);
+    }
+    const flee = U.el('button', 'map-btn flee', '🏳️');
+    flee.title = 'Fuir (garde ' + Math.round(B.deathKeep * 100) + ' % de l\'or)';
     flee.onclick = () => ui.confirm('Fuir le donjon ?', '<p>L\'équipe rentre en ville mais ne garde que <b>' + Math.round(B.deathKeep * 100) + ' %</b> de l\'or de cette expédition.</p>', 'Fuir', () => G.sys.run.active && G.sys.run.end('death'));
-    box.appendChild(exit);
     box.appendChild(flee);
   }
   ui.invalidateHud = function () { partyKey = ''; actionsKey = ''; potKey = ''; };
