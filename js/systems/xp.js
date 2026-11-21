@@ -70,7 +70,7 @@
     fx.ring(u.x, u.y, '#ffd34d', 0.6, 0.9, true);
     fx.sparkle(u.x, u.y, '#fff3a8', 30);
     fx.burst(u.x, u.y - 0.3, '#ffe14d', 16, -1.5, true);
-    fx.text(u.x, u.y - 1.3, 'NIVEAU ' + h.level + ' !', '#ffe14d', 2, 1.8, 0.45);
+    fx.text(u.x, u.y - 1.3, 'LVL UP!', '#ffe14d', 2, 1.8, 0.45);
     fx.flash('#fff3c0', 0.12);
     G.ui.log('⭐ ' + h.name + ' passe niveau ' + h.level + ' !', 'gold');
     G.core.bus.emit('hero:levelup', { hero: h.id, level: h.level });
