@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 3;
+  const VERSION = 4;
   const S = {};
 
   S.fresh = function () {
@@ -23,6 +23,7 @@
       potions: Object.assign({}, G.data.balance.startPotions),
       potionRules: { heal: 0.3, revive: true, buffs: { might: 'boss', stone: 'boss', haste: 'never' } },
       shop: { items: [], refreshAt: 0 },
+      tavern: { recruits: [], refreshAt: 0 },
       progress: { maxFloor: 0, maxCheckpoint: 0 },
       stats: { kills: 0, totalGold: 0, runs: 0, deaths: 0 },
       settings: { checkpointMode: 'ask', autoRestart: true, speed: 1, vibrate: true, flashes: true, startFloor: 1,
@@ -37,6 +38,8 @@
     1: (st) => { st.town = { buildings: { portal: 0 } }; st.settings.startFloor = 1; },
     // v2 -> v3 : équipement, inventaire, potions, boutique (champs ajoutés par défaut ci-dessous)
     2: (st) => { for (const h of st.heroes) h.equip = h.equip || {}; },
+    // v3 -> v4 : niveaux/XP, qualité des recrues, taverne
+    3: (st) => { for (const h of st.heroes) { h.quality = h.quality || 'common'; h.sp = (h.sp || 0) + (h.level - 1); } },
   };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }
@@ -46,7 +49,7 @@
     for (const k in def.settings) if (st.settings[k] === undefined) st.settings[k] = def.settings[k];
     for (const k in def.stats) if (st.stats[k] === undefined) st.stats[k] = def.stats[k];
     if (!st.town.buildings) st.town.buildings = {};
-    for (const h of st.heroes) if (!h.equip) h.equip = {};
+    for (const h of st.heroes) { if (!h.equip) h.equip = {}; if (!h.quality) h.quality = 'common'; if (h.sp == null) h.sp = 0; if (h.xp == null) h.xp = 0; }
     for (const k in def.settings.autoSell) if (st.settings.autoSell[k] === undefined) st.settings.autoSell[k] = def.settings.autoSell[k];
     for (const k in def.potionRules) if (st.potionRules[k] === undefined) st.potionRules[k] = def.potionRules[k];
     for (const k in def.progress) if (st.progress[k] === undefined) st.progress[k] = def.progress[k];

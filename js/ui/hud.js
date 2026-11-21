@@ -29,8 +29,8 @@
       const c = G.data.classes[h.cls];
       const card = U.el('div', 'hcard');
       card.dataset.id = h.id;
-      card.innerHTML = '<img alt="" src="' + G.render.spriteURL(c.sprite, 3) + '"><div class="hn">' + U.esc(h.name) + '</div>' +
-        '<div class="bar hp"><i></i></div><div class="hp-txt"></div>';
+      card.innerHTML = '<span class="lvl-badge"></span><img alt="" src="' + G.render.spriteURL(c.sprite, 3) + '"><div class="hn">' + U.esc(h.name) + '</div>' +
+        '<div class="bar hp"><i></i></div><div class="bar xp thin"><i></i></div><div class="hp-txt"></div>';
       el.appendChild(card);
     }
   }
@@ -44,6 +44,9 @@
       if (u) { hp = u.hp; max = u.stats.maxHp; dead = u.dead; }
       else { const st = G.sys.stats.hero(G.sys.heroes.get(id)); hp = max = st.maxHp; }
       card.classList.toggle('dead', dead);
+      const hero = G.sys.heroes.get(id);
+      card.querySelector('.lvl-badge').textContent = hero.level;
+      card.querySelector('.bar.xp > i').style.width = Math.min(100, (hero.xp / G.sys.xp.toNext(hero)) * 100) + '%';
       card.querySelector('.bar.hp > i').style.width = Math.max(0, (hp / max) * 100) + '%';
       card.querySelector('.hp-txt').textContent = dead ? 'K.O.' : U.fmt(hp) + ' / ' + U.fmt(max);
     });
@@ -145,7 +148,7 @@
     let rows = '';
     for (const h of team) {
       const s = lr.heroStats[h.id] || { dmg: 0, heal: 0, kills: 0 };
-      rows += '<div>' + U.esc(h.name) + ' <span class="muted">' + U.fmt(s.dmg) + ' dégâts' + (s.heal ? ', ' + U.fmt(s.heal) + ' soins' : '') + '</span></div><div>' + s.kills + ' ☠</div>';
+      rows += '<div>' + U.esc(h.name) + ' <span class="muted small">niv. ' + h.level + (s.levels ? ' <b class="pos">(+' + s.levels + ')</b>' : '') + ' · ' + U.fmt(s.dmg) + ' dégâts' + (s.heal ? ', ' + U.fmt(s.heal) + ' soins' : '') + ' · ' + U.fmt(s.xp || 0) + ' XP</span></div><div>' + s.kills + ' ☠</div>';
     }
     const m = Math.floor(lr.time / 60), sec = lr.time % 60;
     const html = '<div class="sum-grid">' +

@@ -313,3 +313,23 @@ select { appearance: none; -webkit-appearance: none; padding-right: 32px;
 .htab { background: linear-gradient(180deg, #2e243a, #1b1424); border-color: #5a4630; font-family: var(--epic-font); }
 .htab.sel { border-color: var(--trim); box-shadow: inset 0 0 12px rgba(227, 179, 65, .3); }
 .hero-line img, .portrait { border-color: var(--trim-dk); }
+
+/* ===== Phase 3 : niveaux, taverne, synergies ===== */
+.bar.xp > i { background: linear-gradient(180deg, #e0b0ff, #9a4ad6 60%, #6a2aa6); }
+.bar.thin { height: 4px; margin-top: 2px; }
+.hcard { position: relative; }
+.lvl-badge { position: absolute; top: 2px; left: 2px; min-width: 18px; height: 18px; padding: 0 3px; font: 900 11px/18px Georgia, serif; text-align: center;
+  color: #1a1020; background: linear-gradient(180deg, #fff3c0, #e3b341); clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px); }
+.htab small { font-size: 10px; color: var(--muted); font-family: Georgia, serif; }
+.htab.bench { opacity: .6; }
+.hero-tabs { grid-template-columns: repeat(4, 1fr); }
+.hero-line.comp.bench { opacity: .75; }
+.comp-btns { display: flex; gap: 4px; flex: 0 0 auto; }
+.pos-badge { display: inline-block; min-width: 18px; text-align: center; font: 900 11px/18px Georgia, serif; color: #1a1020; background: var(--trim); }
+.syn-list { display: flex; flex-direction: column; gap: 6px; }
+.syn { display: flex; gap: 8px; align-items: flex-start; padding: 6px; border: 1px solid #3a2c40; opacity: .5; }
+.syn.on { opacity: 1; border-color: var(--trim); background: linear-gradient(90deg, rgba(227, 179, 65, .15), transparent); }
+.syn-i { font-size: 20px; width: 26px; text-align: center; }
+.recruit { display: flex; gap: 8px; align-items: center; padding: 8px; margin-bottom: 6px; border: 2px solid var(--rc); background: linear-gradient(90deg, color-mix(in srgb, var(--rc) 12%, transparent), transparent); clip-path: var(--cut); }
+.recruit img { width: 48px; height: 48px; image-rendering: pixelated; }
+.recruit .info { flex: 1; min-width: 0; }

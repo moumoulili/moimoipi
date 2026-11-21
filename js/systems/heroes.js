@@ -11,7 +11,7 @@
     const used = new Set(st.heroes.map((h) => h.name));
     const pool = G.data.heroNames.filter((n) => !used.has(n));
     const name = rng.pick(pool.length ? pool : G.data.heroNames);
-    const h = { id: 'h' + (st.nextId++), name, cls, level: 1, xp: 0, equip: {} };
+    const h = { id: 'h' + (st.nextId++), name, cls, level: 1, xp: 0, sp: 0, quality: 'common', equip: {} };
     st.heroes.push(h);
     return h;
   };
@@ -20,5 +20,6 @@
   };
   H.get = (id) => G.state.heroes.find((h) => h.id === id);
   H.team = () => G.state.team.map(H.get).filter(Boolean);
+  H.bench = () => G.state.heroes.filter((h) => G.state.team.indexOf(h.id) < 0);
   G.sys.heroes = H;
 })();

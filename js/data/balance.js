@@ -73,9 +73,23 @@ G.data.balance = {
   startPotions: { heal: 3 },
   shop: { items: 4, refreshMinutes: 15, priceMult: 5, minRarity: 'uncommon' },
 
-  // --- Expérience (phase 3) ---
-  xpToNext: (L) => Math.round(50 * Math.pow(L, 1.6)),
+  // --- Expérience et niveaux (phase 3) ---
+  xpToNext: (L) => Math.round(60 * Math.pow(L, 2)),
   monsterXp: (lvl) => 5 * Math.pow(lvl, 1.3),
+  xpMult: { elite: 3, mini: 8, boss: 20 },
+  // écart de niveau héros - monstre : au-dessus de +2 l'XP baisse de 15 %/niveau (min 5 %),
+  // en dessous l'XP augmente de 6 %/niveau (max +60 %) pour que les recrues rattrapent
+  xpLevelGap: { free: 2, penalty: 0.15, minMult: 0.05, catchup: 0.06, maxCatchup: 0.6 },
+  levelCap: 100,
+  levelUpHeal: 0.25,       // % de PV rendus en montant de niveau pendant une expédition
+  skillPointsPerLevel: 1,  // utilisés en phase 4 (arbres de compétences)
+  benchXp: 0.25,           // les héros en réserve reçoivent 25 % de l'XP
+
+  // --- Taverne (phase 3) ---
+  teamSize: 4,             // la taverne améliorée passera à 5 puis 6 (phase 7)
+  rosterMax: 8,            // nombre max d'aventuriers (équipe + réserve)
+  tavern: { recruits: 3, refreshMinutes: 30, levelBelowAvg: [0, 3] },
+  recruitPrice: (lvl, q) => Math.round(150 * Math.pow(1 + lvl, 1.6) * q),
 
   // --- Sauvegarde ---
   autosaveEvery: 30,       // secondes

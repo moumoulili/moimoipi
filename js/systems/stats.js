@@ -14,7 +14,8 @@
     opts = opts || {};
     const c = G.data.classes[hero.cls];
     const L = hero.level;
-    const g = (k) => c.base[k] + c.growth[k] * (L - 1);
+    const qg = G.sys.tavern ? G.sys.tavern.quality(hero.quality).growth : 1; // potentiel de la recrue
+    const g = (k) => c.base[k] + c.growth[k] * (L - 1) * qg;
     const eq = opts.equip || hero.equip || {};
     const buffs = opts.buffs || {};
     const add = {};
@@ -26,6 +27,8 @@
       for (const k in s) add[k] = (add[k] || 0) + s[k];
       if (slot === 'weapon') { const b = G.data.itemBases[it.base]; wdmg = it.dmg || 0; wtype = b.dmgType; wspd = b.spd || 1; }
     }
+    // bonus hors équipement : synergies (et plus tard passifs, ville, rebirth)
+    if (G.sys.synergy) { const gb = G.sys.synergy.bonusesFor(hero); for (const k in gb) add[k] = (add[k] || 0) + gb[k]; }
     const A = (k) => add[k] || 0;
     const st = {
       str: g('str') + A('str'), agi: g('agi') + A('agi'), int: g('int') + A('int'),

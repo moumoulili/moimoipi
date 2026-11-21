@@ -27,6 +27,9 @@
       }
       h += '</div>';
 
+      // ---- Taverne ----
+      h += '<div class="panel" id="tw-tavern"><h3>🍺 Taverne</h3>' + ui.tavernHtml() + '</div>';
+
       // ---- Boutique ----
       const SH = G.sys.shop;
       h += '<div class="panel" id="tw-shop"><h3>🛒 Boutique</h3><p class="muted small">Les prix suivent ton étage record.</p>';
@@ -46,7 +49,7 @@
       for (const hero of G.sys.heroes.team()) {
         const c = G.data.classes[hero.cls], s = G.sys.stats.hero(hero);
         h += '<div class="hero-line"><img alt="" src="' + G.render.spriteURL(c.sprite, 4) + '"><div class="info">' +
-          '<b>' + U.esc(hero.name) + '</b> <span class="tag">' + c.name + '</span><span class="tag">' + G.data.roles[c.role] + '</span> <span class="muted">niv. ' + hero.level + '</span>' +
+          '<b>' + U.esc(hero.name) + '</b> <span class="tag">' + c.name + '</span><span class="tag">' + G.data.roles[c.role] + '</span>' + ui.qualityTag(hero) + ' <span class="muted">niv. ' + hero.level + '</span>' + ui.xpBarHtml(hero) +
           '<div class="stat-grid" style="margin-top:4px"><div>PV <b>' + s.maxHp + '</b></div><div>Attaque <b>' + Math.round(c.attack.dmgType === 'magic' ? s.matk : s.atk) + '</b></div>' +
           '<div>Défense <b>' + Math.round(s.def) + '</b></div><div>Vitesse <b>' + Math.round(s.spd) + '</b></div></div></div></div>';
       }
@@ -68,6 +71,7 @@
         if (G.sys.town.buy(b.dataset.buy)) { ui.toast(G.data.buildings[b.dataset.buy].name + ' amélioré !', 'gold'); ui.invalidateHud(); this.render(); }
       }));
       const rer = () => this.render();
+      ui.bindTavern(U.$('#tw-tavern'), rer);
       ui.bindOptimize('tw-opt', rer);
       el.querySelectorAll('[data-pot]').forEach((b) => (b.onclick = () => {
         const n = SH.buyPotion(b.dataset.pot, +b.dataset.n);

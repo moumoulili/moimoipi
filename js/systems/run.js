@@ -37,7 +37,8 @@
     };
     saved.heroStats = run.stats;
     run.track = function (id, k, v) {
-      const s = (run.stats[id] = run.stats[id] || { dmg: 0, taken: 0, heal: 0, kills: 0 });
+      const s = (run.stats[id] = run.stats[id] || { dmg: 0, taken: 0, heal: 0, kills: 0, xp: 0, levels: 0 });
+      if (s[k] === undefined) s[k] = 0;
       s[k] += v;
     };
     run.aggroRoom = (m) => aggroRoom(run, m);
@@ -93,7 +94,9 @@
       if (!h) continue;
       const ratio = u.hp / u.stats.maxHp;
       u.stats = G.sys.stats.hero(h, { buffs });
+      u.level = h.level;
       if (!u.dead) u.hp = Math.max(1, Math.round(ratio * u.stats.maxHp));
+      if (u.levelHeal && !u.dead) { u.hp = Math.min(u.stats.maxHp, u.hp + u.stats.maxHp * B.levelUpHeal); u.levelHeal = false; }
     }
     teamBonuses(run);
   };
@@ -159,6 +162,7 @@
         }
       }
       G.sys.loot.onMonsterKill(run, u);
+      G.sys.xp.onKill(run, u);
       bus.emit('monster:kill', { id: u.id, family: u.family, elite: u.elite, guardian: u.guardian, floor: u.level });
       if (u.guardian) onGuardianKilled(run, u);
     } else {

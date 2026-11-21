@@ -23,21 +23,25 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 ```
 js/core/    namespace, utils (fmt, $), rng (graine), bus (événements), save, loop (pas fixes 30/s × vitesse)
 js/data/    balance, elements, classes, monsters, biomes, rooms, names, buildings,
-            rarities, items (emplacements, bases, classGear), affixes (+ pouvoirs mythiques), uniques, potions, materials
+            rarities, items (emplacements, bases, classGear), affixes (+ pouvoirs mythiques), uniques, potions, materials,
+            synergies (conditions classes/rôles + bonus + cible), recruits (qualités des recrues)
 js/render/  pixelart (modèles), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
             fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
             font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
-js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), stats (classe+niveau+équipement+élixirs),
+js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), synergy (synergies actives + bonusesFor(hero) =
+            point d'entrée des bonus hors équipement : y brancher passifs/ville/rebirth), stats (classe+niveau×qualité+équipement+bonus+élixirs),
+            xp (gain par victime, écart de niveau, montée de niveau), tavern (recrues, embauche, renvoi, composition),
             heroes, dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
             loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments, départs), run (expédition)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon + barre de potions), items (case, fiche,
-            comparaison, sélecteur d'emplacement), team (stats + équipement), bag (sac, tri auto, potions), town (+ boutique), settings
+            comparaison, sélecteur d'emplacement), team (héros : niveau/XP/stats/équipement, composition, synergies, fenêtre taverne), bag (sac, tri auto, potions), town (+ boutique), settings
 ```
 - Simulation séparée du rendu : `G.sys.run.update(dt)` est déterministe en temps de jeu
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v3) : gold, heroes[{id,name,cls,level,xp,equip{slot:item}}], team[ids], run (étage, or, PV, graine),
+- État sauvegardé `G.state` (v4) : gold, heroes[{id,name,cls,level,xp,sp,quality,equip{slot:item}}] (= toute la compagnie), team[ids] (ordre = formation),
+  tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
 - Après tout changement d'équipement pendant une expédition : `G.sys.run.refreshStats()` (fait par inventory.equip). L'étage est régénéré depuis sa graine au chargement.
@@ -65,7 +69,13 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - Réduction défense : `DEF / (DEF + 50 + 10 × niv. attaquant)`, max 75 % ; magie ignore 50 % DEF.
 - Élément : faiblesse ×1,5, résistance ×0,5. Critique 5 % + AGI×0,1 % (×1,5). Esquive AGI×0,05 % (max 30 %).
 - Attaque = 2 × stat principale + 5. Intervalle d'attaque = 1,2 s × 100 / vitesse.
-- Or par monstre `2 × niv^1,2`. XP prévue : niveau suivant `50 × N^1,6`, monstre `5 × niv^1,3`.
+- Or par monstre `2 × niv^1,2`.
+- XP : niveau suivant `60 × N²`, monstre `5 × niv^1,3` (élite ×3, mini-boss ×8, boss ×20), à chaque héros vivant.
+  Écart héros−monstre > +2 : −15 %/niveau (min 5 %) ; héros en dessous : +6 %/niveau (max +60 %). Réserve : 25 % de l'XP.
+  Montée de niveau en expédition : +25 % PV. 1 point de compétence / niveau (stocké pour la phase 4). Niveau max 100.
+- Recrues : qualité Ordinaire 70 % / Doué 25 % (+12 % de gains par niveau) / Héroïque 5 % (+25 %) ; niveau = moyenne équipe − 0..3 ;
+  prix `150 × (1+niv)^1,6 × (1 / 2,2 / 5)`. Équipe 4, compagnie 8 (la taverne améliorée en phase 7 augmentera).
+- 10 synergies (data/synergies.js), ex. tank+soigneur +15 % déf., 2 mages +12 % dégâts des mages, 4 rôles distincts +5 % PV/dégâts.
 - Raretés : commun 60 / peu commun 25 / rare 10 / épique 4 (dès ét. 3) / légendaire 0,9 (dès ét. 8) / mythique 0,1 (dès ét. 30) ;
   poids × (1+chance de butin)^rang × (1+0,01·étage)^rang. Bonus aléatoires : 0/1/2/3/4/5. Puissance ×1 / 1,12 / 1,28 / 1,48 / 1,72 / 2.
 - Puissance d'un objet : `(1 + 0,1(ilvl-1)) × 1,05^(ilvl-1)` (légèrement sous les monstres → besoin de raretés, forge, niveaux).
@@ -85,7 +95,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
       **Optimiser l'équipe** (`inventory.optimizeTeam`) : sac + objets portés mis en commun, attribution gloutonne
       au meilleur gain relatif (les objets peuvent changer de héros), annulée si pas meilleure ; boutons Équipe/Sac/Ville/fin
       d'expédition + option « optimiser à chaque retour en ville ». Thème visuel fantasy.
-- [ ] Phase 3 : XP, niveaux, classes (voleur recrutable), taverne, synergies
+- [x] **Phase 3** : XP et niveaux (barres d'XP, effets, récap), taverne (3 recrues / 30 min, qualités, renvoi), compagnie
+      de 8 avec réserve, composition et ordre de l'équipe, 10 synergies, voleur recrutable.
 - [ ] Phase 4 : compétences, arbres, priorités, éléments complets
 - [ ] Phase 5 : mécaniques de boss, salles spéciales, biomes visibles
 - [ ] Phase 6 : évolutions de classe, sets, forge
@@ -96,6 +107,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 
 ## Tests
 Serveur local : `python3 -m http.server 8765` puis Playwright en viewport mobile. Simulation accélérée possible :
-`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 2 (joueur simulé qui s'équipe + Portail) : ét. 6 au 1er essai, ~19-20 après 10 expéditions, puis mur (normal avant les niveaux).
+`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 3 (joueur simulé : optimise, vend, achète potions + Portail) : niveau des héros ≈ étage ; ét. 9 au 1er essai, ~22 après 4,
+~27-28 après 15 (mur avant le boss de l'étage 30).
 L'or s'accumule sans débouché au-delà du Portail : la forge (phase 6) et la ville (phase 7) l'absorberont.
 Attention : recharger la page déclenche une sauvegarde (pagehide) ; neutraliser `G.core.save.save` avant d'éditer localStorage dans un test.
