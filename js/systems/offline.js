@@ -29,21 +29,23 @@
 
   O.compute = function (elapsed) {
     const r = st().rate, camp = G.sys.town.val('camp');
-    if (!r || !r.samples) return null;
+    const Mn = G.sys.mine, mineOres = Mn.dps() > 0 ? Math.floor((Mn.dps() * Math.min(elapsed, camp.hours * 3600) * camp.eff) / Mn.maxHp()) : 0;
+    if (!r || !r.samples) return mineOres ? { elapsed, t: Math.min(elapsed, camp.hours * 3600), capped: elapsed > camp.hours * 3600, eff: camp.eff, gold: 0, xp: 0, kills: 0, items: 0, mats: {}, floor: 1, mineOres } : null;
     const cap = camp.hours * 3600, t = Math.min(elapsed, cap), eff = camp.eff;
     const g = { elapsed, t, capped: elapsed > cap, eff, gold: Math.round(r.gold * t * eff), xp: r.xp * t * eff, kills: Math.round(r.kills * t * eff),
-      items: Math.min(150, Math.floor(r.items * t * eff)), mats: {}, floor: r.floor };
+      items: Math.min(150, Math.floor(r.items * t * eff)), mats: {}, floor: r.floor, mineOres };
     for (const k in r.mats) { const n = Math.floor(r.mats[k] * t * eff); if (n > 0) g.mats[k] = n; }
     return g;
   };
 
   O.apply = function (g) {
     const S = st();
+    if (g.mineOres) S.mine.ores[S.mine.sel] = (S.mine.ores[S.mine.sel] || 0) + g.mineOres;
     S.gold += g.gold; S.stats.totalGold += g.gold; S.stats.kills += g.kills;
     for (const k in g.mats) S.materials[k] = (S.materials[k] || 0) + g.mats[k];
     g.levels = {};
     // l'XP est donnée par tranches : si le héros dépasse le niveau des monstres, elle diminue comme en jeu
-    const X = G.sys.xp, ref = X.gapMult(Math.round(S.rate.lvl || 1), g.floor) || 1;
+    const X = G.sys.xp, ref = S.rate ? X.gapMult(Math.round(S.rate.lvl || 1), g.floor) || 1 : 1;
     g.xpReal = 0;
     for (const h of G.sys.heroes.team()) {
       let ups = 0;
@@ -72,7 +74,7 @@
     S.lastSeen = Date.now();
     if (elapsed < 120) return;
     const g = O.compute(elapsed);
-    if (!g || (g.gold <= 0 && g.xp <= 0)) return;
+    if (!g || (g.gold <= 0 && g.xp <= 0 && !g.mineOres)) return;
     O.apply(g);
     G.core.save.save();
     G.ui.offlineSummary && G.ui.offlineSummary(g);

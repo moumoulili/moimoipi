@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 9;
+  const VERSION = 10;
   const S = {};
 
   S.fresh = function () {
@@ -25,10 +25,11 @@
       shop: { items: [], refreshAt: 0 },
       tavern: { recruits: [], refreshAt: 0 },
       rate: null, // rendement mesuré (gains hors ligne)
+      mine: { ores: {}, sel: 'copper', hp: 12, power: 0, auto: 0, crit: 0, depth: 1, broken: 0 },
       progress: { maxFloor: 0, maxCheckpoint: 0 },
       stats: { kills: 0, totalGold: 0, runs: 0, deaths: 0 },
       settings: { checkpointMode: 'ask', autoRestart: true, speed: 1, vibrate: true, flashes: true, startFloor: 1,
-        autoSell: { maxRarity: -1, action: 'sell', keepUpgrades: true }, autoEquip: false, autoOptimize: false, autoSkills: false, eventMode: 'ask', merchantMode: 'ask', farm: { on: false, floor: 1 } },
+        autoSell: { maxRarity: -1, action: 'sell', keepUpgrades: true }, autoEquip: false, autoOptimize: false, autoSkills: false, eventMode: 'ask', merchantMode: 'ask', farm: { on: false, floor: 1 }, music: true, musicVol: 0.5, sfx: true },
       // réservé aux phases suivantes : inventory, equipment, town, quests, bestiary, prestige...
     };
   };
@@ -51,6 +52,8 @@
     7: (st) => { for (const h of st.heroes) h.legacy = h.ult ? 1 : 0; },
     // v8 -> v9 : bâtiments de la ville, gains hors ligne, auto-farm (valeurs par défaut ajoutées automatiquement)
     8: () => {},
+    // v9 -> v10 : mine, atelier, musique (valeurs par défaut ajoutées automatiquement)
+    9: () => {},
   };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }
@@ -60,6 +63,7 @@
     for (const k in def.settings) if (st.settings[k] === undefined) st.settings[k] = def.settings[k];
     for (const k in def.stats) if (st.stats[k] === undefined) st.stats[k] = def.stats[k];
     if (!st.town.buildings) st.town.buildings = {};
+    for (const k in def.mine) if (st.mine[k] === undefined) st.mine[k] = def.mine[k];
     for (const h of st.heroes) { h.skills = h.skills || {}; h.skillOrder = h.skillOrder || []; h.skillRules = h.skillRules || {}; if (!h.equip) h.equip = {}; if (!h.quality) h.quality = 'common'; if (h.sp == null) h.sp = 0; if (h.xp == null) h.xp = 0; }
     for (const k in def.settings.autoSell) if (st.settings.autoSell[k] === undefined) st.settings.autoSell[k] = def.settings.autoSell[k];
     for (const k in def.potionRules) if (st.potionRules[k] === undefined) st.potionRules[k] = def.potionRules[k];

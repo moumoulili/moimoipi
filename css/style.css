@@ -522,3 +522,22 @@ h2 .ico, h3 .ico { -webkit-text-fill-color: initial; color: initial; background:
 .fuse { padding: 6px 0; border-bottom: 1px solid rgba(120, 80, 30, .3); }
 .iname.sk { text-shadow: none; color: #4a1406; font-family: var(--epic-font); font-weight: 900; }
 .warnbox { padding: 6px 8px; border: 1px solid #a3201a; background: rgba(163, 32, 26, .08); }
+
+/* ===== Mine ===== */
+.ore-dot { display: inline-block; width: 10px; height: 10px; margin-right: 4px; box-shadow: 0 0 0 1px #000; vertical-align: -1px; }
+.rock-wrap { position: relative; display: flex; justify-content: center; margin: 8px 0 4px; }
+.rock { background: radial-gradient(circle, rgba(255, 230, 160, .35), transparent 65%); border: 0; padding: 6px; touch-action: manipulation; cursor: pointer; }
+.rock img { width: 160px; height: 160px; image-rendering: pixelated; display: block; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, .35)); }
+.rock.hit img { animation: rockHit .12s ease-out; }
+@keyframes rockHit { 30% { transform: scale(.92) rotate(-3deg); filter: brightness(1.4) drop-shadow(0 4px 0 rgba(0, 0, 0, .35)); } }
+#mn-fx { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.mn-num { position: absolute; transform: translate(-50%, -50%); font: 900 18px Georgia, serif; color: #fff; text-shadow: 0 0 3px #000, 2px 2px 0 #000; animation: mnUp .7s ease-out forwards; }
+.mn-num.crit { color: #ffd34d; font-size: 24px; }
+.mn-got { position: absolute; left: 50%; top: 20%; transform: translateX(-50%); font-family: var(--epic-font); font-weight: 900; color: #2b7a1f; text-shadow: 0 1px 0 #fff3c0; animation: mnUp .9s ease-out forwards; white-space: nowrap; }
+@keyframes mnUp { to { transform: translate(-50%, -70px); opacity: 0; } }
+.mn-chip { position: absolute; width: 6px; height: 6px; box-shadow: 0 0 0 1px #000; animation: mnChip .6s ease-out forwards; }
+@keyframes mnChip { to { transform: translate(var(--dx), var(--dy)) rotate(180deg); opacity: 0; } }
+.bar.mine-hp { height: 10px; margin-top: 4px; }
+.bar.mine-hp > i { background: linear-gradient(180deg, #ffd890, #c08a30 60%, #7a5010); transition: width .1s; }
+.mine-up { padding: 6px 0; border-bottom: 1px solid rgba(120, 80, 30, .3); gap: 8px; }
+#tabs button { font-size: 10px; }

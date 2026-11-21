@@ -266,6 +266,25 @@ G.render.templates = {
     'ccccccc',
     'cwcccwc',
   ],
+  // ---------- Rocher de minerai (16x16) : g = gris de la roche, a/b/w = couleurs du minerai ----------
+  ore_rock: [
+    '................',
+    '.....oooooo.....',
+    '...oogggggGoo...',
+    '..ogggawgggGGo..',
+    '.oggaaaggggGGGo.',
+    '.oggabggggaagGo.',
+    'ogggggggggawgGGo',
+    'ogwaggggggbbgGGo',
+    'ogaabgggggggGGGo',
+    'oggbggggagggGGGo',
+    'ogggggggawagGGGo',
+    'oGgggaaggbbgGGGo',
+    '.oGgawbgggggGGo.',
+    '.oGGgbbggggGGGo.',
+    '..ooGGGGGGGGoo..',
+    '....oooooooo....',
+  ],
   // ---------- Salles spéciales (12x12) ----------
   fountain: [
     '.....ww.....',

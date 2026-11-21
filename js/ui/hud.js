@@ -169,6 +169,10 @@
     updateTop();
     const tb = document.querySelector('#tabs [data-tab=team]');
     if (tb) tb.classList.toggle('notif', (G.state.heroes.some((h) => h.sp > 0) && !G.state.settings.autoSkills) || G.state.heroes.some((h) => G.sys.heroes.evoOptions(h).length));
+    if (ui.current === 'mine' && ui.screens.mine.tick) ui.screens.mine.tick();
+    // thème musical selon la situation
+    const run = G.sys.run.active;
+    G.sys.audio.play(!run ? 'camp' : run.monsters.some((m) => m.guardian && m.aggro && !m.dead) ? 'boss' : 'dungeon');
     if (ui.current === 'dungeon') { updateParty(); updatePotions(); updateActions(); updateBoss(); ui.renderLog(); }
   };
 
@@ -248,7 +252,8 @@
       '<div>XP par héros</div><div><b>+' + U.fmt(g.xpReal != null ? g.xpReal : g.xp) + '</b></div>' + lv +
       '<div>Monstres vaincus</div><div>' + U.fmt(g.kills) + '</div>' +
       '<div>Objets</div><div>' + g.kept + ' gardés' + (g.sold ? ', ' + g.sold + ' vendus/recyclés' : '') + '</div>' + best +
-      (Object.keys(g.mats).length ? '<div>Matériaux</div><div class="small">' + G.sys.inventory.matsText(g.mats) + '</div>' : '') + '</div>';
+      (Object.keys(g.mats).length ? '<div>Matériaux</div><div class="small">' + G.sys.inventory.matsText(g.mats) + '</div>' : '') +
+      (g.mineOres ? '<div>⛏️ Mine</div><div>+' + U.fmt(g.mineOres) + ' ' + G.sys.mine.ore().name.toLowerCase() + '</div>' : '') + '</div>';
     ui.modal({ title: '🏕️ Pendant ton absence', html, buttons: [{ label: 'Super !', cls: 'primary' }] });
     G.core.U.vibrate(60);
   };

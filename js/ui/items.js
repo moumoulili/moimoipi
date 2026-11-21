@@ -59,7 +59,7 @@
     return '<div class="item-head"><img alt="" class="ibig" style="--rc:' + r.color + '" src="' + G.render.itemIconURL(item, 4) + '"><div>' +
       '<div class="iname" style="color:' + r.color + '">' + U.esc(item.name) + '</div>' +
       '<div class="muted small">' + r.name + ' · ' + b.name + ' · niv. ' + item.ilvl + '</div></div></div>' +
-      '<div class="ilines">' + lines + '</div>' + setHtml(item) + '<div class="muted small">Utilisable par : ' + IT.usersText(item) + '</div>';
+      '<div class="ilines">' + lines + '</div>' + (item.crafted ? '<div class="small" style="color:#8a5a2a">⛏️ Forgé en ' + G.data.oreById[item.crafted].name.toLowerCase() + '</div>' : '') + setHtml(item) + '<div class="muted small">Utilisable par : ' + IT.usersText(item) + '</div>';
   }
 
   // fiche d'un objet. ctx : { from: 'bag'|'equipped'|'shop', hero, slot, onDone }

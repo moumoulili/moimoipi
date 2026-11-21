@@ -91,6 +91,29 @@ G.data.balance = {
       mats: rIdx >= 3 ? { ether: rIdx - 2 } : { dust: rIdx + 1 } }),
   },
 
+  // --- Mine et atelier ---
+  mine: {
+    oreHp: (tier) => Math.round(12 * Math.pow(3.4, tier - 1)),      // solidité d'un rocher
+    power: (lvl) => Math.round(Math.pow(1.6, lvl) * 10) / 10,         // dégâts par toucher
+    autoDps: (lvl, power) => lvl * 0.5 * power,                         // dégâts par seconde des mineurs
+    crit: (lvl) => Math.min(0.5, 0.05 * lvl), critMult: 4,
+    // coûts : or + minerais du palier le plus profond débloqué
+    up: {
+      power: (l) => ({ gold: Math.round(40 * Math.pow(1.9, l)), ore: 3 + 2 * l }),
+      auto: (l) => ({ gold: Math.round(120 * Math.pow(2.1, l)), ore: 5 + 3 * l }),
+      crit: (l) => ({ gold: Math.round(200 * Math.pow(2.3, l)), ore: 4 + 2 * l }),
+    },
+    maxLevel: { power: 40, auto: 30, crit: 10 },
+    depth: (tier) => ({ gold: Math.round(800 * Math.pow(5, tier - 1)), ore: 25 + 15 * tier }), // débloquer le palier suivant
+  },
+  craft: {
+    ilvl: (tier) => 5 + (tier - 1) * 10,           // cuivre 5, fer 15, … étoilite 65
+    ore: { weapon: 12, offhand: 8, armor: 8, jewel: 6 },
+    gold: (ilvl) => Math.round(2 * Math.pow(ilvl, 1.2) * 15),
+    minRarity: (tier) => (tier >= 5 ? 'rare' : 'uncommon'),
+    mf: (tier) => 0.3 + 0.15 * tier,               // chance d'une bonne rareté
+  },
+
   // --- Expérience et niveaux (phase 3) ---
   xpToNext: (L) => Math.round(100 * Math.pow(L, 2.3)),
   monsterXp: (lvl) => 4 * Math.pow(lvl, 1.3),

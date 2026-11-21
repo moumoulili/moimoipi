@@ -22,6 +22,7 @@
       G.ui.toast('▲ ' + col + ' : meilleur pour ' + U.esc(res.up.hero.name));
     }
     if (ri >= 3) { // épique ou mieux
+      G.sys.audio && G.sys.audio.sfx('loot');
       G.ui.toast('✨ ' + r.name + ' : ' + col, 'rarity');
       U.vibrate(ri >= 4 ? [80, 50, 80, 50, 160] : [60, 40, 60]);
       G.render.fx.flash(r.color, ri >= 4 ? 0.3 : 0.15);

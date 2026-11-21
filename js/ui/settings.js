@@ -15,6 +15,9 @@
         '<p><b>Événements à choix (salles ❔)</b></p><select id="op-ev"><option value="ask">Me demander (15 s pour choisir)</option><option value="auto">Choisir automatiquement l\'option prudente</option></select>' +
         '<p><b>Marchand ambulant</b></p><select id="op-mer"><option value="ask">S\'arrêter (20 s pour acheter)</option><option value="skip">L\'ignorer</option></select>' +
         '<label class="toggle"><span>Relancer une expédition après une défaite</span><input type="checkbox" id="op-auto"></label>' +
+        '<label class="toggle"><span>🎵 Musique 8-bit</span><input type="checkbox" id="op-mus"></label>' +
+        '<label class="lbl">Volume de la musique</label><input type="range" id="op-vol" min="0" max="1" step="0.05" style="width:100%">' +
+        '<label class="toggle"><span>🔊 Effets sonores</span><input type="checkbox" id="op-sfx"></label>' +
         '<label class="toggle"><span>Vibrations</span><input type="checkbox" id="op-vib"></label>' +
         '<label class="toggle"><span>Flashs à l\'écran (critiques, boss)</span><input type="checkbox" id="op-flash"></label></div>' +
 
@@ -29,6 +32,9 @@
       const ev = U.$('#op-ev'); ev.value = s.eventMode; ev.onchange = () => { s.eventMode = ev.value; G.core.save.save(); };
       const me = U.$('#op-mer'); me.value = s.merchantMode; me.onchange = () => { s.merchantMode = me.value; G.core.save.save(); };
       const au = U.$('#op-auto'); au.checked = s.autoRestart; au.onchange = () => { s.autoRestart = au.checked; G.core.save.save(); };
+      const mu = U.$('#op-mus'); mu.checked = s.music; mu.onchange = () => { s.music = mu.checked; G.sys.audio.unlock(); G.sys.audio.applyVolume(); G.core.save.save(); };
+      const vo = U.$('#op-vol'); vo.value = s.musicVol; vo.oninput = () => { s.musicVol = +vo.value; G.sys.audio.applyVolume(); }; vo.onchange = () => G.core.save.save();
+      const sx = U.$('#op-sfx'); sx.checked = s.sfx; sx.onchange = () => { s.sfx = sx.checked; G.sys.audio.applyVolume(); G.core.save.save(); };
       const vb = U.$('#op-vib'); vb.checked = s.vibrate; vb.onchange = () => { s.vibrate = vb.checked; G.core.save.save(); };
       const fl = U.$('#op-flash'); fl.checked = s.flashes; fl.onchange = () => { s.flashes = fl.checked; G.core.save.save(); };
       const ta = U.$('#op-text');

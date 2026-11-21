@@ -51,6 +51,7 @@
     if (leveled.length) {
       G.sys.run.refreshStats();
       // une seule notification pour tous les héros qui montent en même temps
+      G.sys.audio && G.sys.audio.sfx('level');
       G.ui.toast('⭐ Niveau ' + leveled.map((h) => U.esc(h.name) + ' ' + h.level).join(' · '), 'gold');
     }
   };

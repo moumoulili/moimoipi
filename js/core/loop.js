@@ -14,6 +14,7 @@
     let n = 0;
     while (acc >= STEP && n < 16) { G.sys.run.update(STEP); acc -= STEP; n++; }
     if (n >= 16) acc = 0;
+    G.sys.mine && G.sys.mine.update(dt);
     G.render.draw(dt);
     G.ui.tick && G.ui.tick(dt);
     saveT += dt;

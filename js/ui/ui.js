@@ -9,6 +9,7 @@
     { id: 'team', label: 'Équipe', icon: '🛡️' },
     { id: 'bag', label: 'Sac', icon: '🎒' },
     { id: 'town', label: 'Ville', icon: '🏰' },
+    { id: 'mine', label: 'Mine', icon: '⛏️' },
     { id: 'settings', label: 'Options', icon: '⚙️' },
   ];
   ui.current = 'dungeon';

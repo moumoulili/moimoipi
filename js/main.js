@@ -23,7 +23,13 @@
   G.render.loadSpriteFiles().then(() => G.core.loop.start());
 
   // sauvegarde quand on quitte / met l'appli en arrière-plan
-  document.addEventListener('visibilitychange', () => { if (document.hidden) G.core.save.save(); else G.sys.offline.check(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { G.core.save.save(); G.sys.audio.pause(); } else { G.sys.offline.check(); G.sys.audio.resume(); }
+  });
+  // le son ne peut démarrer qu'après un premier toucher (règle des navigateurs mobiles)
+  const unlock = () => G.sys.audio.unlock();
+  document.addEventListener('pointerdown', unlock, { passive: true });
+  document.addEventListener('touchend', unlock, { passive: true });
   window.addEventListener('pagehide', () => G.core.save.save());
 
   // mode hors ligne (uniquement en https / localhost)

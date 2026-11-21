@@ -27,13 +27,15 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 
 ## Architecture
 ```
-js/core/    namespace, utils (fmt, $), rng (graine), bus (événements), save, loop (pas fixes 30/s × vitesse)
+js/core/    namespace, utils (fmt, $), rng (graine), bus (événements), save, loop (pas fixes 30/s × vitesse),
+            audio (séquenceur 8-bit Web Audio : onde carrée, arpèges, basse triangle, bruit ; sfx ; déverrouillé au 1er toucher)
 js/data/    balance, elements, classes, monsters, biomes, rooms, names, buildings (8 bâtiments : cost/val/effect),
             rarities, items (emplacements, bases, classGear), affixes (+ pouvoirs mythiques), uniques, potions, materials,
             synergies (conditions classes/rôles + bonus + cible), recruits (qualités des recrues),
             skills (40 compétences : 2 branches × 4 rangées par classe, actives/passives/ultimes, règles par défaut),
             effects (statuts + effets d'impact des éléments), bosses (mini-boss + boss par biome et mécaniques),
             events (événements à choix) + blessings, rooms (poids des salles + salles spéciales),
+            ores (7 minerais), music (3 thèmes originaux camp/dungeon/boss : accords + mélodie « NOTE:pas »),
             evolutions (10 spécialités + 20 ultimes : base, from, tier, rôle, bonus, palette, attaque), skills_adv (100 compétences
             des branches C/D, descriptions auto), sets (6 sets, bonus 2/4/6 pièces)
 js/render/  pixelart (modèles), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
@@ -50,7 +52,8 @@ js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), syne
             fonctions plutôt que G.data.classes[h.cls] pour le nom, le rôle, l'apparence et l'attaque), forge (améliorer/relancer/fusionner),
             dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
             loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments : T.val(id) = valeurs actuelles,
-            départs, syncLibrary, deathKeep, heroBonus), offline (rendement mesuré state.rate + gains hors ligne), run (expédition, auto-farm)
+            départs, syncLibrary, deathKeep, heroBonus), offline (rendement mesuré state.rate + gains hors ligne + auto-minage), mine (toucher, auto-minage,
+            améliorations, profondeur, atelier de fabrication), run (expédition, auto-farm)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon + barre de potions), items (case, fiche,
             comparaison, sélecteur d'emplacement), team (héros : niveau/XP/stats, sous-onglets Équipement/Compétences, composition,
             synergies, fenêtre taverne), skills (arbre, fiche compétence, priorités), bag (sac, tri auto, potions), town (+ boutique), settings
@@ -59,7 +62,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v9) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
+- État sauvegardé `G.state` (v10 : + mine {ores, sel, hp, power, auto, crit, depth, broken}, settings.music/musicVol/sfx) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
   tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
@@ -89,6 +92,12 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - Salles spéciales : 2 max par étage (1 marchand max). Marchand payé avec l'or de la ville. Options : événements
   « demander » (15 s, sinon choix prudent) ou « auto » ; marchand « s'arrêter » (20 s) ou « ignorer ».
 - Bénédictions (autel/événements) : bonus jusqu'à la fin de l'expédition, passés aux stats via `run.runBuffs` (avec les élixirs).
+- **Mine** (onglet ⛏️, demande utilisateur) : choisir un minerai et taper le rocher (solidité `12 × 3,4^(palier-1)`) ;
+  améliorations Force (×1,6/niv.), Mineurs auto (0,5 × force × niv. par seconde, aussi hors ligne), Critique (+5 %/niv., ×4),
+  Creuser (débloque le palier suivant). Coûts en or + minerai du palier le plus profond.
+  **Atelier** : objet au choix + minerai → objet niv. `5 + 10 × (palier-1)`, rareté ≥ peu commun (≥ rare dès le palier 5).
+- **Musique 8-bit originale** « style JRPG rétro » (ne jamais reproduire de mélodie existante, ex. Final Fantasy, droits d'auteur) :
+  le thème suit la situation (camp / donjon / boss). Options : musique, volume, effets sonores.
 - Titres : `ui.fixTitles` isole l'émoji de tête (sinon le dégradé doré le recouvre).
 - **Progression de classe (spécification de l'utilisateur)** :
   Aventurier (niv. 1-10, branche V, « Premiers soins » offert ; équipe de départ et recrues) → **niv. 10** : choix d'une classe
