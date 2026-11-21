@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 7;
+  const VERSION = 8;
   const S = {};
 
   S.fresh = function () {
@@ -46,6 +46,8 @@
     5: (st) => { for (const h of st.heroes) if (h.cls === 'priest' && h.skills && h.skills.p_heal >= 1) h.sp = (h.sp || 0) + 1; },
     // v6 -> v7 : classe de départ « Aventurier » ; les héros existants ont déjà une classe => 1 Héritage
     6: (st) => { for (const h of st.heroes) if (h.cls !== 'adventurer') h.legacy = (h.legacy || 0) + 1 + (h.adv ? 1 : 0) + (h.ult ? 1 : 0); },
+    // v7 -> v8 : seule la renaissance (niv. 100) compte désormais ; l'ancien « héritage » est retiré
+    7: (st) => { for (const h of st.heroes) h.legacy = h.ult ? 1 : 0; },
   };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }

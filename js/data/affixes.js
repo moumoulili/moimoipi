@@ -17,7 +17,13 @@ G.data.statNames = {
   el_earth: 'Dégâts de terre', el_shadow: 'Dégâts d\'ombre', el_light: 'Dégâts de lumière',
 };
 // stats affichées en pourcentage
-G.data.pctStats = { crit: 1, critDmg: 1, dodge: 1, dmgPct: 1, hpPct: 1, defPct: 1, atkSpd: 1, goldFind: 1, magicFind: 1, lifesteal: 1, thorns: 1, healPower: 1, bossDmg: 1, onKillHeal: 1, echo: 1, res_fire: 1, res_ice: 1, res_lightning: 1, res_earth: 1, res_shadow: 1, res_light: 1 };
+// bonus des compétences, évolutions et sets
+Object.assign(G.data.statNames, {
+  matkPct: 'Puissance magique', burnPct: 'Brûlures', manaCost: 'Coût des compétences', xpPct: 'XP', dmgTaken: 'Dégâts subis',
+  elAmp_fire: 'Dégâts de feu', elAmp_ice: 'Dégâts de glace', elAmp_lightning: 'Dégâts de foudre', elAmp_earth: 'Dégâts de terre',
+  elAmp_shadow: 'Dégâts d\'ombre', elAmp_light: 'Dégâts de lumière',
+});
+G.data.pctStats = { matkPct: 1, burnPct: 1, manaCost: 1, xpPct: 1, dmgTaken: 1, elAmp_fire: 1, elAmp_ice: 1, elAmp_lightning: 1, elAmp_earth: 1, elAmp_shadow: 1, elAmp_light: 1, crit: 1, critDmg: 1, dodge: 1, dmgPct: 1, hpPct: 1, defPct: 1, atkSpd: 1, goldFind: 1, magicFind: 1, lifesteal: 1, thorns: 1, healPower: 1, bossDmg: 1, onKillHeal: 1, echo: 1, res_fire: 1, res_ice: 1, res_lightning: 1, res_earth: 1, res_shadow: 1, res_light: 1 };
 
 (function () {
   const W = ['weapon'], OFF = ['offhand'], JEWEL = ['amulet', 'ring'], ARM = ['head', 'chest', 'hands', 'feet', 'belt', 'cape'];

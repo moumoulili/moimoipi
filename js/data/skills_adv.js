@@ -70,6 +70,13 @@
   act('wl_warcry', 'warlord', 'D', 1, 'Cri de guerre', '📯', { ult: true, kind: 'buff', target: 'team', cd: 60, mp: 30, dur: 10, buffPer: { dmgPct: [0.15, 0.05], atkSpd: [0.08, 0.03] }, rule: { mode: 'boss' } });
   pas('wl_iron', 'warlord', 'D', 2, 'Volonté de fer', '🛡️', { hpPct: 0.06 });
 
+  pas('cr_dawn', 'crusader', 'D', 0, 'Éclat de l\'aube', '🌅', { elAmp_light: 0.06 });
+  act('cr_smite', 'crusader', 'D', 1, 'Frappe solaire', '☀️', { ult: true, kind: 'damage', target: 'target', range: 2, aoe: 2.2, dmgType: 'phys', element: 'light', cd: 45, mp: 30, mult: [3, 0.6], vfx: 'smite', status: { id: 'stun', chance: 1, dur: 1.5 }, rule: { mode: 'boss' } });
+  pas('cr_fervor', 'crusader', 'D', 2, 'Ardeur', '🔥', { dmgPct: 0.05 });
+  pas('ti_rock', 'titan', 'D', 0, 'Roc', '🪨', { defPct: 0.06 });
+  act('ti_quake', 'titan', 'D', 1, 'Séisme', '🌋', { ult: true, kind: 'damage', target: 'self', aoeSelf: 3, dmgType: 'phys', element: 'earth', cd: 50, mp: 30, mult: [2, 0.4], vfx: 'whirl', status: { id: 'stun', chance: 1, dur: 1.5 }, rule: { mode: 'enemies', value: 3 } });
+  pas('ti_giant', 'titan', 'D', 2, 'Gigantisme', '🦣', { hpPct: 0.08 });
+
   // ---------------- ARCHER ----------------
   pas('ss_steady', 'sharpshooter', 'C', 0, 'Main sûre', '✋', { crit: 0.03 });
   act('ss_headshot', 'sharpshooter', 'C', 1, 'Tir en pleine tête', '🎯', { kind: 'damage', target: 'weakest', range: 7, dmgType: 'phys', element: 'physical', cd: 12, mp: 14, mult: [2.2, 0.4], critBonus: 0.5, proj: 'arrow' });
@@ -86,6 +93,13 @@
   pas('bm_bond', 'beastmaster', 'D', 0, 'Lien sauvage', '🤝', { dmgPct: 0.05 });
   act('bm_stampede', 'beastmaster', 'D', 1, 'Ruée sauvage', '🐗', { ult: true, kind: 'damage', target: 'target', range: 6, aoe: 2.3, waves: 4, dmgType: 'phys', element: 'earth', cd: 50, mp: 30, mult: [0.6, 0.15], vfx: 'rain', rule: { mode: 'enemies', value: 3 } });
   pas('bm_hide', 'beastmaster', 'D', 2, 'Cuir épais', '🦬', { defPct: 0.07 });
+
+  pas('aa_charge', 'arcane_archer', 'D', 0, 'Flèches chargées', '⚡', { elAmp_lightning: 0.07 });
+  act('aa_storm', 'arcane_archer', 'D', 1, 'Tempête de flèches', '🌩️', { ult: true, kind: 'damage', target: 'target', range: 7, chain: (r) => 4 + r, dmgType: 'phys', element: 'lightning', cd: 45, mp: 30, mult: [2, 0.4], vfx: 'chain', rule: { mode: 'enemies', value: 2 } });
+  pas('aa_focus', 'arcane_archer', 'D', 2, 'Focalisation', '🎯', { critDmg: 0.12 });
+  pas('wd_roots', 'warden', 'D', 0, 'Racines profondes', '🌱', { hpPct: 0.06 });
+  act('wd_grasp', 'warden', 'D', 1, 'Étreinte de la forêt', '🌿', { ult: true, kind: 'damage', target: 'target', range: 6, aoe: 2.8, dmgType: 'phys', element: 'earth', cd: 50, mp: 30, mult: [1.6, 0.3], status: { id: 'stun', chance: 1, dur: 2.5 }, rule: { mode: 'enemies', value: 3 } });
+  pas('wd_hunt', 'warden', 'D', 2, 'Traque', '🐾', { bossDmg: 0.1 });
 
   // ---------------- MAGE ----------------
   pas('py_heat', 'pyromancer', 'C', 0, 'Chaleur intense', '🌡️', { elAmp_fire: 0.06 });
@@ -104,6 +118,13 @@
   act('li_nova', 'lich', 'D', 1, 'Nova mortelle', '💀', { ult: true, kind: 'damage', target: 'target', range: 6, aoe: 3, dmgType: 'magic', element: 'shadow', cd: 60, mp: 45, mult: [2.6, 0.5], vfx: 'execute', status: { id: 'weaken', chance: 1, dur: 8, value: 0.3 }, rule: { mode: 'boss' } });
   pas('li_will', 'lich', 'D', 2, 'Volonté éternelle', '🔮', { matkPct: 0.05 });
 
+  pas('ph_ash', 'phoenix', 'D', 0, 'Cendres ardentes', '🔥', { burnPct: 0.25 });
+  act('ph_rebirth', 'phoenix', 'D', 1, 'Flammes de la renaissance', '🐦‍🔥', { ult: true, kind: 'heal', target: 'team', cd: 60, mp: 40, mult: [1.8, 0.4], rule: { mode: 'teamHp', value: 0.4 } });
+  pas('ph_wings', 'phoenix', 'D', 2, 'Ailes de feu', '🪶', { elAmp_fire: 0.07 });
+  pas('sl_void', 'shadowlord', 'D', 0, 'Néant', '🕳️', { elAmp_shadow: 0.08 });
+  act('sl_eclipse', 'shadowlord', 'D', 1, 'Éclipse', '🌑', { ult: true, kind: 'damage', target: 'target', range: 6, aoe: 2.6, waves: 4, dmgType: 'magic', element: 'shadow', cd: 55, mp: 40, mult: [0.9, 0.2], vfx: 'blizzard', status: { id: 'weaken', chance: 1, dur: 6, value: 0.3 }, rule: { mode: 'boss' } });
+  pas('sl_dread', 'shadowlord', 'D', 2, 'Effroi', '😱', { matkPct: 0.05 });
+
   // ---------------- PRÊTRE ----------------
   pas('cl_devotion', 'cleric', 'C', 0, 'Dévotion', '🙏', { healPower: 0.06 });
   act('cl_renew', 'cleric', 'C', 1, 'Renouveau', '🌱', { kind: 'heal', target: 'team', cd: 10, mp: 18, mult: [0.5, 0.1], rule: { mode: 'teamHp', value: 0.8 } });
@@ -121,6 +142,13 @@
   act('gi_judgment', 'grand_inquisitor', 'D', 1, 'Jugement dernier', '🔱', { ult: true, kind: 'damage', target: 'target', range: 6, aoe: 2.4, waves: 3, dmgType: 'magic', element: 'light', cd: 55, mp: 40, mult: [1, 0.25], vfx: 'rain', rule: { mode: 'boss' } });
   pas('gi_faith', 'grand_inquisitor', 'D', 2, 'Foi inébranlable', '📿', { dmgPct: 0.05 });
 
+  pas('or_sight', 'oracle', 'D', 0, 'Prescience', '👁️', { defPct: 0.05 });
+  act('or_aegis', 'oracle', 'D', 1, 'Égide prophétique', '🛡️', { ult: true, kind: 'buff', target: 'team', cd: 55, mp: 40, dur: 10, buffPer: { dmgTaken: [-0.3, -0.05], defPct: [0.2, 0.05] }, rule: { mode: 'boss' } });
+  pas('or_flow', 'oracle', 'D', 2, 'Source de vie', '💧', { mpRegen: 0.1 });
+  pas('ex_radiance', 'exalted', 'D', 0, 'Rayonnement', '✨', { elAmp_light: 0.07 });
+  act('ex_nova', 'exalted', 'D', 1, 'Nova sacrée', '🌟', { ult: true, kind: 'damage', target: 'target', range: 6, aoe: 3, dmgType: 'magic', element: 'light', cd: 50, mp: 40, mult: [3, 0.6], vfx: 'smite', rule: { mode: 'enemies', value: 2 } });
+  pas('ex_halo', 'exalted', 'D', 2, 'Halo vengeur', '😇', { crit: 0.03 });
+
   // ---------------- VOLEUR ----------------
   pas('as_shadow', 'assassin', 'C', 0, 'Lame de l\'ombre', '🌒', { critDmg: 0.08 });
   act('as_ambush', 'assassin', 'C', 1, 'Embuscade', '🥷', { kind: 'damage', target: 'target', range: 1.4, dmgType: 'phys', element: 'shadow', cd: 10, mp: 14, mult: [2, 0.4], critBonus: 0.5, vfx: 'execute' });
@@ -137,4 +165,10 @@
   pas('ms_engineer', 'master_saboteur', 'D', 0, 'Ingénierie', '⚙️', { dmgPct: 0.05 });
   act('ms_barrage', 'master_saboteur', 'D', 1, 'Tapis de bombes', '🧨', { ult: true, kind: 'damage', target: 'target', range: 6, aoe: 2.5, waves: 5, dmgType: 'phys', element: 'fire', cd: 50, mp: 30, mult: [0.55, 0.15], vfx: 'firerain', status: { id: 'burn', chance: 0.4, dur: 3 }, rule: { mode: 'enemies', value: 3 } });
   pas('ms_escape', 'master_saboteur', 'D', 2, 'Échappatoire', '🏃', { dodge: 0.03 });
+  pas('pt_mist', 'phantom', 'D', 0, 'Brume', '🌫️', { dodge: 0.03 });
+  act('pt_thousand', 'phantom', 'D', 1, 'Mille lames', '🗡️', { ult: true, kind: 'damage', target: 'target', range: 1.4, hits: 8, dmgType: 'phys', element: 'shadow', cd: 40, mp: 30, mult: [0.6, 0.12], vfx: 'stab', rule: { mode: 'boss' } });
+  pas('pt_edge', 'phantom', 'D', 2, 'Fil du rasoir', '🔪', { critDmg: 0.1 });
+  pas('al_brew', 'alchemist', 'D', 0, 'Breuvages', '🧪', { healPower: 0.06 });
+  act('al_elixir', 'alchemist', 'D', 1, 'Grand élixir', '⚗️', { ult: true, kind: 'buff', target: 'team', cd: 50, mp: 30, dur: 12, buffPer: { dmgPct: [0.15, 0.05], atkSpd: [0.1, 0.03], defPct: [0.1, 0.03] }, rule: { mode: 'boss' } });
+  pas('al_toxin', 'alchemist', 'D', 2, 'Toxines', '☠️', { dmgPct: 0.05 });
 })();

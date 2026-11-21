@@ -121,7 +121,7 @@
   };
   IT.fmtStat = function (stat, v) {
     const name = D().statNames[stat] || stat;
-    if (D().pctStats[stat]) return '+' + Math.round(v * 1000) / 10 + ' % ' + name;
+    if (D().pctStats[stat]) return (v < 0 ? '' : '+') + String(Math.round(v * 1000) / 10).replace('.', ',') + ' % ' + name;
     return '+' + (v >= 100 ? G.core.U.fmt(v) : String(Math.round(v * 10) / 10).replace('.', ',')) + ' ' + name;
   };
   IT.lines = function (item) {

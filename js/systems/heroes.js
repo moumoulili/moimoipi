@@ -66,8 +66,8 @@
     const tier = H.evoTier(id);
     if (tier === 0) { h.pastCls = (h.pastCls || []).concat([h.cls]); h.cls = id; }
     else if (tier === 1) h.adv = id; else h.ult = id;
-    // nouveau départ : niveau 1, +1 Héritage ; compétences et points déjà gagnés conservés
-    h.level = 1; h.xp = 0; h.legacy = (h.legacy || 0) + 1;
+    // renaissance (classe ultime) : retour au niveau 1, +1 renaissance ; compétences et points conservés
+    if (c.rebirth) { h.level = 1; h.xp = 0; h.legacy = (h.legacy || 0) + 1; }
     // l'équipement que la nouvelle classe ne peut pas porter retourne au sac
     for (const slot in h.equip) if (h.equip[slot] && !G.sys.items.canUse(h, h.equip[slot])) { G.state.inventory.push(h.equip[slot]); delete h.equip[slot]; }
     G.sys.synergy && G.sys.synergy.invalidate();

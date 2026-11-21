@@ -74,10 +74,10 @@ G.data.balance = {
   shop: { items: 4, refreshMinutes: 15, priceMult: 5, minRarity: 'uncommon' },
 
   // --- Évolutions, sets, forge (phase 6) ---
-  // changements de classe : 0 = aventurier → classe, 1 = classe → avancée, 2 = avancée → ultime.
-  // Chaque changement ramène le héros au niveau 1 et ajoute 1 Héritage (+20 % de stats de base).
-  evolution: { 0: { level: 20, gold: 500 }, 1: { level: 20, gold: 3000, mats: { dust: 10 } }, 2: { level: 20, gold: 60000, mats: { ether: 5 } } },
-  legacyBonus: 0.2,
+  // progression de classe : 0 = aventurier → classe (niv. 10), 1 = classe → spécialité (niv. 40),
+  // 2 = RENAISSANCE au niv. 100 : classe ultime, retour au niveau 1, +1 renaissance (+50 % de stats de base).
+  evolution: { 0: { level: 10, gold: 500 }, 1: { level: 40, gold: 3000, mats: { dust: 10 } }, 2: { level: 100, gold: 60000, mats: { ether: 5 }, rebirth: true } },
+  legacyBonus: 0.5,
   setChance: 0.12,               // un objet rare ou mieux a 12 % de chance d'être une pièce de set
   forge: {
     maxUp: 10,                   // amélioration max (+10) ; la forge de la ville l'augmentera (phase 7)
