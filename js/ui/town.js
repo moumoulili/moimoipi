@@ -36,7 +36,7 @@
       }
       h += '</div>';
 
-      h += '<div class="panel" id="tw-build"><h3>🏗️ Bâtiments</h3><p class="muted small">Matériaux : ' + Object.keys(G.data.materials).map((k) => G.data.materials[k].name + ' ' + U.fmt(st.materials[k] || 0)).join(' · ') + '</p>';
+      h += '<div class="panel" id="tw-build"><h3>🏗️ Bâtiments</h3><p class="muted small">Matériaux : ' + Object.keys(G.data.materials).map((k) => G.data.materials[k].icon + ' ' + G.data.materials[k].name + ' ' + U.fmt(st.materials[k] || 0)).join(' · ') + '</p>';
       for (const id of G.data.buildingOrder) {
         const bd = G.data.buildings[id], T = G.sys.town, lvl = T.level(id), max = T.isMax(id);
         h += '<div class="hero-line"><div class="bicon">' + bd.icon + '</div><div class="info"><b>' + bd.name + '</b> <span class="muted">niv. ' + lvl + ' / ' + bd.maxLevel + '</span>' +

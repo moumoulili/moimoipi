@@ -28,7 +28,7 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 ## Architecture
 ```
 js/core/    namespace, utils (fmt, $), rng (graine), bus (événements), save, loop (pas fixes 30/s × vitesse)
-js/data/    balance, elements, classes, monsters, biomes, rooms, names, buildings,
+js/data/    balance, elements, classes, monsters, biomes, rooms, names, buildings (8 bâtiments : cost/val/effect),
             rarities, items (emplacements, bases, classGear), affixes (+ pouvoirs mythiques), uniques, potions, materials,
             synergies (conditions classes/rôles + bonus + cible), recruits (qualités des recrues),
             skills (40 compétences : 2 branches × 4 rangées par classe, actives/passives/ultimes, règles par défaut),
@@ -49,7 +49,8 @@ js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), syne
             heroes (+ évolutions : evo/className/role/sprite/attack/evoBonus/evoOptions/evolve — toujours passer par ces
             fonctions plutôt que G.data.classes[h.cls] pour le nom, le rôle, l'apparence et l'attaque), forge (améliorer/relancer/fusionner),
             dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
-            loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments, départs), run (expédition)
+            loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments : T.val(id) = valeurs actuelles,
+            départs, syncLibrary, deathKeep, heroBonus), offline (rendement mesuré state.rate + gains hors ligne), run (expédition, auto-farm)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon + barre de potions), items (case, fiche,
             comparaison, sélecteur d'emplacement), team (héros : niveau/XP/stats, sous-onglets Équipement/Compétences, composition,
             synergies, fenêtre taverne), skills (arbre, fiche compétence, priorités), bag (sac, tri auto, potions), town (+ boutique), settings
@@ -58,7 +59,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v8) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
+- État sauvegardé `G.state` (v9) : gold, heroes[{id,name,cls (classe actuelle de base ou 'adventurer'),pastCls[],legacy,adv,ult,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
   tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
@@ -76,7 +77,14 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   gratuit, potions et équipement au cœur de la survie. Ne pas « adoucir » sans demande explicite.
 - Effets visuels riches demandés : chaque attaque/sort a un départ, une traînée et un impact propres à son élément.
 - Défaite ou fuite : retour en ville avec 50 % de l'or de l'expédition (objets gardés à partir de la phase 2).
-- Gains hors ligne (phase 7) : estimés à partir du rendement réel mesuré, pas de simulation complète.
+- Gains hors ligne : rendement mesuré en fin d'expédition (moyenne glissante, ≥ 60 s) appliqué au temps d'absence
+  (lastSeen), limité par le Camp de base (2 h + 2 h/niv., efficacité 50 % + 5 %/niv.) ; l'XP est donnée par tranches avec
+  la baisse d'écart de niveau ; objets passés par le tri auto. Vérifié au chargement et au retour sur l'appli (visibilitychange).
+- Auto-farm (settings.farm) : rejoue un étage ≤ record (nouvelle carte à chaque boucle, saved.loop), sans choix au gardien.
+- Bâtiments : Forge (max +10+niv., réussite +4 %/niv., coûts −4 %/niv.), Taverne (équipe 5 au niv. 3, 6 au niv. 6, compagnie
+  8+2/niv., recrues), Temple (soins +4 %/niv., plumes −6 %/niv., or gardé si défaite +4 %/niv.), Bibliothèque (XP +8 %/niv.,
+  +1 point de compétence par héros et par niv.), Boutique (prix −4 %/niv., objets, qualité), Entrepôt (sac 40+10/niv., potions
+  10+5/niv.), Camp de base (hors ligne), Portail. Coût `base × croissance^niv.` + 🔩 ferraille / ✨ poussière / 💠 éther.
 - Biomes tous les 10 étages (7 biomes, puis cycle « Cauchemar » = teinte rouge), chacun avec particules d'ambiance.
 - Salles spéciales : 2 max par étage (1 marchand max). Marchand payé avec l'or de la ville. Options : événements
   « demander » (15 s, sinon choix prudent) ou « auto » ; marchand « s'arrêter » (20 s) ou « ignorer ».
@@ -147,7 +155,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
       zones de danger annoncées et esquivées, 5 salles spéciales, 6 événements à choix, 7 bénédictions, ambiance des biomes.
 - [x] **Phase 6** : 10 classes avancées + 10 ultimes (choix au niv. 20, ultime au niv. 50, nouvelles branches, bonus,
       apparence, rôle, élément), 70 compétences, 6 sets, forge (amélioration +10, relance, fusion) dans la fiche objet et la Ville.
-- [ ] Phase 7 : ville améliorable, hors ligne, auto-farm
+- [x] **Phase 7** : 7 nouveaux bâtiments améliorables, gains hors ligne avec résumé, auto-farm, vitesse x1/x2/x4.
 - [ ] Phase 8 : rebirth
 - [ ] Phase 9 : quêtes, succès, bestiaire, donjon du jour
 - [ ] Phase 10 : confort (stats, effets, notifications) et équilibrage
