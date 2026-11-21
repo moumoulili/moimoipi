@@ -27,7 +27,7 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 
 ## Architecture
 ```
-js/core/    namespace, utils (fmt, $), rng (graine), bus (événements), save, loop (pas fixes 30/s × vitesse),
+js/core/    namespace, utils (fmt, $), rng (graine), bus (événements), save, loop (pas fixes 30/s × vitesse x1/x2/x4/x8, 32 pas max par image),
             audio (séquenceur 8-bit Web Audio : onde carrée, arpèges, basse triangle, bruit ; sfx ; déverrouillé au 1er toucher)
 js/data/    balance, elements, classes, monsters, biomes, rooms, names, buildings (8 bâtiments : cost/val/effect),
             rarities, items (emplacements, bases, classGear), affixes (+ pouvoirs mythiques), uniques, potions, materials,
@@ -77,7 +77,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   ou continuer** (option : demander 10 s / toujours continuer / toujours rentrer). Sortie possible jusqu'à
   la fin de l'étage. Sortir / Fuir = petites icônes rondes dans le coin de la carte (#map-actions), 🚪 visible seulement quand la sortie est possible.
   ⏬ « foncer à l'escalier » (demande utilisateur, `run.toggleRush`, saved.rush = étage en cours) : va droit à l'escalier sans
-  explorer, combat ce qui se trouve sur le chemin ; le gardien doit quand même être vaincu ; se désactive à l'étage suivant.
+  explorer, combat ce qui se trouve sur le chemin ; le gardien doit quand même être vaincu. 3 états par appui (`run.rushMode`) :
+  cet étage (saved.rush) → toujours (settings.rushAlways, doré + badge ∞) → arrêt.
 - **Départ toujours à l'étage 1** sauf amélioration : le bâtiment **Portail des profondeurs** (niv. k)
   autorise le départ à l'étage 5k+1, à condition d'avoir vaincu le gardien de l'étage 5k. Coût 2500 × 3^niv.
 - Difficulté relevée à la demande de l'utilisateur ; les monstres « dive » (rapides) évitent le tank et visent l'arrière.
@@ -169,7 +170,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 ## État d'avancement
 - [x] **Phase 1** : donjon généré, exploration + combat temps réel, monstres (7 biomes définis), gardiens
       simples, or, coffres, pièges, défaite/retour, sortie après gardien, sauvegarde + export/import,
-      vitesse x1/x2/x4, PWA. Ajouts : Portail (départ payant), difficulté relevée, effets visuels.
+      vitesse x1/x2/x4/x8, PWA. Ajouts : Portail (départ payant), difficulté relevée, effets visuels.
 - [x] **Phase 2** : équipement (11 emplacements, restrictions par classe), 6 raretés, bonus aléatoires, 10 uniques,
       mythiques, inventaire 40, comparaison, vente/recyclage/verrouillage, vente groupée (jusqu’aux mythiques, confirmation dès légendaire), tri auto, auto-équipement,
       boutique (potions + stock d'objets), 5 potions avec règles auto, matériaux, colonne de lumière au drop.
@@ -184,7 +185,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
       zones de danger annoncées et esquivées, 5 salles spéciales, 6 événements à choix, 7 bénédictions, ambiance des biomes.
 - [x] **Phase 6** : 10 classes avancées + 10 ultimes (choix au niv. 20, ultime au niv. 50, nouvelles branches, bonus,
       apparence, rôle, élément), 70 compétences, 6 sets, forge (amélioration +10, relance, fusion) dans la fiche objet et la Ville.
-- [x] **Phase 7** : 7 nouveaux bâtiments améliorables, gains hors ligne avec résumé, auto-farm, vitesse x1/x2/x4.
+- [x] **Phase 7** : 7 nouveaux bâtiments améliorables, gains hors ligne avec résumé, auto-farm, vitesse x1/x2/x4 (+ x8 ajouté à la demande).
 - [ ] Phase 8 : rebirth
 - [ ] Phase 9 : quêtes, succès, bestiaire, donjon du jour
 - [ ] Phase 10 : confort (stats, effets, notifications) et équilibrage

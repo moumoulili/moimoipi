@@ -5,7 +5,7 @@
 G.data.balance = {
   // --- Simulation ---
   tickRate: 30,            // calculs par seconde de jeu
-  speeds: [1, 2, 4],       // vitesses disponibles
+  speeds: [1, 2, 4, 8],       // vitesses disponibles
 
   // --- Puissance des monstres selon l'étage f ---
   // étage 1 = x1, étage 10 ≈ x3,8, étage 30 ≈ x22, étage 50 ≈ x150

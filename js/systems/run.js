@@ -270,13 +270,18 @@
   // ---------- Exploration ----------
   function leader(run) { return run.heroes.find((h) => !h.dead); }
 
-  // bouton « foncer à l'escalier » : valable pour l'étage en cours (saved.rush = n° d'étage)
-  R.rushing = () => { const r = R.active; return !!(r && r.saved.rush === r.saved.floor); };
+  // bouton « foncer à l'escalier » : 3 états à chaque appui
+  //   'off' → 'floor' (cet étage seulement : saved.rush = n° d'étage) → 'always' (settings.rushAlways, reste actif) → 'off'
+  R.rushMode = () => { const r = R.active; if (G.state.settings.rushAlways) return 'always'; return r && r.saved.rush === r.saved.floor ? 'floor' : 'off'; };
+  R.rushing = () => !!R.active && R.rushMode() !== 'off';
   R.toggleRush = function () {
-    const r = R.active; if (!r) return false;
-    r.saved.rush = R.rushing() ? 0 : r.saved.floor;
-    if (r.goal && r.goal.type !== 'stairs' || !R.rushing()) r.goal = null;
-    return R.rushing();
+    const r = R.active, s = G.state.settings, m = R.rushMode();
+    if (m === 'off') { if (r) r.saved.rush = r.saved.floor; }
+    else if (m === 'floor') { s.rushAlways = true; }
+    else { s.rushAlways = false; if (r) r.saved.rush = 0; }
+    if (r && (!R.rushing() || (r.goal && r.goal.type !== 'stairs'))) r.goal = null;
+    G.core.save.save();
+    return R.rushMode();
   };
 
   function chooseGoal(run, L) {

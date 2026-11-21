@@ -128,7 +128,7 @@
   function updateActions() {
     const run = G.sys.run.active;
     const can = G.sys.run.canRetreat();
-    const key = (run ? run.saved.floor : 'x') + '|' + can + '|' + G.sys.run.rushing();
+    const key = (run ? run.saved.floor : 'x') + '|' + can + '|' + G.sys.run.rushMode();
     const ov = U.$('#idle-overlay');
     if (!run) {
       if (actionsKey !== 'idle') {
@@ -155,9 +155,14 @@
       exit.onclick = () => ui.confirm('Sortir du donjon ?', '<p>L\'équipe rentre en ville avec <b>100 %</b> du butin.</p>', '🚪 Sortir', () => G.sys.run.retreat(), 'gold');
       box.appendChild(exit);
     }
-    const rush = U.el('button', 'map-btn rush' + (G.sys.run.rushing() ? ' on' : ''), '⏬');
-    rush.title = 'Aller directement à l\'escalier';
-    rush.onclick = () => { const on = G.sys.run.toggleRush(); ui.toast(on ? '⏬ L\'équipe fonce vers l\'escalier' : 'Exploration normale de l\'étage'); actionsKey = ''; updateActions(); };
+    const rm = G.sys.run.rushMode();
+    const rush = U.el('button', 'map-btn rush' + (rm === 'floor' ? ' on' : rm === 'always' ? ' on always' : ''), '⏬' + (rm === 'always' ? '<span class="rush-badge">∞</span>' : ''));
+    rush.title = 'Aller directement à l\'escalier (appuyer : cet étage → toujours → arrêt)';
+    rush.onclick = () => {
+      const m = G.sys.run.toggleRush();
+      ui.toast(m === 'floor' ? '⏬ Escalier direct : cet étage (appuie encore pour le garder actif)' : m === 'always' ? '⏬∞ Escalier direct : toujours actif' : 'Exploration normale des étages');
+      actionsKey = ''; updateActions();
+    };
     box.appendChild(rush);
     const flee = U.el('button', 'map-btn flee', '🏳️');
     flee.title = 'Fuir (garde ' + Math.round(G.sys.town.deathKeep() * 100) + ' % de l\'or)';

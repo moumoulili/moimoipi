@@ -1,6 +1,6 @@
 // =====================================================================
 //  BOUCLE DE JEU : la simulation avance par petits pas fixes (30/s),
-//  multipliés par la vitesse (x1/x2/x4). L'affichage suit à chaque image.
+//  multipliés par la vitesse (x1/x2/x4/x8). L'affichage suit à chaque image.
 // =====================================================================
 (function () {
   const L = { speed: 1 };
@@ -12,8 +12,8 @@
     last = now;
     acc += dt * L.speed;
     let n = 0;
-    while (acc >= STEP && n < 16) { G.sys.run.update(STEP); acc -= STEP; n++; }
-    if (n >= 16) acc = 0;
+    while (acc >= STEP && n < 32) { G.sys.run.update(STEP); acc -= STEP; n++; }
+    if (n >= 32) acc = 0;
     G.sys.mine && G.sys.mine.update(dt);
     G.render.draw(dt);
     G.ui.tick && G.ui.tick(dt);
