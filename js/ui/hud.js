@@ -29,7 +29,7 @@
       const card = U.el('div', 'hcard');
       card.dataset.id = h.id;
       card.innerHTML = '<span class="lvl-badge"></span><img alt="" src="' + G.render.spriteURL(c.sprite, 3) + '"><div class="hn">' + U.esc(h.name) + '</div>' +
-        '<div class="bar hp"><i></i></div><div class="bar xp thin"><i></i></div><div class="hp-txt"></div>';
+        '<div class="bar hp"><i></i></div><div class="bar mp thin"><i></i></div><div class="bar xp thin"><i></i></div><div class="hp-txt"></div>';
       el.appendChild(card);
     }
   }
@@ -43,6 +43,7 @@
       if (u) { hp = u.hp; max = u.stats.maxHp; dead = u.dead; }
       else { const st = G.sys.stats.hero(G.sys.heroes.get(id)); hp = max = st.maxHp; }
       card.classList.toggle('dead', dead);
+      card.querySelector('.bar.mp > i').style.width = (u ? Math.max(0, (u.mp / u.stats.maxMp) * 100) : 100) + '%';
       const hero = G.sys.heroes.get(id);
       card.querySelector('.lvl-badge').textContent = hero.level;
       card.querySelector('.bar.xp > i').style.width = Math.min(100, (hero.xp / G.sys.xp.toNext(hero)) * 100) + '%';
@@ -110,6 +111,8 @@
     if (hudT > 0) return;
     hudT = 0.2;
     updateTop();
+    const tb = document.querySelector('#tabs [data-tab=team]');
+    if (tb) tb.classList.toggle('notif', G.state.heroes.some((h) => h.sp > 0) && !G.state.settings.autoSkills);
     if (ui.current === 'dungeon') { updateParty(); updatePotions(); updateActions(); ui.renderLog(); }
   };
 

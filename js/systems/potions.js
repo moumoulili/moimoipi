@@ -22,6 +22,17 @@
     G.ui.log('🧪 ' + h.name + ' boit une potion de soin.', 'info');
     return true;
   };
+  P.drinkMana = function (run, h) {
+    if (!has('mana') || h.dead) return false;
+    take('mana');
+    const amt = Math.round(h.stats.maxMp * G.data.potions.mana.mana);
+    h.mp = Math.min(h.stats.maxMp, h.mp + amt);
+    h.potCd = B.potionCooldown;
+    G.render.fx.ring(h.x, h.y, '#4a7aff', 0.7, 0.35);
+    G.render.fx.sparkle(h.x, h.y, '#7aa8ff', 10);
+    G.ui.log('🧪 ' + h.name + ' boit une potion de mana.', 'info');
+    return true;
+  };
   P.revive = function (run, h) {
     if (!has('revive') || !h.dead || run.heroes.every((x) => x.dead)) return false;
     take('revive');
@@ -74,6 +85,7 @@
         continue;
       }
       if (R.heal > 0 && h.potCd <= 0 && h.hp / h.stats.maxHp < R.heal) P.drinkHeal(run, h);
+      else if (R.mana > 0 && h.potCd <= 0 && run.inCombat && h.mp / h.stats.maxMp < R.mana && h.skillList && h.skillList.length) P.drinkMana(run, h);
     }
     // élixirs : au début des combats ou contre les gardiens
     if (run.inCombat) {
@@ -92,6 +104,10 @@
     if (id === 'heal') {
       const h = run.heroes.filter((x) => !x.dead).sort((a, b) => a.hp / a.stats.maxHp - b.hp / b.stats.maxHp)[0];
       return h ? P.drinkHeal(run, h) : false;
+    }
+    if (id === 'mana') {
+      const h = run.heroes.filter((x) => !x.dead).sort((a, b) => a.mp / a.stats.maxMp - b.mp / b.stats.maxMp)[0];
+      return h ? P.drinkMana(run, h) : false;
     }
     if (id === 'revive') { const h = run.heroes.find((x) => x.dead); return h ? P.revive(run, h) : false; }
     return P.buff(run, id);

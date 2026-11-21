@@ -4,7 +4,7 @@
 // =====================================================================
 (function () {
   const U = G.core.U, ui = G.ui, IT = G.sys.items, INV = G.sys.inventory, TV = G.sys.tavern, B = G.data.balance;
-  let selId = null;
+  let selId = null, view = 'equip';
   const pct = (v) => Math.round(v * 1000) / 10 + ' %';
 
   ui.xpBarHtml = function (h) {
@@ -68,9 +68,9 @@
       for (const e in s.res) add(G.data.elements[e].icon + ' Résist. ' + G.data.elements[e].name.toLowerCase(), pct(s.res[e]));
       h += '<div class="panel"><div class="row"><img alt="" class="portrait" src="' + G.render.spriteURL(c.sprite, 5) + '"><div style="flex:1;min-width:0"><h2 style="margin:0">' + U.esc(hero.name) + '</h2>' +
         '<span class="tag">' + c.name + '</span><span class="tag">' + G.data.roles[c.role] + '</span>' + ui.qualityTag(hero) + (inTeam ? '' : '<span class="tag">Réserve</span>') +
-        '<div style="margin-top:6px"><b>Niveau ' + hero.level + '</b>' + (hero.sp ? ' <span class="muted small">· ' + hero.sp + ' point(s) de compétence (phase 4)</span>' : '') + ui.xpBarHtml(hero) + '</div></div></div>' +
+        '<div style="margin-top:6px"><b>Niveau ' + hero.level + '</b>' + (hero.sp ? ' <span class="small" style="color:var(--gold)">· ' + hero.sp + ' point(s) de compétence</span>' : '') + ui.xpBarHtml(hero) + '</div></div></div>' +
         '<div class="stat-grid" style="margin-top:8px">' +
-        '<div>PV <b>' + U.fmt(s.maxHp) + '</b></div><div>' + (magic ? 'Puissance mag.' : 'Attaque') + ' <b>' + Math.round(magic ? s.matk : s.atk) + '</b></div>' +
+        '<div>PV <b>' + U.fmt(s.maxHp) + '</b></div><div>Mana <b>' + U.fmt(s.maxMp) + '</b></div><div>' + (magic ? 'Puissance mag.' : 'Attaque') + ' <b>' + Math.round(magic ? s.matk : s.atk) + '</b></div>' +
         '<div>Défense <b>' + Math.round(s.def) + '</b></div><div>Vitesse <b>' + Math.round(s.spd) + '</b></div>' +
         '<div>Force <b>' + Math.round(s.str) + '</b></div><div>Agilité <b>' + Math.round(s.agi) + '</b></div>' +
         '<div>Intelligence <b>' + Math.round(s.int) + '</b></div><div>Critique <b>' + pct(s.crit) + '</b></div>' +
@@ -81,6 +81,10 @@
         ' · Armures : ' + G.data.classGear[hero.cls].armor.map((w) => ({ heavy: 'lourdes', medium: 'moyennes', light: 'légères' }[w])).join(', ') + '</p>' +
         (!inTeam ? '<button class="pxbtn small danger" id="tm-dismiss"' + (TV.canDismiss(hero) ? '' : ' disabled') + '>Renvoyer ce héros</button>' : '') + '</div>';
 
+      h += '<div class="subtabs"><button class="pxbtn small ' + (view === 'equip' ? 'sel' : '') + '" data-v="equip">🛡️ Équipement</button>' +
+        '<button class="pxbtn small ' + (view === 'skills' ? 'sel' : '') + '" data-v="skills">✨ Compétences' + (hero.sp ? ' <span class="dot">' + hero.sp + '</span>' : '') + '</button></div>';
+      if (view === 'skills') h += ui.skillTreeHtml(hero);
+      else {
       h += '<div class="panel"><h3>Équipement</h3><div class="equip-grid">';
       for (const slot of G.data.slotOrder) {
         const it = hero.equip[slot];
@@ -94,6 +98,7 @@
         }
       }
       h += '</div><div class="row" style="margin-top:10px"><button class="pxbtn primary" style="flex:1" id="tm-auto">⚡ Équiper le meilleur</button></div></div>';
+      }
       h += compositionHtml() + synergiesHtml();
       el.innerHTML = h;
 
@@ -105,7 +110,9 @@
         else ui.slotPicker(hero, slot, rer);
       }));
       ui.bindOptimize('tm-opt', rer);
-      U.$('#tm-auto').onclick = () => { const n = INV.autoEquip(hero); ui.toast(n ? n + ' objet(s) équipé(s)' : 'Déjà le meilleur équipement du sac'); rer(); };
+      el.querySelectorAll('[data-v]').forEach((b) => (b.onclick = () => { view = b.dataset.v; rer(); }));
+      if (view === 'skills') ui.bindSkillTree(el, hero, rer);
+      else U.$('#tm-auto').onclick = () => { const n = INV.autoEquip(hero); ui.toast(n ? n + ' objet(s) équipé(s)' : 'Déjà le meilleur équipement du sac'); rer(); };
       el.querySelectorAll('[data-tog]').forEach((b) => (b.onclick = () => {
         const r = TV.toggle(b.dataset.tog);
         if (r === 'max') ui.toast('Équipe complète (' + TV.teamSize() + ' max)', 'danger');

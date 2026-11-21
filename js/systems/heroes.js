@@ -11,7 +11,7 @@
     const used = new Set(st.heroes.map((h) => h.name));
     const pool = G.data.heroNames.filter((n) => !used.has(n));
     const name = rng.pick(pool.length ? pool : G.data.heroNames);
-    const h = { id: 'h' + (st.nextId++), name, cls, level: 1, xp: 0, sp: 0, quality: 'common', equip: {} };
+    const h = { id: 'h' + (st.nextId++), name, cls, level: 1, xp: 0, sp: 0, quality: 'common', equip: {}, skills: {}, skillOrder: [], skillRules: {} };
     st.heroes.push(h);
     return h;
   };

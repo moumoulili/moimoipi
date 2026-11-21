@@ -6,7 +6,7 @@
 // =====================================================================
 (function () {
   const KEY = 'moimoipi-save';
-  const VERSION = 4;
+  const VERSION = 5;
   const S = {};
 
   S.fresh = function () {
@@ -21,13 +21,13 @@
       town: { buildings: { portal: 0 } },
       inventory: [], materials: { scrap: 0, dust: 0, ether: 0 },
       potions: Object.assign({}, G.data.balance.startPotions),
-      potionRules: { heal: 0.3, revive: true, buffs: { might: 'boss', stone: 'boss', haste: 'never' } },
+      potionRules: { heal: 0.3, mana: 0.15, revive: true, buffs: { might: 'boss', stone: 'boss', haste: 'never' } },
       shop: { items: [], refreshAt: 0 },
       tavern: { recruits: [], refreshAt: 0 },
       progress: { maxFloor: 0, maxCheckpoint: 0 },
       stats: { kills: 0, totalGold: 0, runs: 0, deaths: 0 },
       settings: { checkpointMode: 'ask', autoRestart: true, speed: 1, vibrate: true, flashes: true, startFloor: 1,
-        autoSell: { maxRarity: -1, action: 'sell', keepUpgrades: true }, autoEquip: false, autoOptimize: false },
+        autoSell: { maxRarity: -1, action: 'sell', keepUpgrades: true }, autoEquip: false, autoOptimize: false, autoSkills: false },
       // réservé aux phases suivantes : inventory, equipment, town, quests, bestiary, prestige...
     };
   };
@@ -40,6 +40,8 @@
     2: (st) => { for (const h of st.heroes) h.equip = h.equip || {}; },
     // v3 -> v4 : niveaux/XP, qualité des recrues, taverne
     3: (st) => { for (const h of st.heroes) { h.quality = h.quality || 'common'; h.sp = (h.sp || 0) + (h.level - 1); } },
+    // v4 -> v5 : compétences (les points déjà gagnés sont conservés)
+    4: (st) => { for (const h of st.heroes) { h.skills = h.skills || {}; h.skillOrder = h.skillOrder || []; h.skillRules = h.skillRules || {}; } },
   };
   function migrate(st) {
     while (st.v < VERSION) { migrations[st.v](st); st.v++; }
@@ -49,7 +51,7 @@
     for (const k in def.settings) if (st.settings[k] === undefined) st.settings[k] = def.settings[k];
     for (const k in def.stats) if (st.stats[k] === undefined) st.stats[k] = def.stats[k];
     if (!st.town.buildings) st.town.buildings = {};
-    for (const h of st.heroes) { if (!h.equip) h.equip = {}; if (!h.quality) h.quality = 'common'; if (h.sp == null) h.sp = 0; if (h.xp == null) h.xp = 0; }
+    for (const h of st.heroes) { h.skills = h.skills || {}; h.skillOrder = h.skillOrder || []; h.skillRules = h.skillRules || {}; if (!h.equip) h.equip = {}; if (!h.quality) h.quality = 'common'; if (h.sp == null) h.sp = 0; if (h.xp == null) h.xp = 0; }
     for (const k in def.settings.autoSell) if (st.settings.autoSell[k] === undefined) st.settings.autoSell[k] = def.settings.autoSell[k];
     for (const k in def.potionRules) if (st.potionRules[k] === undefined) st.potionRules[k] = def.potionRules[k];
     for (const k in def.progress) if (st.progress[k] === undefined) st.progress[k] = def.progress[k];

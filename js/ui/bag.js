@@ -46,6 +46,7 @@
         const p = G.data.potions[id];
         let rule = '';
         if (id === 'heal') rule = '<select data-rule="heal">' + [0, 0.2, 0.3, 0.4, 0.5, 0.6].map((v) => '<option value="' + v + '"' + (Math.abs(R.heal - v) < 0.001 ? ' selected' : '') + '>' + (v ? 'Sous ' + v * 100 + ' % de PV' : 'Jamais (manuel)') + '</option>').join('') + '</select>';
+        else if (id === 'mana') rule = '<select data-rule="mana">' + [0, 0.15, 0.25, 0.35].map((v) => '<option value="' + v + '"' + (Math.abs(R.mana - v) < 0.001 ? ' selected' : '') + '>' + (v ? 'Sous ' + v * 100 + ' % de mana (en combat)' : 'Jamais (manuel)') + '</option>').join('') + '</select>';
         else if (id === 'revive') rule = '<select data-rule="revive"><option value="1"' + (R.revive ? ' selected' : '') + '>Automatique</option><option value="0"' + (R.revive ? '' : ' selected') + '>Manuel</option></select>';
         else rule = '<select data-rule="' + id + '">' + [['never', 'Jamais (manuel)'], ['boss', 'Contre les gardiens'], ['combat', 'À chaque combat']].map(([v, n]) => '<option value="' + v + '"' + (R.buffs[id] === v ? ' selected' : '') + '>' + n + '</option>').join('') + '</select>';
         h += '<div class="potion-row"><img alt="" src="' + G.render.potionIconURL(id, 3) + '"><div class="info"><b>' + p.name + '</b> <span class="muted">×' + (st.potions[id] || 0) + ' / ' + G.sys.shop.maxPotions() + '</span><div class="muted small">' + p.desc + '</div>' + rule + '</div></div>';
@@ -72,7 +73,7 @@
       const ao = U.$('#bg-ao'); ao.checked = st.settings.autoOptimize; ao.onchange = () => { st.settings.autoOptimize = ao.checked; G.core.save.save(); };
       el.querySelectorAll('[data-rule]').forEach((sel) => (sel.onchange = () => {
         const k = sel.dataset.rule;
-        if (k === 'heal') R.heal = +sel.value; else if (k === 'revive') R.revive = sel.value === '1'; else R.buffs[k] = sel.value;
+        if (k === 'heal') R.heal = +sel.value; else if (k === 'mana') R.mana = +sel.value; else if (k === 'revive') R.revive = sel.value === '1'; else R.buffs[k] = sel.value;
         G.core.save.save();
       }));
       U.$('#bg-shop').onclick = () => { ui.show('town'); setTimeout(() => { const s2 = U.$('#tw-shop'); s2 && s2.scrollIntoView({ behavior: 'smooth' }); }, 50); };

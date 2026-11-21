@@ -8,9 +8,9 @@ G.data.balance = {
   speeds: [1, 2, 4],       // vitesses disponibles
 
   // --- Puissance des monstres selon l'étage f ---
-  // étage 1 = x1, étage 10 ≈ x3,3, étage 50 ≈ x95, étage 100 ≈ x2200
-  floorMult: (f) => (1 + 0.12 * (f - 1)) * Math.pow(1.055, f - 1),
-  monsterBase: { hp: 40, atk: 9, def: 4, spd: 100 },
+  // étage 1 = x1, étage 10 ≈ x3,8, étage 30 ≈ x22, étage 50 ≈ x150
+  floorMult: (f) => (1 + 0.12 * (f - 1)) * Math.pow(1.065, f - 1),
+  monsterBase: { hp: 46, atk: 10, def: 4, spd: 100 },
   eliteChance: 0.16,
   elite: { hp: 3, atk: 1.4, gold: 3 },
   guardian: {               // mini-boss (tous les 5 étages) et boss (tous les 10)
@@ -84,6 +84,14 @@ G.data.balance = {
   levelUpHeal: 0.25,       // % de PV rendus en montant de niveau pendant une expédition
   skillPointsPerLevel: 1,  // utilisés en phase 4 (arbres de compétences)
   benchXp: 0.25,           // les héros en réserve reçoivent 25 % de l'XP
+
+  // --- Compétences et mana (phase 4) ---
+  manaRegen: (maxMp) => 1 + maxMp * 0.02,     // mana par seconde
+  mpPerInt: 2,                                 // 1 point d'intelligence = +2 mana max
+  skillLock: 0.35,                             // délai après une compétence (animation)
+  respecPrice: (lvl) => Math.round(80 * Math.pow(lvl, 1.5)),
+  dotTick: 0.5,                                // les dégâts sur la durée tombent toutes les 0,5 s
+  ccResistBoss: 0.5,                           // les gardiens subissent les contrôles 2x moins longtemps
 
   // --- Taverne (phase 3) ---
   teamSize: 4,             // la taverne améliorée passera à 5 puis 6 (phase 7)

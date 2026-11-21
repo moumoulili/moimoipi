@@ -28,23 +28,28 @@ le joueur gère l'équipe, l'équipement, la ville et la progression.
 js/core/    namespace, utils (fmt, $), rng (graine), bus (événements), save, loop (pas fixes 30/s × vitesse)
 js/data/    balance, elements, classes, monsters, biomes, rooms, names, buildings,
             rarities, items (emplacements, bases, classGear), affixes (+ pouvoirs mythiques), uniques, potions, materials,
-            synergies (conditions classes/rôles + bonus + cible), recruits (qualités des recrues)
+            synergies (conditions classes/rôles + bonus + cible), recruits (qualités des recrues),
+            skills (40 compétences : 2 branches × 4 rangées par classe, actives/passives/ultimes, règles par défaut),
+            effects (statuts + effets d'impact des éléments)
 js/render/  pixelart (modèles), itemart (icônes d'objets + palettes, g = couleur de rareté), sprites (cache, miroir, flash blanc), tiles (textures + pré-rendu carte),
             fx (textes, particules, impacts par élément, arcs, anneaux, rayons, éclats de pixels, flash),
             font (chiffres 3x5), renderer (caméra, lumière, brouillard, couche lumineuse additive après l'obscurité)
 js/systems/ path (A*, BFS, ligne de vue), items (création/nom/stats/prix), synergy (synergies actives + bonusesFor(hero) =
             point d'entrée des bonus hors équipement : y brancher passifs/ville/rebirth), stats (classe+niveau×qualité+équipement+bonus+élixirs),
             xp (gain par victime, écart de niveau, montée de niveau), tavern (recrues, embauche, renvoi, composition),
+            effects (statuts : DoT, contrôles, buffs, boucliers, provocation ; mods()), skills (arbre, passifs, règles,
+            tryCast/cast ; run.pending = événements programmés pour vagues/délais),
             heroes, dungeon (génération), combat (IA temps réel), inventory (sac, vente, recyclage, score, auto-équipement),
             loot (drops), potions (auto + manuel, élixirs = run.buffs), shop, town (bâtiments, départs), run (expédition)
 js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjon + barre de potions), items (case, fiche,
-            comparaison, sélecteur d'emplacement), team (héros : niveau/XP/stats/équipement, composition, synergies, fenêtre taverne), bag (sac, tri auto, potions), town (+ boutique), settings
+            comparaison, sélecteur d'emplacement), team (héros : niveau/XP/stats, sous-onglets Équipement/Compétences, composition,
+            synergies, fenêtre taverne), skills (arbre, fiche compétence, priorités), bag (sac, tri auto, potions), town (+ boutique), settings
 ```
 - Simulation séparée du rendu : `G.sys.run.update(dt)` est déterministe en temps de jeu
   (aucun `setTimeout` dans la logique) → testable en accéléré, utilisable pour hors-ligne/auto-farm.
 - Événements émis (`G.core.bus`) : `floor:enter`, `monster:kill`, `boss:kill`, `chest:open`, `run:end`
   → à brancher pour quêtes, succès, bestiaire.
-- État sauvegardé `G.state` (v4) : gold, heroes[{id,name,cls,level,xp,sp,quality,equip{slot:item}}] (= toute la compagnie), team[ids] (ordre = formation),
+- État sauvegardé `G.state` (v5) : gold, heroes[{id,name,cls,level,xp,sp,quality,equip{slot:item},skills{id:rang},skillOrder[],skillRules{id:{mode,value}}}] (= toute la compagnie), team[ids] (ordre = formation),
   tavern {recruits, refreshAt}, run (étage, or, PV, graine),
   progress {maxFloor, maxCheckpoint}, stats, settings (+autoSell, autoEquip), town, inventory[], materials, potions,
   potionRules {heal: seuil, revive, buffs{id:'never'|'boss'|'combat'}}, shop {items, refreshAt}.
@@ -68,7 +73,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
   Assassin/Saboteur → Faucheur/Maître saboteur.
 
 ## Formules (balance.js)
-- Monstre de base 40 PV / 9 ATQ / 4 DEF. Puissance : `(1 + 0,12(f-1)) × 1,055^(f-1)` ; élite (16 %) ×3 PV ×1,4 ATQ ;
+- Monstre de base 46 PV / 10 ATQ / 4 DEF. Puissance : `(1 + 0,12(f-1)) × 1,065^(f-1)` (relevée en phase 4 pour compenser les compétences) ; élite (16 %) ×3 PV ×1,4 ATQ ;
   mini-boss ×8 PV ×1,5 ATQ ; boss ×18 PV ×1,8 ATQ. 2-4 monstres/salle (+1 tous les 6 étages). L'escalier ne rend aucun PV.
 - Réduction défense : `DEF / (DEF + 50 + 10 × niv. attaquant)`, max 75 % ; magie ignore 50 % DEF.
 - Élément : faiblesse ×1,5, résistance ×0,5. Critique 5 % + AGI×0,1 % (×1,5). Esquive AGI×0,05 % (max 30 %).
@@ -77,6 +82,11 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 - XP (ralentie à la demande de l'utilisateur) : niveau suivant `100 × N^2,3`, monstre `4 × niv^1,3` (élite ×2,5, mini-boss ×6, boss ×12),
   à chaque héros vivant. Héros au-dessus du monstre : −12 %/niveau (min 5 %) ; en dessous : +5 %/niveau (max +50 %). Réserve : 25 % de l'XP.
   Montée de niveau en expédition : +25 % PV. 1 point de compétence / niveau (stocké pour la phase 4). Niveau max 100.
+- Compétences : rangée r = r×3 points dans la branche + nœud précédent. Mana max = base + 2×INT ; régén. `1 + 2 %·max`/s.
+  Règles : always/never/boss (élites+gardiens)/enemies N/allyHp/teamHp/selfHp/targetHp X %/allyDead. Réinitialisation `80 × niv^1,5` or.
+  Option « répartir automatiquement » (settings.autoSkills). Contrôles 2× plus courts sur les gardiens.
+- Éléments à l'impact : feu brûlure 20 %, glace ralenti 25 % (gel 8 %), foudre étourdit 10 %, terre armure brisée 15 %,
+  ombre affaiblit 20 %, lumière +30 % contre morts-vivants/démons ; chance × (1 − résistance).
 - Recrues : qualité Ordinaire 70 % / Doué 25 % (+12 % de gains par niveau) / Héroïque 5 % (+25 %) ; niveau = moyenne équipe − 0..3 ;
   prix `150 × (1+niv)^1,6 × (1 / 2,2 / 5)`. Équipe 4, compagnie 8 (la taverne améliorée en phase 7 augmentera).
 - 10 synergies (data/synergies.js), ex. tank+soigneur +15 % déf., 2 mages +12 % dégâts des mages, 4 rôles distincts +5 % PV/dégâts.
@@ -101,7 +111,8 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
       d'expédition + option « optimiser à chaque retour en ville ». Thème visuel fantasy.
 - [x] **Phase 3** : XP et niveaux (barres d'XP, effets, récap), taverne (3 recrues / 30 min, qualités, renvoi), compagnie
       de 8 avec réserve, composition et ordre de l'équipe, 10 synergies, voleur recrutable.
-- [ ] Phase 4 : compétences, arbres, priorités, éléments complets
+- [x] **Phase 4** : 40 compétences (actives, passives, 5 ultimes), arbres à 2 branches avec prérequis, points de compétence,
+      réinitialisation, répartition auto, priorités réglables, mana + potion de mana, 10 effets de statut, effets des éléments.
 - [ ] Phase 5 : mécaniques de boss, salles spéciales, biomes visibles
 - [ ] Phase 6 : évolutions de classe, sets, forge
 - [ ] Phase 7 : ville améliorable, hors ligne, auto-farm
@@ -111,7 +122,7 @@ js/ui/      ui (onglets, modales, toasts, journal, bannière), hud (écran donjo
 
 ## Tests
 Serveur local : `python3 -m http.server 8765` puis Playwright en viewport mobile. Simulation accélérée possible :
-`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 3 (joueur simulé : optimise, vend, achète potions + Portail) : niveau des héros ≈ 0,6-0,8 × étage ; ét. 7 au 1er essai,
-~19 après 4, ~25 après 15 (niveaux 21).
+`for (...) G.sys.run.update(1/30)` dans `page.evaluate`. Phase 4 (joueur simulé : optimise, vend, potions, Portail, compétences auto) : ét. 10 au 1er essai, ~21 après 4,
+~33 après 15 (niveaux 28), mur vers 33-35.
 L'or s'accumule sans débouché au-delà du Portail : la forge (phase 6) et la ville (phase 7) l'absorberont.
 Attention : recharger la page déclenche une sauvegarde (pagehide) ; neutraliser `G.core.save.save` avant d'éditer localStorage dans un test.

@@ -43,7 +43,7 @@
       const gain = base * X.gapMult(h.level, m.level);
       run.track(h.id, 'xp', gain);
       const ups = X.add(h, gain);
-      if (ups) { leveled.push(h); onLevelUp(run, u, h, ups); }
+      if (ups) { leveled.push(h); if (G.state.settings.autoSkills) G.sys.skills.autoSpend(h); onLevelUp(run, u, h, ups); }
     }
     // réserve
     const bench = G.state.heroes.filter((h) => G.state.team.indexOf(h.id) < 0);

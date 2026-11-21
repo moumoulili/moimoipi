@@ -29,16 +29,17 @@
     }
     // bonus hors équipement : synergies (et plus tard passifs, ville, rebirth)
     if (G.sys.synergy) { const gb = G.sys.synergy.bonusesFor(hero); for (const k in gb) add[k] = (add[k] || 0) + gb[k]; }
+    if (G.sys.skills && hero.skills) { const pb = G.sys.skills.passiveBonuses(hero); for (const k in pb) add[k] = (add[k] || 0) + pb[k]; }
     const A = (k) => add[k] || 0;
     const st = {
       str: g('str') + A('str'), agi: g('agi') + A('agi'), int: g('int') + A('int'),
       spd: g('spd') + A('spd'),
     };
     st.maxHp = Math.round((g('hp') + A('hp')) * (1 + A('hpPct')));
-    st.maxMp = Math.round(g('mp'));
+    st.maxMp = Math.round(g('mp') + st.int * B.mpPerInt + A('mp'));
     st.def = (g('def') + A('def')) * (1 + A('defPct') + (buffs.defPct || 0));
     st.atk = B.statToAtk * st[c.attack.stat] + B.unarmedDmg + (wtype === 'phys' ? wdmg : 0) + A('atk');
-    st.matk = B.statToAtk * st.int + B.unarmedDmg + (wtype === 'magic' ? wdmg : 0) + A('matk');
+    st.matk = (B.statToAtk * st.int + B.unarmedDmg + (wtype === 'magic' ? wdmg : 0) + A('matk')) * (1 + A('matkPct'));
     st.crit = Math.min(B.critCap, g('crit') + st.agi * B.critPerAgi + A('crit'));
     st.critDmg = B.critDmg + A('critDmg');
     st.dodge = Math.min(B.dodgeCap, st.agi * B.dodgePerAgi + A('dodge'));
@@ -53,6 +54,9 @@
       if (A('el_' + el)) { st.elemDmg[el] = A('el_' + el); if (A('el_' + el) > mainV) { mainV = A('el_' + el); mainEl = el; } }
     }
     st.mainEl = mainEl;
+    st.elAmp = {};
+    for (const el of ELS) if (A('elAmp_' + el)) st.elAmp[el] = A('elAmp_' + el);
+    st.burnPct = A('burnPct'); st.manaCost = Math.max(-0.6, A('manaCost'));
     st.lifesteal = A('lifesteal'); st.thorns = A('thorns'); st.echo = Math.min(0.75, A('echo'));
     st.bossDmg = A('bossDmg'); st.onKillHeal = A('onKillHeal');
     st.goldFind = A('goldFind'); st.magicFind = A('magicFind');
@@ -69,7 +73,7 @@
       def: b.def * mdef.def * m * (mods.def || 1),
       spd: b.spd * (mdef.spd / 100) * (mods.spd || 1),
       crit: 0.05, critDmg: 1.5, dodge: mdef.dodge || 0, res: {}, elemDmg: {}, dmgMult: 1,
-      wspd: 1, atkSpd: 0, lifesteal: 0, thorns: 0, echo: 0, bossDmg: 0, onKillHeal: 0,
+      wspd: 1, atkSpd: 0, lifesteal: 0, thorns: 0, echo: 0, bossDmg: 0, onKillHeal: 0, elAmp: {}, burnPct: 0,
     };
     st.matk = st.atk;
     return st;

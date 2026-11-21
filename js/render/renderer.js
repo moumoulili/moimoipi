@@ -62,6 +62,30 @@
       const cr = G.render.getSprite({ tpl: 'crown', pal: { c: '#ffd34d', w: '#ff3b3b' } });
       ctx.drawImage(cr.img, Math.round(px + w / 2 - 3.5), py - 4);
     }
+    // effets de statut : bouclier, étourdissement, petites pastilles
+    if (u.effects && u.effects.length) {
+      const cx = Math.round(u.x * T - cam.x);
+      let pip = 0;
+      for (const e of u.effects) {
+        if (e.id === 'shield') {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.strokeStyle = 'rgba(255,243,168,' + (0.35 + Math.sin(time * 6) * 0.15) + ')';
+          ctx.beginPath(); ctx.ellipse(cx, Math.round(u.y * T - 4 - cam.y), 8 * sc, 9 * sc, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalCompositeOperation = 'source-over';
+        } else if (e.id === 'stun' || e.id === 'freeze') {
+          for (let k = 0; k < 3; k++) {
+            const a = time * 6 + (k * Math.PI * 2) / 3;
+            ctx.fillStyle = e.id === 'freeze' ? '#bfefff' : '#ffe14d';
+            ctx.fillRect(Math.round(cx + Math.cos(a) * 5), Math.round(py - 3 + Math.sin(a) * 1.5), 1, 1);
+          }
+          if (e.id === 'freeze') { ctx.fillStyle = 'rgba(160,220,255,0.35)'; ctx.fillRect(px, py, w, h); }
+        } else if (e.id === 'taunt') {
+          ctx.fillStyle = '#ff4040'; ctx.fillRect(cx - 1 + 6, py - 4, 1, 3); ctx.fillRect(cx - 1 + 6, py, 1, 1);
+        }
+        const col = G.data.effects[e.id] && G.data.effects[e.id].color;
+        if (col && e.id !== 'shield' && e.id !== 'taunt') { ctx.fillStyle = col; ctx.fillRect(Math.round(px + pip * 3), py + h + 1, 2, 2); pip++; }
+      }
+    }
     // barre de vie
     const showBar = u.hp < u.stats.maxHp || (u.side === 'monster' && u.aggro);
     if (showBar) {
@@ -88,6 +112,7 @@
     const x = Math.round(p.x * T - cam.x), y = Math.round(p.y * T - cam.y);
     const dx = Math.cos(p.ang || 0), dy = Math.sin(p.ang || 0);
     if (p.kind === 'arrow') {
+      if (p.big) { ctx.globalCompositeOperation = 'lighter'; glow(x, y, 7, 'rgba(255,240,200,0.5)'); ctx.globalCompositeOperation = 'source-over'; }
       ctx.fillStyle = '#e8e0c8';
       for (let i = 0; i < 6; i++) ctx.fillRect(Math.round(x - dx * i), Math.round(y - dy * i), 1, 1);
       ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(x + dx), Math.round(y + dy), 1, 1);
@@ -95,9 +120,10 @@
       return;
     }
     const col = G.render.fx.colorOf(p.el);
-    const pulse = 1 + Math.sin(p.age * 30) * 0.25;
+    const pulse = (1 + Math.sin(p.age * 30) * 0.25) * (p.big ? 1.6 : 1);
     ctx.globalCompositeOperation = 'lighter';
     glow(x, y, 9 * pulse, hexA(col, 0.55));
+    if (p.big) { ctx.fillStyle = col; ctx.fillRect(x - 2, y - 2, 5, 5); }
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = col;
     if (p.kind === 'ice') { // éclat en losange

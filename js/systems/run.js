@@ -33,7 +33,7 @@
   function build(saved) {
     const run = {
       saved, heroes: [], monsters: [], units: [], projectiles: [], trail: [],
-      goal: null, goalT: 0, state: 'explore', stats: saved.heroStats || {}, t: 0, revealT: 0, inCombat: false, buffs: {},
+      goal: null, goalT: 0, state: 'explore', stats: saved.heroStats || {}, t: 0, revealT: 0, inCombat: false, buffs: {}, pending: [],
     };
     saved.heroStats = run.stats;
     run.track = function (id, k, v) {
@@ -68,7 +68,7 @@
     run.monsters = map.spawns.map((sp) => C.monsterUnit(sp, floor));
     run.units = run.heroes.concat(run.monsters);
     teamBonuses(run);
-    run.projectiles = []; run.trail = []; run.goal = null; run.state = 'explore';
+    run.projectiles = []; run.trail = []; run.goal = null; run.state = 'explore'; run.pending = [];
     revealRoom(map, e);
     reveal(run);
     G.render.onFloor && G.render.onFloor(run);
@@ -95,6 +95,8 @@
       const ratio = u.hp / u.stats.maxHp;
       u.stats = G.sys.stats.hero(h, { buffs });
       u.level = h.level;
+      G.sys.skills.buildUnit(u, h);
+      u.mp = Math.min(u.mp, u.stats.maxMp);
       if (!u.dead) u.hp = Math.max(1, Math.round(ratio * u.stats.maxHp));
       if (u.levelHeal && !u.dead) { u.hp = Math.min(u.stats.maxHp, u.hp + u.stats.maxHp * B.levelUpHeal); u.levelHeal = false; }
     }
@@ -371,6 +373,11 @@
     run.t += dt;
     for (const u of run.units) {
       u.cd -= dt; if (u.healCd > 0) u.healCd -= dt; if (u.ghostT > 0) u.ghostT -= dt;
+      if (u.side === 'hero' && !u.dead) {
+        if (u.skillLock > 0) u.skillLock -= dt;
+        for (const k in u.skillCd) if (u.skillCd[k] > 0) u.skillCd[k] -= dt;
+        u.mp = Math.min(u.stats.maxMp, u.mp + B.manaRegen(u.stats.maxMp) * dt);
+      }
       u.anim.hit -= dt; u.anim.atk -= dt;
       u.anim.bob += dt * (u.moving ? 12 : 3);
       if (u.dead && u.deadT > 0) u.deadT -= dt;
@@ -395,6 +402,13 @@
     if (run.state !== 'explore') return;
     for (const m of run.monsters) if (!m.dead) C.monsterAI(run, m, dt);
     C.updateProjectiles(run, dt);
+    G.sys.effects.update(run, dt);
+    // événements programmés (vagues, météore...)
+    if (run.pending.length) {
+      const due = [];
+      for (const p of run.pending) { p.t -= dt; if (p.t <= 0) due.push(p); }
+      if (due.length) { run.pending = run.pending.filter((p) => p.t > 0); for (const p of due) p.fn(); }
+    }
     G.sys.potions.update(run, dt);
     C.separate(run);
     checkTraps(run);
